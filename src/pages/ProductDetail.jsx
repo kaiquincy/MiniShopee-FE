@@ -30,7 +30,7 @@ export default function ProductDetail() {
       <VStack align="start" spacing={3} flex={1}>
         <Heading size="lg">{p.name}</Heading>
         <HStack>
-          <Text fontSize="2xl" fontWeight="bold" color="brand.700">{p.price?.toLocaleString()} ₫</Text>
+          <Text fontSize="2xl" fontWeight="bold" color="brand.700">{p.price?.toLocaleString()} USD</Text>
           {p.discountPrice && <Badge colorScheme="red">-{Math.round(100-(p.discountPrice/p.price)*100)}%</Badge>}
         </HStack>
         <HStack color="gray.500">
@@ -41,8 +41,8 @@ export default function ProductDetail() {
           <Button onClick={async()=>{
             await addToCart(p.id, 1); 
             toaster.create({ title:'Đã thêm vào giỏ', status:'success' })
-          }}>Thêm vào giỏ</Button>
-          <Button variant="outline" onClick={()=>window.history.back()}>Quay lại</Button>
+          }}>Add To Cart</Button>
+          <Button variant="outline" onClick={()=>window.history.back()}>Back</Button>
         </HStack>
 
         <Box mt={6} w="full">

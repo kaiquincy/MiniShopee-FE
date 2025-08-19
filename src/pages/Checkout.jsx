@@ -11,18 +11,20 @@ export default function Checkout() {
 
   const doPay = async()=>{
     try {
-      const msg = await placeOrder(method) // backend của bạn tự initiate nếu PAYOS
-      // Thử gọi initiate riêng để lấy link (nếu cần)
-      try {
-        const r = await initiatePayment(method)
-        const link = r?.checkoutUrl || r?.result?.checkoutUrl || r?.paymentUrl
-        if (link) window.location.href = link
-      } catch {
-        // nếu không có link, chỉ thông báo
+      const res = await placeOrder(method) // backend của bạn tự initiate nếu PAYOS
+      const result = res?.result || res
+      const link = result?.paymentLink
+      const orderId = result?.orderId
+      // PAYOS: có link -> redirect
+      if (link) {
+        window.location.assign(link)
+        return
       }
+       // Method khác: không có link -> chỉ toast
       toaster.create({ title: msg || 'Đặt hàng thành công', status:'success' })
     } catch(e) {
       toaster.create({ title: 'Thanh toán thất bại', status:'error' })
+      console.error(e)
     }
   }
 

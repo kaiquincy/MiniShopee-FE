@@ -34,10 +34,10 @@ const tokensConfig = defineConfig({
     // ===== Global CSS (v3 dùng globalCss) =====
     globalCss: {
       'html, body, #root': { height: '100%' },
-      body: { bg: 'gray.50' },
+      body: { bg: 'red.50' },
       '.glass': {
         backdropFilter: 'saturate(180%) blur(10px)',
-        background: 'rgba(255,255,255,0.66)',
+        background: 'rgba(1,255,255,0.5)',
         boxShadow: '0 10px 30px rgba(2, 32, 71, 0.08)',
       },
       // Tùy chọn: đặt mặc định color palette toàn app là "brand"

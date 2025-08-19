@@ -4,7 +4,7 @@ import Header from './Header'
 
 export default function Layout() {
   return (
-    <Box minH="100vh">
+    <Box minH="100vh" >
       <Header />
       <Container maxW="7xl" py={6}>
         <Outlet />
