@@ -10,6 +10,7 @@ import Orders from './pages/Orders.jsx'
 import Notifications from './pages/Notifications.jsx'
 import Chat from './pages/Chat.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import SellerApp from './seller/SellerApp'
 
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
         </Route>
         <Route path="/login" element={<Login/>} />
         <Route path="/register" element={<Register/>} />
+        <Route path="/seller/*" element={<SellerApp/>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
