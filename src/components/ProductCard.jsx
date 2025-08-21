@@ -5,7 +5,7 @@ export default function ProductCard({ p, onAdd }) {
   return (
     <Box bg="white" p={3} borderRadius="md" className="glass" _hover={{ transform:'translateY(-2px)' }} transition=".2s">
       <Link to={`/product/${p.id}`}>
-        <Image src={p.imageUrl || 'https://via.placeholder.com/400x300?text=Product'} alt={p.name} borderRadius="md" />
+        <Image src={import.meta.env.VITE_API_URL + "/uploads/" + p.imageUrl || 'https://via.placeholder.com/400x300?text=Product'} alt={p.name} borderRadius="md" />
         <Text mt={2} fontWeight="semibold" noOfLines={2}>{p.name}</Text>
       </Link>
       

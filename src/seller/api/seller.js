@@ -32,7 +32,9 @@ export async function getProduct(id) {
 }
 
 export async function updateProduct(id, payload) {
-  const { data } = await api.put(`/api/products/${id}`, payload)
+  const { data } = await api.put(`/api/products/${id}`, payload,{
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
   return data?.result
 }
 

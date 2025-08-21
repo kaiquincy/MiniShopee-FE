@@ -49,7 +49,7 @@ export default function SellerOrders() {
           <option value="">Tất cả trạng thái</option>
           {Object.keys(ALLOWED).map(s => <option key={s} value={s}>{s}</option>)}
         </Select.Root> */}
-        <Button onClick={load} isLoading={loading}>Tải lại</Button>
+        <Button onClick={load} isLoading={loading}>Reload</Button>
       </Flex>
 
       <Box bg="white" borderRadius="md" p={2} border="1px solid #eee">
@@ -68,7 +68,7 @@ export default function SellerOrders() {
                   <Text key={it.id} noOfLines={1}>• {it.productName} × {it.quantity}</Text>
                 ))}
                 {(o.items || []).length > 2 && <Text color="gray.500">…và {(o.items || []).length - 2} dòng nữa</Text>}
-                <Text mt={1} fontWeight="bold" color="brand.700">Tổng: {(o.grandTotal || 0).toLocaleString()} ₫</Text>
+                <Text mt={1} fontWeight="bold" color="brand.700">Total: {(o.totalAmount || 0).toLocaleString()} $</Text>
               </Box>
               <Box><StatusBadge s={o.status} /></Box>
               <Flex >
