@@ -22,7 +22,9 @@ export async function fetchProducts({ page=0, size=20, name } = {}) {
 }
 
 export async function createProduct(payload) {
-  const { data } = await api.post('/api/products', payload)
+  const { data } = await api.post('/api/products', payload, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
   return data?.result
 }
 

@@ -26,7 +26,7 @@ export default function ProductDetail() {
 
   return (
     <HStack align="start" spacing={8}>
-      <Image src={p.imageUrl || 'https://via.placeholder.com/600x400'} maxW="480px" borderRadius="md"/>
+      <Image src={import.meta.env.VITE_API_URL + "/uploads/" + p.imageUrl || 'https://via.placeholder.com/600x400'} maxW="480px" borderRadius="md"/>
       <VStack align="start" spacing={3} flex={1}>
         <Heading size="lg">{p.name}</Heading>
         <HStack>

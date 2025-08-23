@@ -19,7 +19,7 @@ export default function Cart() {
           <HStack key={it.id} justify="space-between" bg="white" p={3} borderRadius="md" className="glass">
             {/* Ảnh sản phẩm */}
             <Image 
-              src={it.productImageUrl || '/placeholder.png'} 
+              src={import.meta.env.VITE_API_URL + "/uploads/" + it.productImageUrl || '/placeholder.png'} 
               alt={it.productName} 
               boxSize="60px" 
               objectFit="cover" 

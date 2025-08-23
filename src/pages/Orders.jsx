@@ -145,7 +145,7 @@ function OrderCard({ order: o }) {
             {preview.map((it, idx) => (
               <Box key={idx} border="1px solid" borderColor="gray.200" rounded="md" overflow="hidden">
                 <ChakraImage
-                  src={it.imageUrl || it.productImageUrl || '/placeholder.png'}
+                  src={import.meta.env.VITE_API_URL + "/uploads/" + it.imageUrl || it.productImageUrl || '/placeholder.png'}
                   alt={it.productName}
                   boxSize="48px"
                   objectFit="cover"

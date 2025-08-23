@@ -7,7 +7,7 @@ import { useRef, useState } from 'react'
 
 export default function Header() {
   const nav = useNavigate()
-  const { token, logout } = useAuth()
+  const { token, logout, user } = useAuth()
   const { cartCount } = useCart()
 
   // ---- hover menu (có delay) ----
@@ -15,6 +15,8 @@ export default function Header() {
   const timerRef = useRef(null)
   const enter = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(true), 60) }
   const leave = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(false), 120) }
+
+  // console.log('User in header:', user.role)
 
   return (
     <Box position="sticky" top={0} zIndex={10} className="glass">
@@ -158,7 +160,21 @@ export default function Header() {
                       <ChakraText>My Orders</ChakraText>
                     </Menu.Item>
 
+
+                    {user?.role?.includes('ROLE_ADMIN') && (
+                      <Menu.Item
+                        value="seller"
+                        onClick={() => nav('/seller')}
+                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      >
+                        <Icon as={FiPackage} />
+                        <ChakraText>Seller Center</ChakraText>
+                      </Menu.Item>
+                    )}
+
                     <Separator my="2" />
+
 
                     <Menu.Item
                       value="logout"
@@ -180,9 +196,10 @@ export default function Header() {
               variant="ghost"
               colorPalette="gray"
               fontSize="20px"
-              icon={<Icon as={FiUser} />}
               onClick={() => nav('/login')}
-            />
+            >
+              <Icon as={FiUser} />
+            </IconButton>
           )}
         </Flex>
       </Box>
