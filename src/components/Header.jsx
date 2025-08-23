@@ -1,6 +1,6 @@
 import { Box, Flex, Heading, InputGroup, Input, IconButton, HStack, Icon, Badge, Menu, Separator, Text as ChakraText, Portal } from '@chakra-ui/react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FiSearch, FiBell, FiShoppingCart, FiMessageSquare, FiLogOut, FiUser, FiPackage } from 'react-icons/fi'
+import { FiSearch, FiBell, FiShoppingBag,FiShoppingCart, FiMessageSquare, FiLogOut, FiUser, FiPackage, FiBox } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useRef, useState } from 'react'
@@ -156,7 +156,7 @@ export default function Header() {
                       display="flex" alignItems="center" gap="3" px="3" py="2"
                       _hover={{ bg: 'gray.50', cursor: 'pointer' }}
                     >
-                      <Icon as={FiPackage} />
+                      <Icon as={FiShoppingBag} />
                       <ChakraText>My Orders</ChakraText>
                     </Menu.Item>
 
