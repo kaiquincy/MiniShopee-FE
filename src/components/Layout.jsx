@@ -1,5 +1,5 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { Box, Container, Flex } from '@chakra-ui/react'
+import { Box, Container } from '@chakra-ui/react'
+import { Outlet } from 'react-router-dom'
 import Header from './Header'
 
 export default function Layout() {

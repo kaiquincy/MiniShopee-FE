@@ -1,19 +1,23 @@
+import {
+  Flex,
+  SelectContent, SelectItem,
+  SelectRoot, SelectTrigger,
+  SelectValueText,
+  SimpleGrid,
+  Spinner
+} from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
- import {
-   SimpleGrid, Flex, Spinner,
-   SelectRoot, SelectTrigger, SelectContent, SelectItem, SelectValueText
- } from '@chakra-ui/react'
 import { useSearchParams } from 'react-router-dom'
+import { fetchProducts } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
 import ProductCard from '../components/ProductCard'
-import { fetchProducts } from '../api/products'
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
 
 
 
 
-export default function Home() {
+export default function Products() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState({ content: [], totalElements: 0 })
   const [category, setCategory] = useState(null)

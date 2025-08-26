@@ -1,15 +1,16 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
-import Home from './pages/Home.jsx'
-import Login from './pages/Login.jsx'
-import Register from './pages/Register.jsx'
-import ProductDetail from './pages/ProductDetail.jsx'
-import Cart from './pages/Cart.jsx'
-import Checkout from './pages/Checkout.jsx'
-import Orders from './pages/Orders.jsx'
-import Notifications from './pages/Notifications.jsx'
-import Chat from './pages/Chat.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import Cart from './pages/Cart.jsx'
+import Chat from './pages/Chat.jsx'
+import Checkout from './pages/Checkout.jsx'
+import LandingPage from './pages/LandingPage.jsx'
+import Login from './pages/Login.jsx'
+import Notifications from './pages/Notifications.jsx'
+import Orders from './pages/Orders.jsx'
+import ProductDetail from './pages/ProductDetail.jsx'
+import Products from './pages/Products.jsx'
+import Register from './pages/Register.jsx'
 import SellerApp from './seller/SellerApp'
 
 
@@ -18,7 +19,8 @@ export default function App() {
     <>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<LandingPage />} />
+          <Route path='products' element={<Products />}/>
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="cart" element={<ProtectedRoute><Cart/></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute><Checkout/></ProtectedRoute>} />
