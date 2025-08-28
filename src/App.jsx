@@ -12,6 +12,7 @@ import ProductDetail from './pages/ProductDetail.jsx'
 import Products from './pages/Products.jsx'
 import Register from './pages/Register.jsx'
 import SellerApp from './seller/SellerApp'
+import AccountAddresses from './pages/AccountAddresses'
 
 
 export default function App() {
@@ -27,10 +28,12 @@ export default function App() {
           <Route path="orders" element={<ProtectedRoute><Orders/></ProtectedRoute>} />
           <Route path="notifications" element={<ProtectedRoute><Notifications/></ProtectedRoute>} />
           <Route path="chat" element={<ProtectedRoute><Chat/></ProtectedRoute>} />
+          <Route path="account/addresses" element={<ProtectedRoute><AccountAddresses/></ProtectedRoute>} />
+        
+          <Route path="/login" element={<Login/>} />
+          <Route path="/register" element={<Register/>} />
+          <Route path="/seller/*" element={<SellerApp/>} />
         </Route>
-        <Route path="/login" element={<Login/>} />
-        <Route path="/register" element={<Register/>} />
-        <Route path="/seller/*" element={<SellerApp/>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

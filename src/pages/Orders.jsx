@@ -42,8 +42,8 @@ export default function Orders() {
   }), [orders])
 
   const filtered = useMemo(() => {
-    if (value === 'all') return orders
-    return orders.filter(o => up(o.status) === value)
+    let base = value === 'all' ? orders : orders.filter(o => up(o.status) === value)
+    return [...base].reverse()   // đảo ngược mảng
   }, [orders, value])
 
   return (
@@ -187,7 +187,7 @@ function OrderCard({ order: o }) {
       {/* Tổng + actions */}
       <HStack justify="space-between" align="center">
         <Text color="gray.600">Total</Text>
-        <Text fontWeight="bold">{fmtVND(o.grandTotal)}</Text>
+        <Text fontWeight="bold">{o.totalAmount}$</Text>
       </HStack>
 
       <HStack justify="flex-end" mt={3} spacing="2">
