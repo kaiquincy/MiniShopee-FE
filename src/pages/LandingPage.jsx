@@ -25,7 +25,7 @@ export default function LandingPage() {
             <LandingCarousel />
 
             {/* ================= FEATURED CATEGORIES ================= */}
-            <Container maxW="7xl" px={0} py={16}>
+            <Container maxW="7xl" px={0} py={16} pt={24}>
                 <Text fontSize="3xl" mb={8} fontWeight="light" textAlign="center">
                     SHOP BY CATEGORY
                 </Text>

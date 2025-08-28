@@ -1,14 +1,33 @@
-import { Box, Button, Container, HStack, Text } from "@chakra-ui/react";
+import { Box, Button, Container, HStack, Image, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import clothes from "../assets/landingpage/carousel/clothes.png";
+import camera from "../assets/landingpage/carousel/camera.png";
+import headphone from "../assets/landingpage/carousel/headphone.png";
 import laptop from "../assets/landingpage/carousel/laptop.png";
-import shoes from "../assets/landingpage/carousel/shoes.png";
+import perfume from "../assets/landingpage/carousel/perfume.png";
+import sneakers from "../assets/landingpage/carousel/sneakers.png";
 import watch from "../assets/landingpage/carousel/watch.png";
+
+// Example lifestyle images (replace with your own)
+import cameraBg from "../assets/landingpage/carousel/camera-bg.jpg";
+import headphoneBg from "../assets/landingpage/carousel/headphone-bg.jpg";
+import laptopBg from "../assets/landingpage/carousel/laptop-bg.jpg";
+import perfumeBg from "../assets/landingpage/carousel/perfume-bg.jpg";
+import sneakersBg from "../assets/landingpage/carousel/sneakers-bg.jpg";
+import watchBg from "../assets/landingpage/carousel/watch-bg.jpg";
 
 export default function LandingCarousel() {
     const [current, setCurrent] = useState(0);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+
+    const slides = [
+        { text: "laptops", img: laptop, bg: laptopBg, color: "#E3F2FD" },
+        { text: "sneakers", img: sneakers, bg: sneakersBg, color: "#FFF3E0" },
+        { text: "watches", img: watch, bg: watchBg, color: "#F1F8E9" },
+        { text: "headphones", img: headphone, bg: headphoneBg, color: "#FCE4EC" },
+        { text: "perfume", img: perfume, bg: perfumeBg, color: "#FFF3E0" },
+        { text: "camera", img: camera, bg: cameraBg, color: "#FCE4EC" },
+    ];
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -17,143 +36,122 @@ export default function LandingCarousel() {
         return () => clearInterval(timer);
     }, []);
 
-    const prevSlide = () =>
-        setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
-    const nextSlide = () =>
-        setCurrent((prev) => (prev + 1) % slides.length);
     const goToSlide = (index) => setCurrent(index);
 
-    const slides = [
-        { text: "laptops", img: laptop },
-        { text: "watches", img: watch },
-        { text: "shoes", img: shoes },
-        { text: "clothes", img: clothes }
-    ];
-
     return (
-        <Box
-            position="relative"
-            left="50%"
-            w="100vw"
-            ml="-50vw"
-            h={{ base: "50vh", md: "60vh" }}
-            overflow="hidden"
-            bg="gray.900" // dark overlay background
-        >
-            {slides.map((slide, index) => (
-                <Box
-                    key={index}
-                    position="absolute"
-                    inset="0"
-                    opacity={index === current ? 1 : 0}
-                    transition="opacity 1s ease-in-out"
-                    zIndex={index === current ? 1 : 0}
-                >
-                    <Container
-                        maxW="7xl"
-                        h="100%"
+        <Box w="100%">
+            <Container maxW="7xl" h={{ base: "50vh", md: "70vh" }} position="relative">
+                {slides.map((slide, index) => (
+                    <Box
+                        key={index}
+                        position="absolute"
+                        inset="0"
+                        opacity={index === current ? 1 : 0}
+                        transition="opacity 1s ease-in-out"
+                        zIndex={index === current ? 1 : 0}
                         display="flex"
-                        alignItems="center"
+                        alignItems="stretch"
                         justifyContent="space-between"
-                        px={{ base: 6, md: 12 }}
                     >
-                        {/* Left: Text */}
-                        <Box width="600px" textAlign="left">
+                        {/* Left: White text panel */}
+                        <Box
+                            bg="white"
+                            p={{ base: 6, md: 10 }}
+                            borderRadius="xl"
+                            flex="1"
+                            maxW="480px"
+                            display="flex"
+                            flexDirection="column"
+                            justifyContent="flex-end"
+                        >
                             <Text
-                                fontSize={{ base: "2xl", md: "5xl" }}
+                                fontSize={{ base: "2xl", md: "4xl" }}
                                 fontWeight="bold"
-                                textTransform="uppercase"
-                                color="white"
-                                textShadow="0px 2px 6px rgba(0,0,0,0.6)"
+                                color="gray.800"
+                                mb={2}
                             >
-                                Buy the best {slide.text}
+                                Buy the best <br /> {slide.text}
                             </Text>
-                            <Text
-                                fontSize={{ base: "2xl", md: "5xl" }}
-                                fontWeight="bold"
-                                color="white"
-                                textShadow="0px 2px 8px rgba(0,0,0,0.5)"
-                            >
-                                on mini-Shopee
+                            <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" mb={6}>
+                                Exclusive deals only on <Text as="span" fontWeight="700" color="brand.700">mini-Shopee</Text>
                             </Text>
                             <Button
-                                fontSize={{ base: "md", md: "xl" }}
-                                mt={3}
-                                background="white"
-                                color="black"
+                                fontSize={{ base: "sm", md: "md" }}
+                                bg="black"
+                                color="white"
+                                _hover={{ bg: "gray.700" }}
                                 onClick={() => navigate(`/category/${slide.text}`)}
                             >
-                                Shop now
+                                Shop Now
                             </Button>
 
-                            {/* Navigation (dots + arrows under text) */}
-                            <HStack mt={6} spacing={3} alignItems="center">
-                                <HStack spacing={2}>
-                                    {slides.map((_, dotIndex) => (
+                            {/* Navigation dots */}
+                            <HStack mt={6} spacing={2}>
+                                {slides.map((_, dotIndex) => (
                                     <Box
                                         key={dotIndex}
                                         as="button"
-                                        w="24px" // make it longer like a line
-                                        h="6px"  // smaller height
-                                        borderRadius="md" // rounded edges
-                                        bg={current === dotIndex ? "white" : "gray.500"}
+                                        w="30px"
+                                        h="6px"
+                                        borderRadius="md"
+                                        bg={current === dotIndex ? "black" : "gray.400"}
                                         onClick={() => goToSlide(dotIndex)}
-                                        _hover={{ bg: "gray.400", cursor: "pointer" }}
                                         transition="all 0.3s ease"
                                     />
-                                    ))}
-                                </HStack>
+                                ))}
                             </HStack>
                         </Box>
 
-                        {/* Right: Image with circle bg */}
+                        {/* Right: Lifestyle background */}
                         <Box
                             flex="1"
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
+                            borderRadius="xl"
+                            overflow="hidden"
+                            shadow="md"
+                            position="relative"
                         >
+                            <Image
+                                src={slide.bg}
+                                alt={`${slide.text} lifestyle`}
+                                w="100%"
+                                h="100%"
+                                objectFit="cover"
+                            />
                             <Box
-                                w={{ base: "220px", md: "320px" }}
-                                h={{ base: "220px", md: "320px" }}
-                                borderRadius="full"
-                                display="flex"
-                                justifyContent="center"
-                                alignItems="center"
-                                position="relative"
-                                overflow="visible"
-                            >
-                                {/* Blurry glowing circle */}
-                                <Box
-                                    position="absolute"
-                                    w="100%"
-                                    h="100%"
-                                    borderRadius="full"
-                                    bg="radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.3) 60%, rgba(255,255,255,0) 100%)"
-                                    filter="blur(40px)"
-                                    zIndex={0}
-                                />
-                                <Box
-                                    as="img"
-                                    src={slide.img}
-                                    alt={slide.text}
-                                    position="absolute"
-                                    maxW="none"                       // <-- critical: remove the 100% cap
-                                    w={{ base: "300px", md: "420px" }}// bigger than the 220/320 circle
-                                    h="auto"
-                                    objectFit="contain"
-                                    top="50%"
-                                    left="50%"
-                                    transform="translate(-50%, -50%)" // keep it centered while larger
-                                    zIndex={1}
-                                    pointerEvents="none"
-                                    filter="drop-shadow(0 8px 24px rgba(0,0,0,0.35))"
-                                />
-                            </Box>
+                                position="absolute"
+                                inset="0"
+                                bg="blackAlpha.400" // dark overlay
+                            />
                         </Box>
-                    </Container>
-                </Box>
-            ))}
+
+                        {/* Middle: Floating PNG inside colored square */}
+                        <Box
+                            position="absolute"
+                            top="35%"
+                            left="40%"
+                            transform="translate(-50%, -55%)"
+                            w={{ base: "200px", md: "280px" }}
+                            h={{ base: "200px", md: "280px" }}
+                            bg={slide.color}
+                            borderRadius="xl"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            shadow="xl"
+                            zIndex={2}
+                        >
+                            <Image
+                                src={slide.img}
+                                alt={slide.text}
+                                maxW="90%"
+                                maxH="90%"
+                                objectFit="contain"
+                                filter="drop-shadow(0 8px 20px rgba(0,0,0,0.2))"
+                            />
+                        </Box>
+                    </Box>
+                ))}
+            </Container>
         </Box>
     );
 }
