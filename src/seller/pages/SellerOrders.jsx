@@ -73,7 +73,7 @@ export default function SellerOrders() {
               <Box><StatusBadge s={o.status} /></Box>
               <Flex >
                 {allows.map(t => (
-                  <Button key={t} size="sm" onClick={()=>doAction(o.id, t)}>{t}</Button>
+                  <Button key={t} size="sm" onClick={()=>doAction(o.orderId, t)}>{t}</Button>
                 ))}
               </Flex>
             </Box>

@@ -82,7 +82,7 @@ export default function LandingCarousel() {
                                 bg="black"
                                 color="white"
                                 _hover={{ bg: "gray.700" }}
-                                onClick={() => navigate(`/category/${slide.text}`)}
+                                onClick={() => navigate(`/products`)}
                             >
                                 Shop Now
                             </Button>
