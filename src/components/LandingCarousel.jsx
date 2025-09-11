@@ -39,7 +39,7 @@ export default function LandingCarousel() {
     const goToSlide = (index) => setCurrent(index);
 
     return (
-        <Box w="100%">
+        <Box position="relative" w="100vw" left="50%" ml="-50vw" py={{ base: 8, md: 12 }} background="gray.800">
             <Container maxW="7xl" h={{ base: "50vh", md: "70vh" }} position="relative">
                 {slides.map((slide, index) => (
                     <Box
@@ -58,6 +58,8 @@ export default function LandingCarousel() {
                             bg="white"
                             p={{ base: 6, md: 10 }}
                             borderRadius="xl"
+                            borderTopRightRadius="none"
+                            borderBottomRightRadius="none"
                             flex="1"
                             maxW="480px"
                             display="flex"
@@ -106,6 +108,8 @@ export default function LandingCarousel() {
                         <Box
                             flex="1"
                             borderRadius="xl"
+                            borderTopLeftRadius="none"
+                            borderBottomLeftRadius="none"
                             overflow="hidden"
                             shadow="md"
                             position="relative"

@@ -1,9 +1,9 @@
-import { Box, Flex, Heading, InputGroup, Input, IconButton, HStack, Icon, Badge, Menu, Separator, Text as ChakraText, Portal } from '@chakra-ui/react'
+import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator } from '@chakra-ui/react'
+import { useRef, useState } from 'react'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
-import { FiSearch, FiBell, FiShoppingBag,FiShoppingCart, FiMessageSquare, FiLogOut, FiUser, FiPackage, FiBox } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { useRef, useState } from 'react'
 
 export default function Header() {
   const nav = useNavigate()

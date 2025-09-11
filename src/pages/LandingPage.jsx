@@ -8,6 +8,7 @@ import {
     SimpleGrid,
     Text
 } from "@chakra-ui/react";
+import applianceIcon from "../assets/landingpage/appliance.jpg";
 import beautyIcon from "../assets/landingpage/beauty.jpg";
 import booksIcon from "../assets/landingpage/books.jpg";
 import fashionIcon from "../assets/landingpage/fashion.jpg";
@@ -42,7 +43,7 @@ export default function LandingPage() {
                         { label: "Pet", img: petIcon },
                         { label: "Beauty", img: beautyIcon },
                         { label: "Sports", img: sportsIcon },
-                        { label: "Others" }
+                        { label: "Appliances", img: applianceIcon }
                     ].map((item, idx) => (
                         <Box
                             key={idx}
@@ -90,11 +91,11 @@ export default function LandingPage() {
 
             </Container>
 
-            {/* ================= FLASH SALE ================= */}
-            <Box bg="red.50" py={16}>
+            {/* ================= DAILY DEALS ================= */}
+            <Box bg="orange.50" py={16}>
                 <Container maxW="7xl">
-                    <Text fontSize="2xl" mb={8} fontWeight="bold" color="red.500">
-                        Flash Sale 🔥
+                    <Text fontSize="2xl" mb={8} fontWeight="bold" color="orange.500">
+                        Today’s Hot Picks ⚡
                     </Text>
                     <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
                         {[1, 2, 3, 4].map((item) => (
@@ -102,17 +103,19 @@ export default function LandingPage() {
                                 key={item}
                                 p={4}
                                 bg="white"
-                                boxShadow="md"
+                                boxShadow="sm"
                                 borderRadius="lg"
+                                _hover={{ transform: "translateY(-4px)", boxShadow: "md" }}
+                                transition="all 0.2s"
                                 textAlign="center"
                             >
-                                <Box h="150px" bg="gray.100" mb={4} />
-                                <Text>Product {item}</Text>
-                                <Text fontWeight="bold" color="red.500">
+                                <Box h="150px" bg="gray.100" borderRadius="md" mb={4} />
+                                <Text fontWeight="medium">Product {item}</Text>
+                                <Text fontWeight="bold" color="orange.500">
                                     $19.99
                                 </Text>
-                                <Button mt={2} size="sm" colorScheme="red">
-                                    Add to Cart
+                                <Button mt={2} size="sm" colorScheme="orange" w="full">
+                                    Shop Now
                                 </Button>
                             </Box>
                         ))}
@@ -123,36 +126,43 @@ export default function LandingPage() {
             {/* ================= PROMO BANNER ================= */}
             <Container maxW="7xl" py={16}>
                 <Box
-                    bg="blue.500"
+                    background="teal.400"
                     color="white"
                     p={12}
-                    borderRadius="xl"
+                    borderRadius="2xl"
                     textAlign="center"
                 >
                     <Text fontSize="3xl" fontWeight="bold">
-                        Free Shipping on Orders Over $50
+                        Free Shipping Over $50 🚚
                     </Text>
-                    <Text mt={2}>Shop now and save big on delivery costs</Text>
+                    <Text mt={2} opacity={0.9}>
+                        No codes, no hassle — just checkout and save.
+                    </Text>
+                    <Button mt={6} colorScheme="whiteAlpha" size="lg">
+                        Start Shopping
+                    </Button>
                 </Box>
             </Container>
 
-            {/* ================= NEWSLETTER ================= */}
-            <Box bg="gray.100" py={16}>
+            {/* ================= COMMUNITY / STORIES ================= */}
+            <Box bg="gray.50" py={16}>
                 <Container maxW="7xl" textAlign="center">
                     <Text fontSize="2xl" mb={4} fontWeight="bold">
-                        Subscribe to our Newsletter
+                        Join Our Community 💌
                     </Text>
-                    <Text mb={6}>
-                        Get the latest deals and exclusive offers straight to your inbox.
+                    <Text mb={8} maxW="2xl" mx="auto">
+                        Be the first to know about new arrivals, exclusive drops, and behind-the-scenes stories.
+                        Sign up and stay inspired.
                     </Text>
                     <Flex maxW="md" mx="auto">
-                        <Input placeholder="Enter your email" bg="white" />
-                        <Button colorScheme="blue" ml={2}>
-                            Subscribe
+                        <Input placeholder="Enter your email" bg="white" borderRadius="md" />
+                        <Button colorScheme="teal" ml={2} px={8}>
+                            Join
                         </Button>
                     </Flex>
                 </Container>
             </Box>
+
         </Box>
     );
 }
