@@ -6,7 +6,8 @@ import {
     Image,
     Input,
     SimpleGrid,
-    Text
+    Text,
+    VStack
 } from "@chakra-ui/react";
 import applianceIcon from "../assets/landingpage/appliance.jpg";
 import beautyIcon from "../assets/landingpage/beauty.jpg";
@@ -19,102 +20,128 @@ import techIcon from "../assets/landingpage/tech.jpg";
 import LandingCarousel from "../components/LandingCarousel";
 
 export default function LandingPage() {
-
     return (
         <Box>
             {/* ================= HERO CAROUSEL ================= */}
             <LandingCarousel />
 
             {/* ================= FEATURED CATEGORIES ================= */}
-            <Container maxW="7xl" px={0} py={16} pt={24}>
-                <Text fontSize="3xl" mb={8} fontWeight="light" textAlign="center">
-                    SHOP BY CATEGORY
-                </Text>
-                <SimpleGrid
-                    columns={{ base: 2, md: 4 }}
-                    gap="10px"
-                    w="full"
-                >
-                    {[
-                        { label: "Fashion", img: fashionIcon },
-                        { label: "Tech", img: techIcon },
-                        { label: "Furniture", img: furnitureIcon },
-                        { label: "Books", img: booksIcon },
-                        { label: "Pet", img: petIcon },
-                        { label: "Beauty", img: beautyIcon },
-                        { label: "Sports", img: sportsIcon },
-                        { label: "Appliances", img: applianceIcon }
-                    ].map((item, idx) => (
-                        <Box
-                            key={idx}
-                            position="relative"
-                            h="200px"
-                            borderRadius="xl"
-                            overflow="hidden"
-                            bg="gray.700"
-                            _hover={{ transform: "scale(1.05)", cursor: "pointer" }}
-                            transition="0.3s"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            role="group"
-                        >
-                            {item.img && (
-                                <Image
-                                src={item.img}
-                                alt={item.label}
-                                objectFit="cover"
-                                opacity={0.4}
-                                position="absolute"
-                                inset="0"
-                                w="100%"
-                                h="100%"
-                                />
-                            )}
+            <Box py={20} bg="gray.50">
+                <Container maxW="7xl">
+                    <Text
+                        fontSize="3xl"
+                        fontWeight="bold"
+                        textAlign="center"
+                        mb={12}
+                    >
+                        FEATURED CATEGORIES
+                    </Text>
+                    <SimpleGrid columns={{ base: 2, md: 4 }} gap="12px">
+                        {[
+                            { label: "Fashion", img: fashionIcon },
+                            { label: "Tech", img: techIcon },
+                            { label: "Furniture", img: furnitureIcon },
+                            { label: "Books", img: booksIcon },
+                            { label: "Pet", img: petIcon },
+                            { label: "Beauty", img: beautyIcon },
+                            { label: "Sports", img: sportsIcon },
+                            { label: "Appliances", img: applianceIcon }
+                        ].map((item, idx) => (
                             <Box
-                                position="absolute"
-                                inset="0"
-                                bg="blackAlpha.200"
-                            />
-                            <Text
-                                fontSize="xl"
-                                fontWeight="bold"
-                                color="white"
-                                zIndex="1"
-                                textAlign="center"
+                                key={idx}
+                                position="relative"
+                                h="200px"
+                                borderRadius="xl"
+                                overflow="hidden"
+                                _hover={{
+                                    transform: "translateY(-6px)",
+                                    boxShadow: "lg"
+                                }}
+                                transition="all 0.3s ease"
+                                cursor="pointer"
                             >
-                                {item.label}
-                            </Text>
-                        </Box>
-                    ))}
-                </SimpleGrid>
-
-            </Container>
+                                <Image
+                                    src={item.img}
+                                    alt={item.label}
+                                    objectFit="cover"
+                                    position="absolute"
+                                    inset="0"
+                                    w="100%"
+                                    h="100%"
+                                    opacity={0.5}
+                                />
+                                <Box
+                                    position="absolute"
+                                    inset="0"
+                                    bg="blackAlpha.600"
+                                />
+                                <Flex
+                                    align="center"
+                                    justify="center"
+                                    h="100%"
+                                    zIndex={1}
+                                    position="relative"
+                                >
+                                    <Text
+                                        fontSize="xl"
+                                        fontWeight="bold"
+                                        color="white"
+                                    >
+                                        {item.label}
+                                    </Text>
+                                </Flex>
+                            </Box>
+                        ))}
+                    </SimpleGrid>
+                </Container>
+            </Box>
 
             {/* ================= DAILY DEALS ================= */}
-            <Box bg="orange.50" py={16}>
+            <Box bg="orange.100" py={20}>
                 <Container maxW="7xl">
-                    <Text fontSize="2xl" mb={8} fontWeight="bold" color="orange.500">
-                        Today’s Hot Picks ⚡
-                    </Text>
-                    <SimpleGrid columns={{ base: 2, md: 4 }} spacing={6}>
+                    <Flex justify="space-between" align="center" mb={10}>
+                        <Text fontSize="2xl" fontWeight="bold" color="orange.600">
+                            Today’s Hot Picks ⚡
+                        </Text>
+                        <Button variant="link" colorScheme="orange">
+                            View All →
+                        </Button>
+                    </Flex>
+                    <SimpleGrid columns={{ base: 2, md: 4 }} spacing={8}>
                         {[1, 2, 3, 4].map((item) => (
                             <Box
                                 key={item}
-                                p={4}
+                                p={5}
                                 bg="white"
+                                borderRadius="xl"
                                 boxShadow="sm"
-                                borderRadius="lg"
-                                _hover={{ transform: "translateY(-4px)", boxShadow: "md" }}
-                                transition="all 0.2s"
                                 textAlign="center"
+                                transition="all 0.2s"
+                                _hover={{
+                                    transform: "translateY(-6px)",
+                                    boxShadow: "md"
+                                }}
                             >
-                                <Box h="150px" bg="gray.100" borderRadius="md" mb={4} />
+                                <Box
+                                    h="150px"
+                                    bg="gray.100"
+                                    borderRadius="md"
+                                    mb={4}
+                                />
                                 <Text fontWeight="medium">Product {item}</Text>
-                                <Text fontWeight="bold" color="orange.500">
+                                <Text
+                                    fontWeight="bold"
+                                    color="orange.500"
+                                    fontSize="lg"
+                                >
                                     $19.99
                                 </Text>
-                                <Button mt={2} size="sm" colorScheme="orange" w="full">
+                                <Button
+                                    mt={3}
+                                    size="sm"
+                                    colorScheme="orange"
+                                    w="full"
+                                >
                                     Shop Now
                                 </Button>
                             </Box>
@@ -124,45 +151,51 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= PROMO BANNER ================= */}
-            <Container maxW="7xl" py={16}>
-                <Box
-                    background="teal.400"
-                    color="white"
-                    p={12}
-                    borderRadius="2xl"
-                    textAlign="center"
-                >
-                    <Text fontSize="3xl" fontWeight="bold">
-                        Free Shipping Over $50 🚚
-                    </Text>
-                    <Text mt={2} opacity={0.9}>
-                        No codes, no hassle — just checkout and save.
-                    </Text>
-                    <Button mt={6} colorScheme="whiteAlpha" size="lg">
-                        Start Shopping
-                    </Button>
-                </Box>
-            </Container>
+            <Box bg="teal.500" py={20} color="white">
+                <Container maxW="7xl" textAlign="center">
+                    <VStack spacing={4}>
+                        <Text fontSize="3xl" fontWeight="bold">
+                            Free Shipping Over $50 🚚
+                        </Text>
+                        <Text opacity={0.9} maxW="2xl">
+                            No codes, no hassle — just checkout and save.
+                        </Text>
+                        <Button colorScheme="whiteAlpha" size="lg">
+                            Start Shopping
+                        </Button>
+                    </VStack>
+                </Container>
+            </Box>
 
             {/* ================= COMMUNITY / STORIES ================= */}
-            <Box bg="gray.50" py={16}>
+            <Box bg="gray.900" color="white" py={20}>
                 <Container maxW="7xl" textAlign="center">
                     <Text fontSize="2xl" mb={4} fontWeight="bold">
                         Join Our Community 💌
                     </Text>
-                    <Text mb={8} maxW="2xl" mx="auto">
-                        Be the first to know about new arrivals, exclusive drops, and behind-the-scenes stories.
-                        Sign up and stay inspired.
+                    <Text mb={8} maxW="2xl" mx="auto" opacity={0.8}>
+                        Be the first to know about new arrivals, exclusive drops,
+                        and behind-the-scenes stories. Sign up and stay inspired.
                     </Text>
-                    <Flex maxW="md" mx="auto">
-                        <Input placeholder="Enter your email" bg="white" borderRadius="md" />
-                        <Button colorScheme="teal" ml={2} px={8}>
+                    <Flex
+                        maxW="md"
+                        mx="auto"
+                        bg="white"
+                        p={2}
+                        borderRadius="md"
+                        align="center"
+                    >
+                        <Input
+                            placeholder="Enter your email"
+                            border="none"
+                            focusBorderColor="transparent"
+                        />
+                        <Button colorScheme="teal" px={8}>
                             Join
                         </Button>
                     </Flex>
                 </Container>
             </Box>
-
         </Box>
     );
 }
