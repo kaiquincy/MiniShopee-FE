@@ -13,7 +13,9 @@ import Products from './pages/Products.jsx'
 import Register from './pages/Register.jsx'
 import SellerApp from './seller/SellerApp'
 import AccountAddresses from './pages/AccountAddresses'
-
+import ReturnPage from './pages/Return.jsx'
+import CancelPage from './pages/Cancel.jsx'
+import AdminApp from './admin/AdminApp.jsx'
 
 export default function App() {
   return (
@@ -29,10 +31,13 @@ export default function App() {
           <Route path="notifications" element={<ProtectedRoute><Notifications/></ProtectedRoute>} />
           <Route path="chat" element={<ProtectedRoute><Chat/></ProtectedRoute>} />
           <Route path="account/addresses" element={<ProtectedRoute><AccountAddresses/></ProtectedRoute>} />
-        
+          <Route path="payment/return" element={<ReturnPage />} />
+          <Route path="payment/cancel" element={<CancelPage />} />
+
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />
           <Route path="/seller/*" element={<SellerApp/>} />
+          <Route path="/admin/*" element={<AdminApp />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

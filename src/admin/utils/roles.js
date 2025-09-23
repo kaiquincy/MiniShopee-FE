@@ -1,0 +1,17 @@
+export const ROLE = {
+  ADMIN: 'ADMIN',
+  MOD: 'MOD',
+}
+
+export const PERM = {
+  // sample flags
+  MANAGE_ORDERS: 'MANAGE_ORDERS',
+  MANAGE_USERS: 'MANAGE_USERS',
+  MANAGE_PRODUCTS: 'MANAGE_PRODUCTS',
+  MANAGE_SETTINGS: 'MANAGE_SETTINGS',
+}
+
+export const ROLE_PERMS = {
+  [ROLE.ADMIN]: Object.values(PERM),
+  [ROLE.MOD]: [PERM.MANAGE_ORDERS, PERM.MANAGE_PRODUCTS],
+}

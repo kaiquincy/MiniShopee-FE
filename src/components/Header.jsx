@@ -173,6 +173,18 @@ export default function Header() {
                       </Menu.Item>
                     )}
 
+                    {user?.role?.includes('ROLE_ADMIN') && (
+                      <Menu.Item
+                        value="admin"
+                        onClick={() => nav('/admin')}
+                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      >
+                        <Icon as={FiPackage} />
+                        <ChakraText>Admin Center</ChakraText>
+                      </Menu.Item>
+                    )}
+
                     <Separator my="2" />
 
 
