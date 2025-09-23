@@ -1,6 +1,8 @@
 import { Box, Button, Container, HStack, Image, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import carouselBg from "../assets/landingpage/carousel/bg.jpg";
 import camera from "../assets/landingpage/carousel/camera.png";
 import headphone from "../assets/landingpage/carousel/headphone.png";
 import laptop from "../assets/landingpage/carousel/laptop.png";
@@ -39,7 +41,8 @@ export default function LandingCarousel() {
     const goToSlide = (index) => setCurrent(index);
 
     return (
-        <Box w="100%">
+        <Box position="relative" w="100vw" left="50%" ml="-50vw" py={{ base: 8, md: 12 }} overflow="hidden" paddingTop={0}>
+            <Image src={carouselBg} position="absolute" width="100%" top={0} left={0} opacity={2}/>
             <Container maxW="7xl" h={{ base: "50vh", md: "70vh" }} position="relative">
                 {slides.map((slide, index) => (
                     <Box
@@ -50,56 +53,66 @@ export default function LandingCarousel() {
                         transition="opacity 1s ease-in-out"
                         zIndex={index === current ? 1 : 0}
                         display="flex"
+                        gap="16px"
                         alignItems="stretch"
                         justifyContent="space-between"
                     >
                         {/* Left: White text panel */}
                         <Box
-                            bg="white"
-                            p={{ base: 6, md: 10 }}
-                            borderRadius="xl"
                             flex="1"
                             maxW="480px"
-                            display="flex"
-                            flexDirection="column"
-                            justifyContent="flex-end"
+                            position="relative"
                         >
-                            <Text
-                                fontSize={{ base: "2xl", md: "4xl" }}
-                                fontWeight="bold"
-                                color="gray.800"
-                                mb={2}
+                            <Box
+                                bg="white"
+                                width="100%"
+                                p={{ base: 6, md: 10 }}
+                                borderRadius="xl"
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="flex-end"
+                                height="60%"
+                                position="absolute"
+                                bottom="10%"
+                                left={0}
                             >
-                                Buy the best <br /> {slide.text}
-                            </Text>
-                            <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" mb={6}>
-                                Exclusive deals only on <Text as="span" fontWeight="700" color="brand.700">mini-Shopee</Text>
-                            </Text>
-                            <Button
-                                fontSize={{ base: "sm", md: "md" }}
-                                bg="black"
-                                color="white"
-                                _hover={{ bg: "gray.700" }}
-                                onClick={() => navigate(`/products`)}
-                            >
-                                Shop Now
-                            </Button>
+                                <Text
+                                    fontSize={{ base: "2xl", md: "4xl" }}
+                                    fontWeight="bold"
+                                    color="gray.800"
+                                    mb={2}
+                                >
+                                    Buy the best <br /> {slide.text}
+                                </Text>
+                                <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" mb={6}>
+                                    Exclusive deals only on <Text as="span" fontWeight="700" color="brand.700">mini-Shopee</Text>
+                                </Text>
+                                <Button
+                                    fontSize={{ base: "sm", md: "md" }}
+                                    bg="black"
+                                    color="white"
+                                    _hover={{ bg: "gray.700" }}
+                                    onClick={() => navigate(`/products`)}
+                                >
+                                    Shop Now
+                                </Button>
 
-                            {/* Navigation dots */}
-                            <HStack mt={6} spacing={2}>
-                                {slides.map((_, dotIndex) => (
-                                    <Box
-                                        key={dotIndex}
-                                        as="button"
-                                        w="30px"
-                                        h="6px"
-                                        borderRadius="md"
-                                        bg={current === dotIndex ? "black" : "gray.400"}
-                                        onClick={() => goToSlide(dotIndex)}
-                                        transition="all 0.3s ease"
-                                    />
-                                ))}
-                            </HStack>
+                                {/* Navigation dots */}
+                                <HStack mt={6} spacing={2}>
+                                    {slides.map((_, dotIndex) => (
+                                        <Box
+                                            key={dotIndex}
+                                            as="button"
+                                            w="30px"
+                                            h="6px"
+                                            borderRadius="md"
+                                            bg={current === dotIndex ? "black" : "gray.400"}
+                                            onClick={() => goToSlide(dotIndex)}
+                                            transition="all 0.3s ease"
+                                        />
+                                    ))}
+                                </HStack>
+                            </Box>
                         </Box>
 
                         {/* Right: Lifestyle background */}
