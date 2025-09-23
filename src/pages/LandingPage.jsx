@@ -107,7 +107,7 @@ export default function LandingPage() {
                             View All →
                         </Button>
                     </Flex>
-                    <SimpleGrid columns={{ base: 2, md: 4 }} spacing={8}>
+                    <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
                         {[1, 2, 3, 4].map((item) => (
                             <Box
                                 key={item}
@@ -119,7 +119,8 @@ export default function LandingPage() {
                                 transition="all 0.2s"
                                 _hover={{
                                     transform: "translateY(-6px)",
-                                    boxShadow: "md"
+                                    boxShadow: "md",
+                                    cursor: "pointer"
                                 }}
                             >
                                 <Box
