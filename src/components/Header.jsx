@@ -49,7 +49,9 @@ export default function Header() {
               fontSize="20px"
               icon={<Icon as={FiMessageSquare} />}
               onClick={() => nav('/chat')}
-            />
+            >
+              <Icon as={FiMessageSquare} />
+            </IconButton>
 
             {/* Notifications + badge */}
             <Box position="relative">
@@ -173,7 +175,17 @@ export default function Header() {
                           <ChakraText>Seller Center</ChakraText>
                         </Menu.Item>
                       )}
-                    
+                    {user?.role?.includes('ROLE_ADMIN') && (
+                      <Menu.Item
+                        value="seller"
+                        onClick={() => nav('/seller')}
+                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      >
+                        <Icon as={FiPackage} />
+                        <ChakraText>Seller Center</ChakraText>
+                      </Menu.Item>
+                    )}
 
                     {user?.role?.includes('ROLE_ADMIN') && (
                       <Menu.Item
