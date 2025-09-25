@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
-import { myRooms, openRoom, history } from '../api/chat'
 import { Box, Button, HStack, Heading, Input, Text, VStack } from '@chakra-ui/react'
 import { Client } from '@stomp/stompjs'
+import { useEffect, useRef, useState } from 'react'
 import SockJS from 'sockjs-client'
+import { history, myRooms, openRoom } from '../api/chat'
 import { useAuth } from '../context/AuthContext'
-import { toaster } from '../components/ui/toaster'
 
 export default function Chat() {
   const [rooms, setRooms] = useState([])
@@ -52,12 +51,6 @@ export default function Chat() {
     <HStack align="start" spacing={6}>
       <VStack align="stretch" minW="260px" spacing={2}>
         <Heading size="sm">Phòng chat</Heading>
-        {rooms.map(r=>(
-          <Button key={r.roomId} variant={active?.roomId===r.roomId?'solid':'outline'}
-                  onClick={()=>open(r)}>
-            Room #{r.roomId} ({r.userAId}–{r.userBId})
-          </Button>
-        ))}
         {/* mở phòng mới với user id */}
         <HStack>
           <Input placeholder="Peer user id" id="peer-id"/>
@@ -68,6 +61,12 @@ export default function Chat() {
             setRooms(prev=>[r, ...prev]); open(r)
           }}>Mở</Button>
         </HStack>
+        {rooms.map(r=>(
+          <Button key={r.roomId} variant={active?.roomId===r.roomId?'solid':'outline'}
+                  onClick={()=>open(r)}>
+            Room #{r.roomId} ({r.userAId}–{r.userBId})
+          </Button>
+        ))}
       </VStack>
 
       <VStack align="stretch" flex={1}>

@@ -25,7 +25,7 @@ export default function Header() {
     <Box as="header" position="sticky" top={0} zIndex={100} className="glass" bg={ isSellerOrAdmin ? "gray.900" : "white" } color={ isSellerOrAdmin ? "white" : "gray.900" }>
       <Box maxW="7xl" mx="auto" py={3} px={4}>
         <Flex align="center" gap={4} justify="space-between">
-          <Heading size="2xl" fontWeight="bold" color="brand.700">
+          <Heading size="2xl" fontWeight="bold" color={isSellerOrAdmin ? "brand.400" : "brand.700"}>
             <Link to="/">mini-Shopee</Link>
           </Heading>
 

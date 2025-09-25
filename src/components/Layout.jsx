@@ -7,7 +7,7 @@ export default function Layout() {
     <Box display="flex" flexDirection="column" justifyContent="space-between" position="relative" minH="100vh" >
       <Box>
         <Header />
-        <Container maxW="7xl" py={6}>
+        <Container py={0} px={0} mx={0} maxW="100vw">
           <Outlet />
         </Container>
       </Box>
