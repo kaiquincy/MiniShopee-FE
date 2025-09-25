@@ -29,13 +29,15 @@ export default function AdminDashboard() {
   const stats = useMemo(() => {
     const total = orders.length
     const revenue = orders.reduce((s, o) => s + (Number(o.grandTotal) || 0), 0)
-    const activeUsers = users.filter(u => u.active).length
+    const activeUsers = users.length
     const byStatus = orders.reduce((m, o) => ((m[o.status] = (m[o.status] || 0) + 1), m), {})
     return { total, revenue, activeUsers, byStatus }
   }, [orders, users])
 
   return (
     <Box>
+      {console.log('iser' ,users)}
+
       <Heading size="md" mb="12px">Admin Dashboard</Heading>
       <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
         <StatCard title="Tổng đơn" value={stats.total} icon={FiShoppingBag} colorPalette="blue" loading={loading}/>

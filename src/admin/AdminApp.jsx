@@ -10,7 +10,8 @@ export default function AdminApp() {
   return (
     <Routes>
       <Route element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="orders" element={<AdminOrders />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="products" element={<AdminProducts />} />

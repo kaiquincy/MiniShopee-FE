@@ -24,9 +24,9 @@ export default function AdminSettings() {
             <Text mb="6px" color="gray.600">Email hỗ trợ</Text>
             <Input value={supportEmail} onChange={e=>setSupportEmail(e.target.value)} placeholder="support@domain.com"/>
           </Box>
-          <Tooltip content="Lưu thay đổi">
+          {/* <Tooltip content="Lưu thay đổi"> */}
             <Button onClick={save} colorPalette="blue">Lưu</Button>
-          </Tooltip>
+          {/* </Tooltip> */}
         </VStack>
       </Box>
     </Box>
