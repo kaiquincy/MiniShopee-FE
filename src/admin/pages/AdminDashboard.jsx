@@ -36,8 +36,6 @@ export default function AdminDashboard() {
 
   return (
     <Box>
-      {console.log('iser' ,users)}
-
       <Heading size="md" mb="12px">Admin Dashboard</Heading>
       <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
         <StatCard title="Tổng đơn" value={stats.total} icon={FiShoppingBag} colorPalette="blue" loading={loading}/>
