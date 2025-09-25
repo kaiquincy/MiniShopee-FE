@@ -1,22 +1,36 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
-  Box,
-  SimpleGrid,
-  Heading,
-  Text,
-  Skeleton,
-  HStack,
-  VStack,
   Badge,
-  Separator ,
+  Box,
+  createListCollection,
+  Heading,
+  HStack,
+  Portal,
+  Select,
+  Separator,
+  SimpleGrid,
+  Skeleton,
+  Text,
+  VStack
 } from '@chakra-ui/react'
 import { Flex } from '@chakra-ui/react/flex'
 import { Icon } from '@chakra-ui/react/icon'
+import { useEffect, useMemo, useState } from 'react'
 import { Tooltip } from '../../components/ui/tooltip'
 import { fetchOrders } from '../api/seller'
 
+// Charts
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Tooltip as ChartTooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts'
+
 // Icons
-import { FiShoppingBag, FiTrendingUp, FiPieChart, FiAlertCircle } from 'react-icons/fi'
+import { FiAlertCircle, FiPieChart, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
 
 const currency = (n = 0) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
@@ -26,6 +40,7 @@ export default function SellerAnalytics() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [range, setRange] = useState("last7days")
 
   useEffect(() => {
     ;(async () => {
@@ -43,22 +58,106 @@ export default function SellerAnalytics() {
   }, [])
 
   const stats = useMemo(() => {
-    const totalRevenue = orders.reduce((s, o) => s + (Number(o.grandTotal) || 0), 0)
+    const totalRevenue = orders.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0)
+
     const byStatus = orders.reduce((m, o) => {
-      m[o.status] = (m[o.status] || 0) + 1
-      return m
+        m[o.status] = (m[o.status] || 0) + 1
+        return m
     }, {})
+
     const totalOrders = orders.length
     const pipeline = pickPipelinePercents(byStatus, totalOrders)
-    return { totalOrders, totalRevenue, byStatus, pipeline }
-  }, [orders])
+
+    let chartData = []
+
+    if (range === "last7days") {
+        // build last 7 days
+        const today = new Date()
+        const days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date()
+            d.setDate(today.getDate() - (6 - i))
+            return { label: `${d.getDate()}/${d.getMonth() + 1}`, date: d }
+        })
+
+        chartData = days.map(({ label, date }) => {
+            const filtered = orders.filter(o => {
+                const d = new Date(o.createdAt)
+                return (
+                    d.getDate() === date.getDate() &&
+                    d.getMonth() === date.getMonth() &&
+                    d.getFullYear() === date.getFullYear()
+                )
+            })
+            return {
+                day: label,
+                orders: filtered.length,
+                revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
+            }
+        })
+    }
+
+    if (range === "thismonth") {
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = now.getMonth()
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate()
+        const days = Array.from({ length: daysInMonth }, (_, i) => {
+            return { label: `${i + 1}/${month + 1}`, date: new Date(year, month, i + 1) }
+        })
+
+        chartData = days.map(({ label, date }) => {
+            const filtered = orders.filter(o => {
+                const d = new Date(o.createdAt)
+                return d.getDate() === date.getDate() && d.getMonth() === date.getMonth()
+            })
+            return {
+                day: label,
+                orders: filtered.length,
+                revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
+            }
+        })
+    }
+
+    if (range === "last6months") {
+      const now = new Date()
+      const months = []
+
+      for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+          months.push({
+              label: `${d.getMonth() + 1}/${d.getFullYear()}`,
+              year: d.getFullYear(),
+              month: d.getMonth(),
+          })
+      }
+
+      chartData = months.map(({ label, year, month }) => {
+          const filtered = orders.filter(o => {
+              const d = new Date(o.createdAt)
+              return d.getMonth() === month && d.getFullYear() === year
+          })
+
+          return {
+              day: label, // keep "day" as key so charts don't break
+              orders: filtered.length,
+              revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
+          }
+    })
+  }
+
+    console.log(totalOrders, totalRevenue, byStatus, pipeline, chartData)
+    return { totalOrders, totalRevenue, byStatus, pipeline, chartData }
+  }, [orders, range])
+
+  console.log(orders)
 
   return (
     <Box>
       <Heading size="md" mb={4}>Tổng quan</Heading>
 
       {/* KPI Cards */}
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+      <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
         <StatCard
           title="Tổng đơn"
           value={stats.totalOrders}
@@ -81,6 +180,73 @@ export default function SellerAnalytics() {
           loading={loading}
         />
       </SimpleGrid>
+
+      {/* Charts Section */}
+      <Box my={10}>
+        <HStack justify="space-between" mb={4}>
+          <Heading size="sm">Biểu đồ đơn hàng & doanh thu</Heading>
+          <Select.Root
+            collection={ranges}
+            width="200px"
+            value={[range]}
+            onValueChange={(e) => setRange(e.value[0])}
+          >
+            <Select.HiddenSelect />
+            <Select.Label>Data Range</Select.Label>
+            <Select.Control>
+              <Select.Trigger>
+                <Select.ValueText placeholder="Select range" />
+              </Select.Trigger>
+              <Select.IndicatorGroup>
+                <Select.Indicator />
+              </Select.IndicatorGroup>
+            </Select.Control>
+
+            <Portal>
+              <Select.Positioner>
+                <Select.Content>
+                  {ranges.items.map((range) => (
+                    <Select.Item item={range} key={range.value}>
+                      {range.label}
+                      <Select.ItemIndicator />
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select.Positioner>
+            </Portal>
+          </Select.Root>
+        </HStack>
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+          <Box>
+            <Heading size="sm" mb={2}>Orders this week</Heading>
+            <Box h="400px" bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={6} pl={0}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.chartData} >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" tick={{ fontSize: 8 }} />
+                  <YAxis tick={{ fontSize: 8 }}/>
+                  <ChartTooltip contentStyle={{ fontSize: '12px' }}/>
+                  <Bar dataKey="orders" fill="#3182CE" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Box>
+          <Box>
+            <Heading size="sm" mb={2}>Revenue this week</Heading>
+            <Box h="400px" bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={6} pl={0}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <ChartTooltip formatter={(v) => currency(v)} />
+                  <Bar dataKey="revenue" fill="#38A169" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
+          </Box>
+        </SimpleGrid>
+      </Box>
 
       {/* Pipeline & breakdown */}
       <Box mt={4} bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={4}>
@@ -244,3 +410,22 @@ function pickPipelinePercents(byStatus = {}, total = 0) {
     return { ...o, percent }
   }).filter(seg => seg.percent > 0) // ẩn đoạn 0% để bar gọn hơn
 }
+
+function getLast7Days() {
+  const days = []
+  const today = new Date()
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(today.getDate() - i)
+    days.push(`${d.getDate()}/${d.getMonth() + 1}`)
+  }
+  return days
+}
+
+const ranges = createListCollection({
+  items: [
+    { label: "Last 7 days", value: "last7days" },
+    { label: "This month", value: "thismonth" },
+    { label: "Last 6 months", value: "last6months" },
+  ],
+})
