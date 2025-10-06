@@ -1,8 +1,10 @@
-import { Box, Button, Container, HStack, Image, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { Badge, Box, Button, Container, Flex, Grid, HStack, Icon, IconButton, Image, Input, InputGroup, Menu, Portal, Separator, Text, VStack } from "@chakra-ui/react";
+import { useEffect, useRef, useState } from "react";
+import { FiArrowUpRight, FiBell, FiLogOut, FiMessageCircle, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
-import carouselBg from "../assets/landingpage/carousel/bg.jpg";
 import camera from "../assets/landingpage/carousel/camera.png";
 import headphone from "../assets/landingpage/carousel/headphone.png";
 import laptop from "../assets/landingpage/carousel/laptop.png";
@@ -10,7 +12,6 @@ import perfume from "../assets/landingpage/carousel/perfume.png";
 import sneakers from "../assets/landingpage/carousel/sneakers.png";
 import watch from "../assets/landingpage/carousel/watch.png";
 
-// Example lifestyle images (replace with your own)
 import cameraBg from "../assets/landingpage/carousel/camera-bg.jpg";
 import headphoneBg from "../assets/landingpage/carousel/headphone-bg.jpg";
 import laptopBg from "../assets/landingpage/carousel/laptop-bg.jpg";
@@ -20,15 +21,59 @@ import watchBg from "../assets/landingpage/carousel/watch-bg.jpg";
 
 export default function LandingCarousel() {
     const [current, setCurrent] = useState(0);
-    const navigate = useNavigate();
+    const nav = useNavigate();
+    const { token, logout, user } = useAuth();
+    const { cartCount } = useCart();
+
+    // Header menu states
+    const [menuOpen, setMenuOpen] = useState(false);
+    const timerRef = useRef(null);
+    const enter = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(true), 60) };
+    const leave = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(false), 120) };
 
     const slides = [
-        { text: "laptops", img: laptop, bg: laptopBg, color: "#E3F2FD" },
-        { text: "sneakers", img: sneakers, bg: sneakersBg, color: "#FFF3E0" },
-        { text: "watches", img: watch, bg: watchBg, color: "#F1F8E9" },
-        { text: "headphones", img: headphone, bg: headphoneBg, color: "#FCE4EC" },
-        { text: "perfume", img: perfume, bg: perfumeBg, color: "#FFF3E0" },
-        { text: "camera", img: camera, bg: cameraBg, color: "#FCE4EC" },
+        { 
+            text: "Laptops", 
+            img: laptop, 
+            bg: laptopBg, 
+            color: "#2563EB",
+            tag: "Tech"
+        },
+        { 
+            text: "Sneakers", 
+            img: sneakers, 
+            bg: sneakersBg, 
+            color: "#EA580C",
+            tag: "Fashion"
+        },
+        { 
+            text: "Watches", 
+            img: watch, 
+            bg: watchBg, 
+            color: "#16A34A",
+            tag: "Luxury"
+        },
+        { 
+            text: "Headphones", 
+            img: headphone, 
+            bg: headphoneBg, 
+            color: "#DB2777",
+            tag: "Audio"
+        },
+        { 
+            text: "Perfume", 
+            img: perfume, 
+            bg: perfumeBg, 
+            color: "#9333EA",
+            tag: "Beauty"
+        },
+        { 
+            text: "Camera", 
+            img: camera, 
+            bg: cameraBg, 
+            color: "#0891B2",
+            tag: "Photo"
+        },
     ];
 
     useEffect(() => {
@@ -36,135 +81,512 @@ export default function LandingCarousel() {
             setCurrent((prev) => (prev + 1) % slides.length);
         }, 5000);
         return () => clearInterval(timer);
-    }, []);
+    }, [slides.length]);
 
-    const goToSlide = (index) => setCurrent(index);
+    const activeSlide = slides[current];
 
     return (
-        <Box position="relative" w="100vw" left="50%" ml="-50vw" py={{ base: 8, md: 12 }} overflow="hidden" paddingTop={0}>
-            <Image src={carouselBg} position="absolute" width="100%" top={0} left={0} opacity={2}/>
-            <Container maxW="7xl" h={{ base: "50vh", md: "70vh" }} position="relative">
-                {slides.map((slide, index) => (
-                    <Box
-                        key={index}
-                        position="absolute"
-                        inset="0"
-                        opacity={index === current ? 1 : 0}
-                        transition="opacity 1s ease-in-out"
-                        zIndex={index === current ? 1 : 0}
-                        display="flex"
-                        gap="16px"
-                        alignItems="stretch"
-                        justifyContent="space-between"
+        <Box 
+            position="relative" 
+            w="100vw" 
+            left="50%" 
+            ml="-50vw"
+            bg="black"
+            color="white"
+            overflow="hidden"
+        >
+            {/* Animated background gradient */}
+            <Box
+                position="absolute"
+                inset="0"
+                bg={activeSlide.color}
+                opacity={0.15}
+                transition="background-color 1s ease"
+            />
+
+            <Container maxW="container.2xl" position="relative">
+                {/* Integrated Header/Navigation Bar */}
+                <HStack 
+                    justify="space-between" 
+                    py={4}
+                    borderBottom="1px solid"
+                    borderColor="whiteAlpha.200"
+                >
+                    {/* Logo */}
+                    <Text 
+                        fontSize="2xl" 
+                        fontWeight="black"
+                        cursor="pointer"
+                        onClick={() => nav('/')}
                     >
-                        {/* Left: White text panel */}
-                        <Box
-                            flex="1"
-                            maxW="480px"
-                            position="relative"
-                        >
-                            <Box
-                                bg="white"
-                                width="100%"
-                                p={{ base: 6, md: 10 }}
-                                borderRadius="xl"
-                                display="flex"
-                                flexDirection="column"
-                                justifyContent="flex-end"
-                                height="60%"
-                                position="absolute"
-                                bottom="10%"
-                                left={0}
+                        mini<Text as="span" color={activeSlide.color}>Shopee</Text>
+                    </Text>
+
+                    {/* Category Navigation */}
+                    <HStack spacing={8} display={{ base: "none", lg: "flex" }}>
+                        {slides.map((slide, idx) => (
+                            <Text
+                                key={idx}
+                                fontSize="sm"
+                                fontWeight={current === idx ? "bold" : "normal"}
+                                color={current === idx ? activeSlide.color : "whiteAlpha.600"}
+                                cursor="pointer"
+                                transition="all 0.3s"
+                                _hover={{ color: "white" }}
+                                onClick={() => setCurrent(idx)}
                             >
-                                <Text
-                                    fontSize={{ base: "2xl", md: "4xl" }}
-                                    fontWeight="bold"
-                                    color="gray.800"
-                                    mb={2}
+                                {slide.text}
+                            </Text>
+                        ))}
+                    </HStack>
+
+                    {/* Search Bar */}
+                    <InputGroup
+                        maxW="400px"
+                        flex={1}
+                        mx={4}
+                        display={{ base: "none", md: "flex" }}
+                        startElement={
+                            <Icon
+                                as={FiSearch}
+                                boxSize="5"
+                                color="whiteAlpha.600"
+                            />
+                        }
+                    >
+                        <Input
+                            placeholder="Search products..."
+                            bg="whiteAlpha.100"
+                            color="white"
+                            border="1px solid"
+                            borderColor="whiteAlpha.200"
+                            _placeholder={{ color: "whiteAlpha.500" }}
+                            _hover={{ bg: "whiteAlpha.150" }}
+                            _focus={{ bg: "whiteAlpha.200", borderColor: activeSlide.color }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter')
+                                    nav(`/products?q=${encodeURIComponent(e.target.value || '')}`)
+                            }}
+                        />
+                    </InputGroup>
+
+                    {/* Action Icons */}
+                    <Flex align="center" gap={2}>
+                        {/* Chat */}
+                        <IconButton
+                            aria-label="Chat"
+                            variant="ghost"
+                            fontSize="20px"
+                            color="white"
+                            _hover={{ bg: "whiteAlpha.200" }}
+                            onClick={() => nav('/chat')}
+                        >
+                            <Icon as={FiMessageCircle} />
+                        </IconButton>
+
+                        {/* Notifications */}
+                        <Box position="relative">
+                            <IconButton
+                                aria-label="Notifications"
+                                variant="ghost"
+                                fontSize="20px"
+                                color="white"
+                                _hover={{ bg: "whiteAlpha.200" }}
+                                onClick={() => nav('/notifications')}
+                            >
+                                <Icon as={FiBell} />
+                            </IconButton>
+                            <Badge
+                                position="absolute"
+                                top="0"
+                                right="0"
+                                borderRadius="full"
+                                px="0.5em"
+                                fontSize="0.6em"
+                                fontWeight={900}
+                                colorPalette="red"
+                            >
+                                9
+                            </Badge>
+                        </Box>
+
+                        {/* Cart */}
+                        <Box position="relative">
+                            <IconButton
+                                aria-label="Cart"
+                                variant="ghost"
+                                fontSize="20px"
+                                color="white"
+                                _hover={{ bg: "whiteAlpha.200" }}
+                                onClick={() => nav('/cart')}
+                            >
+                                <Icon as={FiShoppingCart} />
+                            </IconButton>
+                            {cartCount > 0 && (
+                                <Badge
+                                    position="absolute"
+                                    top="0"
+                                    right="0"
+                                    borderRadius="full"
+                                    px="0.5em"
+                                    fontSize="0.6em"
+                                    fontWeight={900}
+                                    colorPalette="red"
                                 >
-                                    Buy the best <br /> {slide.text}
+                                    {cartCount}
+                                </Badge>
+                            )}
+                        </Box>
+
+                        {/* User Menu */}
+                        {token ? (
+                            <Menu.Root
+                                open={menuOpen}
+                                onOpenChange={(e) => setMenuOpen(e.open)}
+                                lazyMount={false}
+                                unmountOnExit={false}
+                                positioning={{ placement: 'bottom-end' }}
+                            >
+                                <Menu.Trigger asChild onPointerEnter={enter} onPointerLeave={leave}>
+                                    <IconButton
+                                        aria-label="User"
+                                        variant="ghost"
+                                        color="white"
+                                        _hover={{ bg: "whiteAlpha.200" }}
+                                        fontSize="20px"
+                                    >
+                                        <Icon as={FiUser} />
+                                    </IconButton>
+                                </Menu.Trigger>
+
+                                <Portal>
+                                    <Menu.Positioner onPointerEnter={enter} onPointerLeave={leave}>
+                                        <Menu.Content
+                                            bg="gray.900"
+                                            color="white"
+                                            border="1px solid"
+                                            borderColor="whiteAlpha.300"
+                                            rounded="lg"
+                                            shadow="xl"
+                                            minW="220px"
+                                            py="2"
+                                        >
+                                            <Box px="3" pb="2">
+                                                <Text fontSize="sm" color="whiteAlpha.600">Account</Text>
+                                            </Box>
+
+                                            <Menu.Item
+                                                value="info"
+                                                onClick={() => nav('/account')}
+                                                display="flex" alignItems="center" gap="3" px="3" py="2"
+                                                _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
+                                                color="whiteAlpha.600"
+                                            >
+                                                <Icon as={FiUser} />
+                                                <Text>My Info</Text>
+                                            </Menu.Item>
+
+                                            <Menu.Item
+                                                value="orders"
+                                                onClick={() => nav('/orders')}
+                                                display="flex" alignItems="center" gap="3" px="3" py="2"
+                                                _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
+                                                color="whiteAlpha.600"
+                                            >
+                                                <Icon as={FiShoppingBag} />
+                                                <Text>My Orders</Text>
+                                            </Menu.Item>
+
+                                            {user?.role?.includes('ROLE_ADMIN') && (
+                                                <>
+                                                    <Menu.Item
+                                                        value="seller"
+                                                        onClick={() => nav('/seller')}
+                                                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                                                        _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
+                                                        color="whiteAlpha.600"
+                                                    >
+                                                        <Icon as={FiPackage} />
+                                                        <Text>Seller Center</Text>
+                                                    </Menu.Item>
+
+                                                    <Menu.Item
+                                                        value="admin"
+                                                        onClick={() => nav('/admin')}
+                                                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                                                        _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
+                                                        color="whiteAlpha.600"
+                                                    >
+                                                        <Icon as={FiPackage} />
+                                                        <Text>Admin Center</Text>
+                                                    </Menu.Item>
+                                                </>
+                                            )}
+
+                                            <Separator my="2" borderColor="whiteAlpha.300" />
+
+                                            <Menu.Item
+                                                value="logout"
+                                                onClick={logout}
+                                                display="flex" alignItems="center" gap="3" px="3" py="2"
+                                                color="red.400"
+                                                _hover={{ bg: 'red.900', cursor: 'pointer' }}
+                                            >
+                                                <Icon as={FiLogOut} />
+                                                <Text>Logout</Text>
+                                            </Menu.Item>
+                                        </Menu.Content>
+                                    </Menu.Positioner>
+                                </Portal>
+                            </Menu.Root>
+                        ) : (
+                            <IconButton
+                                aria-label="Login"
+                                variant="ghost"
+                                color="white"
+                                _hover={{ bg: "whiteAlpha.200" }}
+                                fontSize="20px"
+                                onClick={() => nav('/login')}
+                            >
+                                <Icon as={FiUser} />
+                            </IconButton>
+                        )}
+                    </Flex>
+                </HStack>
+
+                {/* Main Content Grid */}
+                <Grid
+                    templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
+                    gap={8}
+                    minH={{ base: "600px", lg: "700px" }}
+                    alignItems="center"
+                    py={8}
+                >
+                    {/* Left - Hero Text */}
+                    <VStack align="start" spacing={8}>
+                        <Box>
+                            {/* Category Tag */}
+                            <HStack mb={4}>
+                                <Box w="40px" h="2px" bg={activeSlide.color} />
+                                <Text 
+                                    fontSize="sm" 
+                                    fontWeight="bold" 
+                                    color={activeSlide.color}
+                                    textTransform="uppercase"
+                                    letterSpacing="wider"
+                                >
+                                    {activeSlide.tag} Collection
                                 </Text>
-                                <Text fontSize={{ base: "md", md: "lg" }} color="gray.600" mb={6}>
-                                    Exclusive deals only on <Text as="span" fontWeight="700" color="brand.700">mini-Shopee</Text>
-                                </Text>
+                            </HStack>
+
+                            {/* Large Text */}
+                            <Text
+                                fontSize={{ base: "6xl", md: "7xl", lg: "8xl" }}
+                                fontWeight="black"
+                                lineHeight="0.9"
+                                mb={6}
+                            >
+                                {activeSlide.text}
+                            </Text>
+
+                            {/* Year indicator */}
+                            <Text 
+                                fontSize={{ base: "8xl", md: "9xl" }}
+                                fontWeight="black"
+                                color="whiteAlpha.500"
+                                lineHeight="1"
+                                position="relative"
+                                top="-20px"
+                            >
+                                2025
+                            </Text>
+                        </Box>
+
+                        {/* Description & CTA */}
+                        <Box>
+                            <Text 
+                                fontSize="lg" 
+                                color="whiteAlpha.700"
+                                mb={8}
+                                maxW="450px"
+                            >
+                                Discover the latest collection of premium {activeSlide.text.toLowerCase()} with exclusive deals up to 60% off.
+                            </Text>
+
+                            <HStack spacing={4}>
                                 <Button
-                                    fontSize={{ base: "sm", md: "md" }}
-                                    bg="black"
+                                    size="lg"
+                                    bg={activeSlide.color}
                                     color="white"
-                                    _hover={{ bg: "gray.700" }}
-                                    onClick={() => navigate(`/products`)}
+                                    px={8}
+                                    borderRadius="none"
+                                    rightIcon={<FiShoppingBag />}
+                                    _hover={{ 
+                                        transform: "translateX(4px)",
+                                        shadow: "xl"
+                                    }}
+                                    transition="all 0.3s"
+                                    onClick={() => nav('/products')}
                                 >
                                     Shop Now
                                 </Button>
-
-                                {/* Navigation dots */}
-                                <HStack mt={6} spacing={2}>
-                                    {slides.map((_, dotIndex) => (
-                                        <Box
-                                            key={dotIndex}
-                                            as="button"
-                                            w="30px"
-                                            h="6px"
-                                            borderRadius="md"
-                                            bg={current === dotIndex ? "black" : "gray.400"}
-                                            onClick={() => goToSlide(dotIndex)}
-                                            transition="all 0.3s ease"
-                                        />
-                                    ))}
-                                </HStack>
-                            </Box>
+                            </HStack>
                         </Box>
 
-                        {/* Right: Lifestyle background */}
-                        <Box
-                            flex="1"
-                            borderRadius="xl"
-                            overflow="hidden"
-                            shadow="md"
-                            position="relative"
-                        >
-                            <Image
-                                src={slide.bg}
-                                alt={`${slide.text} lifestyle`}
-                                w="100%"
-                                h="100%"
-                                objectFit="cover"
-                            />
+                        {/* Counter */}
+                        <HStack spacing={12} pt={4}>
+                            <Box>
+                                <Text fontSize="3xl" fontWeight="black">{current + 1}</Text>
+                                <Text fontSize="sm" color="whiteAlpha.500">
+                                    / {slides.length}
+                                </Text>
+                            </Box>
+                            <VStack align="start" spacing={2}>
+                                {slides.map((_, idx) => (
+                                    <Box
+                                        key={idx}
+                                        w={current === idx ? "60px" : "30px"}
+                                        h="2px"
+                                        bg={current === idx ? activeSlide.color : "whiteAlpha.300"}
+                                        transition="all 0.5s ease"
+                                        cursor="pointer"
+                                        onClick={() => setCurrent(idx)}
+                                    />
+                                ))}
+                            </VStack>
+                        </HStack>
+                    </VStack>
+
+                    {/* Right - Product Image */}
+                    <Box position="relative" h="full">
+                        {slides.map((slide, idx) => (
                             <Box
+                                key={idx}
                                 position="absolute"
                                 inset="0"
-                                bg="blackAlpha.400" // dark overlay
-                            />
-                        </Box>
+                                opacity={current === idx ? 1 : 0}
+                                transform={current === idx ? "scale(1) rotate(0deg)" : "scale(0.8) rotate(10deg)"}
+                                transition="all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)"
+                                pointerEvents={current === idx ? "auto" : "none"}
+                            >
+                                {/* Background circle */}
+                                <Box
+                                    position="absolute"
+                                    top="50%"
+                                    left="50%"
+                                    transform="translate(-50%, -50%)"
+                                    w={{ base: "400px", lg: "550px" }}
+                                    h={{ base: "400px", lg: "550px" }}
+                                    borderRadius="full"
+                                    border="1px solid"
+                                    borderColor="whiteAlpha.200"
+                                />
+                                <Box
+                                    position="absolute"
+                                    top="50%"
+                                    left="50%"
+                                    transform="translate(-50%, -50%)"
+                                    w={{ base: "320px", lg: "450px" }}
+                                    h={{ base: "320px", lg: "450px" }}
+                                    borderRadius="full"
+                                    bg={slide.color}
+                                    opacity={0.2}
+                                    filter="blur(80px)"
+                                />
 
-                        {/* Middle: Floating PNG inside colored square */}
-                        <Box
-                            position="absolute"
-                            top="35%"
-                            left="40%"
-                            transform="translate(-50%, -55%)"
-                            w={{ base: "200px", md: "280px" }}
-                            h={{ base: "200px", md: "280px" }}
-                            bg={slide.color}
-                            borderRadius="xl"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            shadow="xl"
-                            zIndex={2}
-                        >
-                            <Image
-                                src={slide.img}
-                                alt={slide.text}
-                                maxW="90%"
-                                maxH="90%"
-                                objectFit="contain"
-                                filter="drop-shadow(0 8px 20px rgba(0,0,0,0.2))"
-                            />
-                        </Box>
+                                {/* Product Image */}
+                                <Box
+                                    position="absolute"
+                                    top="50%"
+                                    left="50%"
+                                    transform="translate(-50%, -50%)"
+                                    w={{ base: "300px", lg: "400px" }}
+                                    h={{ base: "300px", lg: "400px" }}
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                >
+                                    <Image
+                                        src={slide.img}
+                                        alt={slide.text}
+                                        maxW="90%"
+                                        maxH="90%"
+                                        objectFit="contain"
+                                        filter="drop-shadow(0 20px 60px rgba(0,0,0,0.5))"
+                                        style={{
+                                            animation: current === idx ? "floatRotate 10s linear infinite" : "none"
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* Floating elements */}
+                                <Box
+                                    position="absolute"
+                                    top="20%"
+                                    right="10%"
+                                    w="80px"
+                                    h="80px"
+                                    bg={slide.color}
+                                    opacity={0.3}
+                                    style={{
+                                        animation: current === idx ? "floatUpDown 3s ease-in-out infinite" : "none"
+                                    }}
+                                />
+                                <Box
+                                    position="absolute"
+                                    bottom="15%"
+                                    left="5%"
+                                    w="60px"
+                                    h="60px"
+                                    border="2px solid"
+                                    borderColor={slide.color}
+                                    borderRadius="full"
+                                    opacity={0.4}
+                                    style={{
+                                        animation: current === idx ? "floatUpDown 4s ease-in-out infinite 1s" : "none"
+                                    }}
+                                />
+                            </Box>
+                        ))}
                     </Box>
-                ))}
+                </Grid>
+
+                {/* Bottom Info Bar */}
+                <HStack
+                    justify="space-between"
+                    py={6}
+                    borderTop="1px solid"
+                    borderColor="whiteAlpha.200"
+                    flexWrap="wrap"
+                    gap={4}
+                >
+                    <HStack spacing={2} fontSize="sm" color="whiteAlpha.600">
+                        <FiArrowUpRight />
+                        <Text>Scroll to explore</Text>
+                    </HStack>
+                    <HStack spacing={8} fontSize="sm">
+                        <Text color="whiteAlpha.600">Free Shipping</Text>
+                        <Text color="whiteAlpha.600">•</Text>
+                        <Text color="whiteAlpha.600">Money Back Guarantee</Text>
+                        <Text color="whiteAlpha.600">•</Text>
+                        <Text color="whiteAlpha.600">24/7 Support</Text>
+                    </HStack>
+                </HStack>
             </Container>
+
+            <style>
+                {`
+                    @keyframes floatRotate {
+                        0% { transform: translateY(0px) rotate(-30deg); }
+                        50% { transform: translateY(-20px) rotate(0deg); }
+                        100% { transform: translateY(0px) rotate(30deg); }
+                    }
+                    @keyframes floatUpDown {
+                        0%, 100% { transform: translateY(0px); }
+                        50% { transform: translateY(-20px); }
+                    }
+                `}
+            </style>
         </Box>
     );
 }

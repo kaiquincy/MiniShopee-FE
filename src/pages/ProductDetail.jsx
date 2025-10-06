@@ -1,8 +1,8 @@
+import { Badge, Box, Button, Heading, HStack, Image, Text, VStack } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchProductById } from '../api/products'
 import { getRatings } from '../api/ratings'
-import { Box, Image, Heading, Text, Button, VStack, HStack, Badge } from '@chakra-ui/react'
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
 
