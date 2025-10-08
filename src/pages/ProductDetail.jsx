@@ -111,8 +111,10 @@ export default function ProductDetail() {
     <Box w="full" px={{ base: 9, md: 160 }} py={{ base: 11, md: 8 }}>
       {/* Breadcrumb đơn giản */}
       <HStack spacing={2} color="gray.500" fontSize="sm" mb={3}>
-        <Button variant="ghost" size="xs" onClick={() => navigate(-1)}>← Quay lại</Button>
+        <Button variant="ghost" size="xs" onClick={() => navigate(-1)}>← Back</Button>
         <Text>•</Text>
+        <Text noOfLines={1}>{p?.categoryName || '...'}</Text>
+        <Text> {'>'} </Text>
         <Text noOfLines={1}>{p?.name || '...'}</Text>
       </HStack>
 
