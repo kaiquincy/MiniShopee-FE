@@ -6,10 +6,10 @@ import {
   Box, Image, Heading, Text, Button, VStack, HStack, Badge, Wrap, WrapItem,
   Separator, NumberInput, SimpleGrid, Skeleton, AspectRatio, Stack,
   IconButton, useDisclosure,
- useClipboard, Kbd, Icon, CloseButton, Dialog, Portal
+ useClipboard, Kbd, Icon, CloseButton, Dialog, Portal,Avatar 
 } from '@chakra-ui/react'
 
-import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuInfo } from 'react-icons/lu'
+import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, LuThumbsUp } from 'react-icons/lu'
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
 import { Tooltip } from '../components/ui/Tooltip'
@@ -23,6 +23,8 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
+  const [likedIds, setLikedIds] = useState(new Set())        // những rating đã like bởi current user
+  const [likeCounts, setLikeCounts] = useState({})           // { [ratingId]: count }
 
   // selections: { [groupName]: optionValue }
   const [sel, setSel] = useState({})
@@ -51,6 +53,49 @@ export default function ProductDetail() {
     return () => { mounted = false }
   }, [id])
 
+  useEffect(() => {
+    const nextCounts = {}
+    const nextLiked = new Set()
+    ratings.forEach(r => {
+      nextCounts[r.id] = typeof r.likeCount === 'number' ? r.likeCount : 0
+      if (r.likedByMe) nextLiked.add(r.id)
+    })
+    setLikeCounts(nextCounts)
+    setLikedIds(nextLiked)
+  }, [ratings])
+
+  const handleToggleLike = async (ratingId) => {
+    const isLiked = likedIds.has(ratingId)
+
+    // cập nhật lạc quan
+    setLikedIds(prev => {
+      const s = new Set(prev)
+      isLiked ? s.delete(ratingId) : s.add(ratingId)
+      return s
+    })
+    setLikeCounts(prev => ({
+      ...prev,
+      [ratingId]: Math.max(0, (prev[ratingId] ?? 0) + (isLiked ? -1 : 1))
+    }))
+
+    try {
+      await toggleRatingLike(ratingId, !isLiked) // API: POST /ratings/:id/like {liked:true/false}
+    } catch (e) {
+      // revert nếu lỗi
+      setLikedIds(prev => {
+        const s = new Set(prev)
+        isLiked ? s.add(ratingId) : s.delete(ratingId)
+        return s
+      })
+      setLikeCounts(prev => ({
+        ...prev,
+        [ratingId]: Math.max(0, (prev[ratingId] ?? 0) + (isLiked ? 1 : -1))
+      }))
+      toaster.create({ title: 'Không thể cập nhật lượt thích', status: 'error' })
+    }
+  }
+
+
   const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
   const { onCopy, hasCopied } = useClipboard(pageUrl)
 
@@ -77,6 +122,17 @@ export default function ProductDetail() {
   }, [p, mainImg])
 
   // preload thumbnails để chuyển mượt hơn
+
+  const avatarSrcOf = (r) => {
+    const raw = r.avatarUrl || r.userAvatar || r.photoUrl
+    if (raw) {
+      // nếu server trả về path tương đối -> ghép base; nếu đã là URL tuyệt đối -> giữ nguyên
+      return raw.startsWith('http') ? raw : `${import.meta.env.VITE_API_URL}/uploads/${raw}`
+    }
+    // fallback: tạo avatar chữ cái đầu theo tên
+    const seed = encodeURIComponent(r.username || 'User')
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`
+  }
 
 
   if (!p && !loading) return null
@@ -353,7 +409,7 @@ export default function ProductDetail() {
               </HStack>
               <Text>•</Text>
               <HStack>
-                <LuInfo />
+                <LuTruck />
                 <Text>Giao hàng nhanh</Text>
               </HStack>
             </HStack>
@@ -417,13 +473,43 @@ export default function ProductDetail() {
               boxShadow="sm"
               _hover={{ boxShadow: 'md' }}
             >
+
               <HStack justify="space-between" align="start">
                 <HStack>
-                  <Badge>{r.stars}★</Badge>
-                  <Text color="gray.700" fontWeight="medium">{r.username}</Text>
+                  <Avatar.Root>
+                    <Avatar.Fallback name={r.username} />
+                    <Avatar.Image src={avatarSrcOf(r)} />
+                  </Avatar.Root>
+                  <VStack align="start" gap={0}>
+                    <HStack>
+                      <Badge>{r.stars}★</Badge>
+                      <Text color="gray.700" fontWeight="medium">{r.username}</Text>
+                    </HStack>
+                    {/* nếu thích hiển thị thời gian ngay dưới tên */}
+                    <Text color="gray.500" fontSize="xs">{new Date(r.createdAt).toLocaleString()}</Text>
+                  </VStack>
                 </HStack>
-                <Text color="gray.500" fontSize="sm">{new Date(r.createdAt).toLocaleString()}</Text>
+
+                <HStack gap={1}>
+                    <IconButton
+                      aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
+                      size="xs"
+                      variant={likedIds.has(r.id) ? 'solid' : 'outline'}
+                      colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
+                      onClick={() => handleToggleLike(r.id)}
+                      aria-pressed={likedIds.has(r.id)}
+                    >
+                      <LuThumbsUp />
+                    </IconButton>
+                    <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
+                      {likeCounts[r.id] ?? 0}
+                    </Text>
+                  </HStack>
+
+                {/* hoặc giữ thời gian bên phải như cũ, thì bỏ dòng thời gian nhỏ ở trên */}
+                {/* <Text color="gray.500" fontSize="sm">{new Date(r.createdAt).toLocaleString()}</Text> */}
               </HStack>
+
               <Text mt={2} color="gray.800">{r.comment || '—'}</Text>
             </Box>
           ))}
