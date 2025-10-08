@@ -5,13 +5,13 @@ import Header from './Header'
 export default function Layout() {
   return (
     <Box display="flex" flexDirection="column" justifyContent="space-between" position="relative" minH="100vh" >
-      <Header />
-      <Container maxW="7xl" py={6}>
-        <Outlet />
-      </Container>
-
-      
-      <Box as="footer" bg="gray.900" color="gray.300" py={10} mt={12}>
+      <Box>
+        <Header />
+        <Container py={0} px={0} mx={0} maxW="100vw">
+          <Outlet />
+        </Container>
+      </Box>
+      <Box as="footer" bg="gray.900" color="gray.300" py={10}>
         <Container maxW="7xl">
           <Flex
             direction={{ base: "column", md: "row" }}

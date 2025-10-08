@@ -169,27 +169,27 @@ export default function Header() {
                         <ChakraText>My Info</ChakraText>
                       </Menu.Item>
 
+                    <Menu.Item
+                      value="orders"
+                      onClick={() => nav('/orders')}
+                      display="flex" alignItems="center" gap="3" px="3" py="2"
+                      _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                    >
+                      <Icon as={FiShoppingBag} />
+                      <ChakraText>My Orders</ChakraText>
+                    </Menu.Item>
+
+                    {user?.role?.includes('ROLE_ADMIN') && (
                       <Menu.Item
-                        value="orders"
-                        onClick={() => nav('/orders')}
+                        value="seller"
+                        onClick={() => nav('/seller')}
                         display="flex" alignItems="center" gap="3" px="3" py="2"
                         _hover={{ bg: 'gray.50', cursor: 'pointer' }}
                       >
-                        <Icon as={FiShoppingBag} />
-                        <ChakraText>My Orders</ChakraText>
+                        <Icon as={FiPackage} />
+                        <ChakraText>Seller Center</ChakraText>
                       </Menu.Item>
-
-                      {user?.role?.includes('ROLE_ADMIN') && (
-                        <Menu.Item
-                          value="seller"
-                          onClick={() => nav('/seller')}
-                          display="flex" alignItems="center" gap="3" px="3" py="2"
-                          _hover={{ bg: 'gray.50', cursor: 'pointer' }}
-                        >
-                          <Icon as={FiPackage} />
-                          <ChakraText>Seller Center</ChakraText>
-                        </Menu.Item>
-                      )}
+                    )}
 
                       {user?.role?.includes('ROLE_ADMIN') && (
                         <Menu.Item
