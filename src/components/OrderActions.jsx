@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 
 // Chakra v3
 import { Flex } from '@chakra-ui/react/flex'
-import { Tooltip } from '../components/ui/tooltip'
+import { Tooltip } from '../components/ui/Tooltip'
 import { IconButton } from "@chakra-ui/react"
 import { Text } from '@chakra-ui/react/text'
 
@@ -66,16 +66,16 @@ export default function OrderActions({
         const isLoading = !!loadingFor[next]
 
         return (
-          <Tooltip key={next} label={meta.label || next} openDelay={200}>
+          <Tooltip key={next} content={meta.label || next} openDelay={200}>
             <IconButton
-            aria-label={meta.label || next}
-            onClick={() => onAction(next)}
-            isLoading={isLoading}
-            isDisabled={disabled || isLoading}
-            variant={variant}
-            size={size}
-            borderRadius="12px"
-            colorPalette={meta.colorPalette || 'gray'}
+              aria-label={meta.label || next}
+              onClick={() => onAction(next)}
+              isLoading={isLoading}
+              isDisabled={disabled || isLoading}
+              variant={variant}
+              size={size}
+              borderRadius="12px"
+              colorPalette={meta.colorPalette || 'gray'}
             >
             <Icon />   {/* 👈 icon truyền vào như children */}
             </IconButton>
