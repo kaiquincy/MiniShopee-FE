@@ -1,13 +1,12 @@
 import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import { FiBell, FiLogOut, FiMessageCircle, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser } from 'react-icons/fi'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser } from 'react-icons/fi'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
 export default function Header() {
   const nav = useNavigate()
-  const location = useLocation()
   const { token, logout, user } = useAuth()
   const { cartCount } = useCart()
 
@@ -19,64 +18,48 @@ export default function Header() {
 
   // console.log('User in header:', user.role)
 
-  const isSellerOrAdmin = location.pathname.startsWith("/seller") || location.pathname.startsWith("/admin")
-
   return (
-    <Box as="header" position="sticky" top={0} zIndex={100} className="glass" bg={ isSellerOrAdmin ? "gray.900" : "white" } color={ isSellerOrAdmin ? "white" : "gray.900" }>
+    <Box as="header" position="sticky" top={0} zIndex={100} className="glass" bg="transparent">
       <Box maxW="7xl" mx="auto" py={3} px={4}>
         <Flex align="center" gap={4} justify="space-between">
-          <Heading size="2xl" fontWeight="bold" color={isSellerOrAdmin ? "brand.400" : "brand.700"}>
+          <Heading size="xl" fontWeight="bold" color="brand.700">
             <Link to="/">mini-Shopee</Link>
           </Heading>
 
           <InputGroup
             maxW="600px"
             flex={1}
-            startElement={
-              <Icon
-                as={FiSearch}
-                aria-hidden="true"
-                boxSize="5"
-                color={isSellerOrAdmin ? "white" : "gray.500"}
-              />
-            }
+            startElement={<Icon as={FiSearch} aria-hidden="true" color="gray.500" boxSize="5" />}
           >
             <Input
               placeholder="Search for product, category…"
-              bg={isSellerOrAdmin ? "gray.900" : "white"}
-              color={isSellerOrAdmin ? "white" : "black"}
-              _placeholder={{ color: isSellerOrAdmin ? "gray.400" : "gray.500" }}
+              bg="white"
               onKeyDown={(e) => {
-                if (e.key === 'Enter')
-                  nav(`/?q=${encodeURIComponent(e.target.value || '')}`)
+                if (e.key === 'Enter') nav(`/?q=${encodeURIComponent(e.target.value || '')}`)
               }}
             />
           </InputGroup>
 
           <Flex align="center" gap={4}>
             {/* Chat */}
-            <Box>
-              <IconButton
-                aria-label="Chat"
-                variant="ghost"
-                fontSize="20px"
-                color={isSellerOrAdmin ? "white" : "gray.700"}
-                _hover={{ bg: isSellerOrAdmin ? "white" : "gray.100", color: isSellerOrAdmin ? "black" : "black" }}
-                icon={<Icon as={FiMessageCircle} />}
-                onClick={() => nav('/chat')}
-              >
-                <Icon as={FiMessageCircle} />
-              </IconButton>
-            </Box>
+            <IconButton
+              aria-label="Chat"
+              variant="ghost"
+              colorPalette="gray"
+              fontSize="20px"
+              icon={<Icon as={FiMessageSquare} />}
+              onClick={() => nav('/chat')}
+            >
+              <Icon as={FiMessageSquare} />
+            </IconButton>
 
             {/* Notifications + badge */}
             <Box position="relative">
               <IconButton
                 aria-label="Notifications"
                 variant="ghost"
+                colorPalette="gray"
                 fontSize="20px"
-                color={isSellerOrAdmin ? "white" : "gray.700"}
-                _hover={{ bg: isSellerOrAdmin ? "white" : "gray.100", color: isSellerOrAdmin ? "black" : "black" }}
                 icon={<Icon as={FiBell} />}
                 onClick={() => nav('/notifications')}
               >
@@ -101,9 +84,8 @@ export default function Header() {
               <IconButton
                 aria-label="Cart"
                 variant="ghost"
+                colorPalette="gray"
                 fontSize="20px"
-                color={isSellerOrAdmin ? "white" : "gray.700"}
-                _hover={{ bg: isSellerOrAdmin ? "white" : "gray.100", color: isSellerOrAdmin ? "black" : "black" }}
                 onClick={() => nav('/cart')}
               >
                 <Icon as={FiShoppingCart} />
@@ -138,8 +120,7 @@ export default function Header() {
                   <IconButton
                     aria-label="User"
                     variant="ghost"
-                    color={isSellerOrAdmin ? "white" : "gray.700"}
-                    _hover={{ bg: isSellerOrAdmin ? "white" : "gray.100", color: isSellerOrAdmin ? "black" : "black" }}
+                    colorPalette="gray"
                     fontSize="20px"
                   >
                     <Icon as={FiUser} />
@@ -182,17 +163,19 @@ export default function Header() {
                       <ChakraText>My Orders</ChakraText>
                     </Menu.Item>
 
-                    {user?.role?.includes('ROLE_ADMIN') && (
-                      <Menu.Item
-                        value="seller"
-                        onClick={() => nav('/seller')}
-                        display="flex" alignItems="center" gap="3" px="3" py="2"
-                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
-                      >
-                        <Icon as={FiPackage} />
-                        <ChakraText>Seller Center</ChakraText>
-                      </Menu.Item>
-                    )}
+
+                      {user?.role?.includes('ROLE_ADMIN') && (
+                        <Menu.Item
+                          value="seller"
+                          onClick={() => nav('/seller')}
+                          display="flex" alignItems="center" gap="3" px="3" py="2"
+                          _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                        >
+                          <Icon as={FiPackage} />
+                          <ChakraText>Seller Center</ChakraText>
+                        </Menu.Item>
+                      )}
+                    
 
                     {user?.role?.includes('ROLE_ADMIN') && (
                       <Menu.Item
@@ -227,8 +210,7 @@ export default function Header() {
               <IconButton
                 aria-label="Login"
                 variant="ghost"
-                color={isSellerOrAdmin ? "white" : "gray.700"}
-                _hover={{ bg: isSellerOrAdmin ? "white" : "gray.100", color: isSellerOrAdmin ? "black" : "black" }}
+                colorPalette="gray"
                 fontSize="20px"
                 onClick={() => nav('/login')}
               >

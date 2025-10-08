@@ -4,8 +4,8 @@ export async function getCart() {
   const { data } = await api.get('/api/carts')
   return data?.result
 }
-export async function addToCart(productId, quantity=1) {
-  const { data } = await api.post('/api/carts', null, { params: { productId, quantity } })
+export async function addToCart(productId, quantity=1, variantId) {
+  const { data } = await api.post('/api/carts', null, { params: { productId, quantity, variantId } })
   return data?.result
 }
 export async function removeCartItem(itemId) {

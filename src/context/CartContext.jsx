@@ -22,8 +22,8 @@ export function CartProvider({ children }) {
   useEffect(() => { load() }, [load])
 
   // helpers gọi API rồi refresh
-  const addToCart = useCallback(async (productId, quantity = 1) => {
-    await apiAdd(productId, quantity)
+  const addToCart = useCallback(async (productId, quantity = 1, variantId) => {
+    await apiAdd(productId, quantity, variantId)
     await load()
   }, [load])
 

@@ -172,7 +172,16 @@ function OrderCard({ order: o }) {
           {/* Optional: liệt kê 1–3 dòng item */}
           {preview.map(it => (
             <HStack key={it.id || it.productId} justify="space-between">
-              <Text noOfLines={1} flex={1}>{it.productName}</Text>
+              <VStack align="start" flex={1} spacing={1} ml={3}>
+                <Text noOfLines={1} flex={1}>{it.productName}</Text>
+                {it.optionValues && (
+                  <HStack spacing={2} flexWrap="wrap">
+                    {Object.entries(it.optionValues).map(([k, v]) => (
+                      <Badge key={k} colorScheme="purple" variant="subtle">{`${k}: ${v}`}</Badge>
+                    ))}
+                  </HStack>
+                )}
+              </VStack>
               <Text color="gray.600">x{it.quantity}</Text>
               <Text fontWeight="semibold">
                 {(it.price || 0) * (it.quantity || 0)}$
