@@ -108,7 +108,7 @@ export default function ProductDetail() {
   }
 
   return (
-    <Box w="full" px={{ base: 3, md: 6 }} py={{ base: 4, md: 8 }}>
+    <Box w="full" px={{ base: 9, md: 160 }} py={{ base: 11, md: 8 }}>
       {/* Breadcrumb đơn giản */}
       <HStack spacing={2} color="gray.500" fontSize="sm" mb={3}>
         <Button variant="ghost" size="xs" onClick={() => navigate(-1)}>← Quay lại</Button>
@@ -116,7 +116,7 @@ export default function ProductDetail() {
         <Text noOfLines={1}>{p?.name || '...'}</Text>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 6, lg: 10 }}>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 15, lg: 10 }}>
         {/* Cột trái: gallery */}
         <VStack align="stretch" spacing={4}>
           <Box
@@ -126,9 +126,10 @@ export default function ProductDetail() {
             borderRadius="xl"
             boxShadow="sm"
             p={{ base: 2, md: 3 }}
+            maxW="480px"
           >
             <Skeleton loading={loading}>
-              <AspectRatio ratio={4/3}>
+              <AspectRatio ratio={1}>
                 <Image
                   src={thumbs[activeIdx] || mainImg}
                   alt={p?.name}
@@ -140,7 +141,7 @@ export default function ProductDetail() {
           </Box>
 
           {/* Thumbnails */}
-          <HStack overflowX="auto" spacing={3} py={1}>
+          <HStack overflowX="auto" spacing={3} py={1} px={0.5}>
             {thumbs.map((src, idx) => (
               <Box
                 key={idx}
@@ -151,7 +152,7 @@ export default function ProductDetail() {
                 outline={idx === activeIdx ? '2px solid var(--chakra-colors-brand-500, #3182CE)' : '1px solid var(--chakra-colors-gray-200)'}
                 transition="all .2s ease"
                 _hover={{ transform: 'translateY(-2px)' }}
-                flex="0 0 88px"
+                flex="0 0 88px" 
               >
                 <AspectRatio ratio={1}>
                   <Image src={src} alt={`thumb-${idx}`} objectFit="cover"/>
