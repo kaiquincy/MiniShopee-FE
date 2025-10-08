@@ -7,3 +7,8 @@ export async function addRating(payload){
   const { data } = await api.post('/api/ratings', payload)
   return data?.result
 }
+
+export async function getRatingSummary(productId){
+  const { data } = await api.get(`/api/ratings/product/${productId}/summary`)
+  return data?.result
+}
