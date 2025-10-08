@@ -33,7 +33,7 @@ const NavItem = ({ to, icon, children }) => {
 
 export default function AdminLayout() {
   return (
-    <Flex minH="100vh" bg="gray.900" pt={16}>
+    <Flex minH="100vh" bg="gray.900">
       {/* Sidebar */}
       <Box w="260px" bg="gray.900" py={4} color="white">
         <VStack align="stretch" gap={0}>

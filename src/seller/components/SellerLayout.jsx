@@ -44,7 +44,7 @@ const NavItem = ({ to, children, icon }) => {
 
 export default function SellerLayout() {
   return (
-    <Flex minH="100vh" bg="black" pt={16}>
+    <Flex minH="100vh" bg="black">
       {/* Sidebar */}
       <Box 
         w="280px" 
