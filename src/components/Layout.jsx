@@ -3,8 +3,9 @@ import { Outlet } from 'react-router-dom'
 import Header from './Header'
 
 export default function Layout() {
+  const isLandingPage = location.pathname === '/'; // index route
   return (
-    <Box display="flex" flexDirection="column" justifyContent="space-between" position="relative" minH="100vh" >
+    <Box display="flex" flexDirection="column" justifyContent="space-between" position="relative" minH="100vh" pt={isLandingPage ? 0 : 16}>
       <Box>
         <Header />
         <Container py={0} px={0} mx={0} maxW="100vw">
