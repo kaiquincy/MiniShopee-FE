@@ -2,12 +2,12 @@ import {
   Badge,
   Box,
   createListCollection,
+  Grid,
   Heading,
   HStack,
   Portal,
   Select,
   Separator,
-  SimpleGrid,
   Skeleton,
   Text,
   VStack
@@ -20,21 +20,36 @@ import { fetchOrders } from '../api/seller'
 
 // Charts
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
+  Cell,
   Tooltip as ChartTooltip,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
   ResponsiveContainer,
   XAxis,
-  YAxis,
+  YAxis
 } from 'recharts'
 
 // Icons
-import { FiAlertCircle, FiPieChart, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
+import {
+  FiAlertCircle,
+  FiCheckCircle,
+  FiClock,
+  FiDollarSign,
+  FiShoppingBag,
+  FiTrendingUp,
+  FiXCircle
+} from 'react-icons/fi'
 
 const currency = (n = 0) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
     .format(Number(n) || 0)
+
+const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899']
 
 export default function SellerAnalytics() {
   const [orders, setOrders] = useState([])
@@ -51,7 +66,6 @@ export default function SellerAnalytics() {
       } catch (e) {
         setError(e?.message || 'Không tải được dữ liệu')
       } finally {
-        console.log("Asdddddddddddd")
         setLoading(false)
       }
     })()
@@ -59,6 +73,7 @@ export default function SellerAnalytics() {
 
   const stats = useMemo(() => {
     const totalRevenue = orders.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0)
+    const completedRevenue = orders.reduce((s, o) => s + (o.status === "COMPLETED" ? Number(o.totalAmount) || 0 : 0), 0)
 
     const byStatus = orders.reduce((m, o) => {
         m[o.status] = (m[o.status] || 0) + 1
@@ -66,12 +81,17 @@ export default function SellerAnalytics() {
     }, {})
 
     const totalOrders = orders.length
+    const completedOrders = byStatus['COMPLETED'] || 0
+    const pendingOrders = byStatus['PENDING'] || 0
+    const cancelledOrders = byStatus['CANCELLED'] || 0
+    const successRate = totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : 0
+    const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(0) : 0
+
     const pipeline = pickPipelinePercents(byStatus, totalOrders)
 
     let chartData = []
 
     if (range === "last7days") {
-        // build last 7 days
         const today = new Date()
         const days = Array.from({ length: 7 }, (_, i) => {
             const d = new Date()
@@ -100,7 +120,6 @@ export default function SellerAnalytics() {
         const now = new Date()
         const year = now.getFullYear()
         const month = now.getMonth()
-
         const daysInMonth = new Date(year, month + 1, 0).getDate()
         const days = Array.from({ length: daysInMonth }, (_, i) => {
             return { label: `${i + 1}/${month + 1}`, date: new Date(year, month, i + 1) }
@@ -122,7 +141,6 @@ export default function SellerAnalytics() {
     if (range === "last6months") {
       const now = new Date()
       const months = []
-
       for (let i = 5; i >= 0; i--) {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
           months.push({
@@ -137,137 +155,256 @@ export default function SellerAnalytics() {
               const d = new Date(o.createdAt)
               return d.getMonth() === month && d.getFullYear() === year
           })
-
           return {
-              day: label, // keep "day" as key so charts don't break
+              day: label,
               orders: filtered.length,
               revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
           }
-    })
-  }
+      })
+    }
 
-    console.log(totalOrders, totalRevenue, byStatus, pipeline, chartData)
-    return { totalOrders, totalRevenue, byStatus, pipeline, chartData }
+    // Pie chart data
+    const pieData = Object.entries(byStatus).map(([status, count]) => ({
+      name: status,
+      value: count,
+      color: getStatusColor(status)
+    }))
+
+    return { 
+      totalOrders, 
+      totalRevenue, 
+      completedRevenue,
+      completedOrders,
+      pendingOrders,
+      cancelledOrders,
+      successRate,
+      avgOrderValue,
+      byStatus, 
+      pipeline, 
+      chartData,
+      pieData
+    }
   }, [orders, range])
 
-  console.log(orders)
-
   return (
-    <Box>
-      <Heading size="md" mb={4}>Tổng quan</Heading>
+    <Box color="white">
+      {/* Header */}
+      <Flex justify="space-between" align="center" mb={8}>
+        <Box>
+          <Heading size="2xl" fontWeight="black" mb={2}>Analytics Dashboard</Heading>
+          <Text color="whiteAlpha.600">Track your store performance and insights</Text>
+        </Box>
+        <Select.Root
+          collection={ranges}
+          width="220px"
+          value={[range]}
+          onValueChange={(e) => setRange(e.value[0])}
+        >
+          <Select.HiddenSelect />
+          <Select.Control>
+            <Select.Trigger bg="gray.900" borderColor="whiteAlpha.300" color="white">
+              <Select.ValueText placeholder="Select range" />
+            </Select.Trigger>
+            <Select.IndicatorGroup>
+              <Select.Indicator />
+            </Select.IndicatorGroup>
+          </Select.Control>
+          <Portal>
+            <Select.Positioner>
+              <Select.Content bg="gray.900" color="white" borderColor="whiteAlpha.300">
+                {ranges.items.map((range) => (
+                  <Select.Item item={range} key={range.value} _hover={{ bg: "whiteAlpha.200" }}>
+                    {range.label}
+                    <Select.ItemIndicator />
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select.Positioner>
+          </Portal>
+        </Select.Root>
+      </Flex>
 
       {/* KPI Cards */}
-      <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+      <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={6} mb={8}>
         <StatCard
-          title="Tổng đơn"
+          title="Total Orders"
           value={stats.totalOrders}
           icon={FiShoppingBag}
-          colorPalette="blue"
+          color="#2563EB"
           loading={loading}
+          trend="+12.5%"
         />
         <StatCard
-          title="Doanh thu ước tính"
+          title="Total Revenue"
           value={currency(stats.totalRevenue)}
+          icon={FiDollarSign}
+          color="#10B981"
+          loading={loading}
+          trend="+8.3%"
+        />
+        <StatCard
+          title="Avg Order Value"
+          value={currency(stats.avgOrderValue)}
           icon={FiTrendingUp}
-          colorPalette="green"
+          color="#F59E0B"
           loading={loading}
         />
         <StatCard
-          title="Tỷ trọng trạng thái"
-          value={formatStatusShort(stats.byStatus)}
-          icon={FiPieChart}
-          colorPalette="purple"
+          title="Success Rate"
+          value={`${stats.successRate}%`}
+          icon={FiCheckCircle}
+          color="#8B5CF6"
+          loading={loading}
+          trend="+2.1%"
+        />
+      </Grid>
+
+      {/* Quick Stats */}
+      <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} mb={8}>
+        <QuickStatCard
+          label="Pending Orders"
+          value={stats.pendingOrders}
+          icon={FiClock}
+          color="#F59E0B"
           loading={loading}
         />
-      </SimpleGrid>
+        <QuickStatCard
+          label="Completed Orders"
+          value={stats.completedOrders}
+          icon={FiCheckCircle}
+          color="#10B981"
+          loading={loading}
+        />
+        <QuickStatCard
+          label="Cancelled Orders"
+          value={stats.cancelledOrders}
+          icon={FiXCircle}
+          color="#EF4444"
+          loading={loading}
+        />
+      </Grid>
 
-      {/* Charts Section */}
-      <Box my={10}>
-        <HStack justify="space-between" mb={4}>
-          <Heading size="sm">Biểu đồ đơn hàng & doanh thu</Heading>
-          <Select.Root
-            collection={ranges}
-            width="200px"
-            value={[range]}
-            onValueChange={(e) => setRange(e.value[0])}
-          >
-            <Select.HiddenSelect />
-            <Select.Label>Data Range</Select.Label>
-            <Select.Control>
-              <Select.Trigger>
-                <Select.ValueText placeholder="Select range" />
-              </Select.Trigger>
-              <Select.IndicatorGroup>
-                <Select.Indicator />
-              </Select.IndicatorGroup>
-            </Select.Control>
+      {/* Charts Grid */}
+      <Grid templateColumns={{ base: "1fr", xl: "2fr 1fr" }} gap={6} mb={8}>
+        {/* Revenue Trend */}
+        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+          <Heading size="md" mb={4}>Revenue Trend</Heading>
+          <Box h="350px">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.chartData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                <ChartTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  formatter={(v) => currency(v)} 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10B981" 
+                  strokeWidth={2}
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
 
-            <Portal>
-              <Select.Positioner>
-                <Select.Content>
-                  {ranges.items.map((range) => (
-                    <Select.Item item={range} key={range.value}>
-                      {range.label}
-                      <Select.ItemIndicator />
-                    </Select.Item>
+        {/* Order Status Distribution */}
+        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+          <Heading size="md" mb={4}>Order Status</Heading>
+          <Box h="350px">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={stats.pieData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {stats.pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
-                </Select.Content>
-              </Select.Positioner>
-            </Portal>
-          </Select.Root>
-        </HStack>
-        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
-          <Box>
-            <Heading size="sm" mb={2}>Orders this week</Heading>
-            <Box h="400px" bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={6} pl={0}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.chartData} >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" tick={{ fontSize: 8 }} />
-                  <YAxis tick={{ fontSize: 8 }}/>
-                  <ChartTooltip contentStyle={{ fontSize: '12px' }}/>
-                  <Bar dataKey="orders" fill="#3182CE" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
+                </Pie>
+                <ChartTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </Box>
-          <Box>
-            <Heading size="sm" mb={2}>Revenue this week</Heading>
-            <Box h="400px" bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={6} pl={0}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <ChartTooltip formatter={(v) => currency(v)} />
-                  <Bar dataKey="revenue" fill="#38A169" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </Box>
-        </SimpleGrid>
+        </Box>
+      </Grid>
+
+      {/* Orders Chart */}
+      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6} mb={8}>
+        <Heading size="md" mb={4}>Orders Overview</Heading>
+        <Box h="350px">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={stats.chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+              <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+              <ChartTooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1F2937', 
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  color: '#fff'
+                }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="orders" 
+                stroke="#2563EB" 
+                strokeWidth={3}
+                dot={{ fill: '#2563EB', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
       </Box>
 
-      {/* Pipeline & breakdown */}
-      <Box mt={4} bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={4}>
-        <HStack justify="space-between" mb={2}>
-          <Text fontWeight="semibold">Trạng thái đơn hàng</Text>
+      {/* Status Pipeline */}
+      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+        <HStack justify="space-between" mb={4}>
+          <Heading size="md">Order Pipeline</Heading>
           {!loading && error && (
-            <HStack color="red.600" fontSize="sm">
+            <HStack color="red.400" fontSize="sm">
               <Icon as={FiAlertCircle} />
               <Text>{error}</Text>
             </HStack>
           )}
         </HStack>
 
-        {/* Pipeline bar */}
         <Skeleton loading={loading} borderRadius="md">
           <PipelineBar pipeline={stats.pipeline} total={stats.totalOrders} />
         </Skeleton>
 
-        <Separator  my={3} />
+        <Separator my={4} borderColor="whiteAlpha.200" />
 
-        {/* Breakdown badges */}
         <Skeleton loading={loading} borderRadius="md">
           <StatusBadges byStatus={stats.byStatus} />
         </Skeleton>
@@ -278,30 +415,73 @@ export default function SellerAnalytics() {
 
 /* ---------- Components ---------- */
 
-function StatCard({ title, value, icon, colorPalette = 'gray', loading = false }) {
+function StatCard({ title, value, icon, color, loading = false, trend }) {
   return (
     <Box
-      bg="white"
+      bg="gray.900"
       border="1px solid"
-      borderColor="gray.100"
-      borderRadius="md"
-      p={4}
-      boxShadow="0 6px 18px rgba(2,32,71,0.06)"
+      borderColor="whiteAlpha.200"
+      p={6}
+      position="relative"
+      overflow="hidden"
+      transition="all 0.3s"
+      _hover={{ borderColor: color }}
     >
+      {/* Decorative gradient */}
+      <Box
+        position="absolute"
+        top="-50%"
+        right="-30%"
+        w="150px"
+        h="150px"
+        bg={color}
+        opacity={0.1}
+        filter="blur(40px)"
+        pointerEvents="none"
+      />
+
       <Skeleton loading={loading} borderRadius="md">
-        <HStack align="start" justify="space-between">
-          <VStack align="start" spacing={1}>
-            <Text color="gray.500">{title}</Text>
-            <Text fontWeight="bold" fontSize="xl">{value}</Text>
-          </VStack>
-          <Box
-            borderRadius="12px"
-            p="10px"
-            bg={`${colorPalette}.50`}
-            border="1px solid"
-            borderColor={`${colorPalette}.100`}
-          >
-            <Icon as={icon} boxSize={5} color={`${colorPalette}.600`} />
+        <VStack align="start" spacing={3} position="relative">
+          <HStack justify="space-between" w="full">
+            <Box
+              p={3}
+              bg={`${color}20`}
+              borderRadius="lg"
+            >
+              <Icon as={icon} boxSize={6} color={color} />
+            </Box>
+            {trend && (
+              <Badge colorPalette="green" variant="subtle" px={2} py={1}>
+                {trend}
+              </Badge>
+            )}
+          </HStack>
+          <Box>
+            <Text color="whiteAlpha.600" fontSize="sm" mb={1}>{title}</Text>
+            <Text fontWeight="black" fontSize="3xl">{value}</Text>
+          </Box>
+        </VStack>
+      </Skeleton>
+    </Box>
+  )
+}
+
+function QuickStatCard({ label, value, icon, color, loading }) {
+  return (
+    <Box
+      bg="gray.900"
+      border="1px solid"
+      borderColor="whiteAlpha.200"
+      p={4}
+    >
+      <Skeleton loading={loading}>
+        <HStack spacing={4}>
+          <Box p={3} bg={`${color}20`} borderRadius="lg">
+            <Icon as={icon} boxSize={5} color={color} />
+          </Box>
+          <Box>
+            <Text color="whiteAlpha.600" fontSize="sm">{label}</Text>
+            <Text fontWeight="bold" fontSize="2xl">{value}</Text>
           </Box>
         </HStack>
       </Skeleton>
@@ -311,7 +491,7 @@ function StatCard({ title, value, icon, colorPalette = 'gray', loading = false }
 
 function PipelineBar({ pipeline, total }) {
   if (!total) {
-    return <Box h="12px" bg="gray.50" borderRadius="full" border="1px solid" borderColor="gray.100" />
+    return <Box h="16px" bg="gray.800" borderRadius="full" border="1px solid" borderColor="whiteAlpha.200" />
   }
 
   return (
@@ -320,7 +500,7 @@ function PipelineBar({ pipeline, total }) {
         <VStack align="start" spacing="6px">
           {pipeline.map(seg => (
             <HStack key={seg.key} spacing="8px">
-              <Box w="10px" h="10px" borderRadius="2px" bg={`${seg.colorPalette}.500`} />
+              <Box w="12px" h="12px" borderRadius="sm" bg={seg.color} />
               <Text>{seg.label}: {seg.percent}%</Text>
             </HStack>
           ))}
@@ -328,13 +508,12 @@ function PipelineBar({ pipeline, total }) {
       }
       openDelay={150}
     >
-      <Flex h="12px" borderRadius="full" overflow="hidden" border="1px solid" borderColor="gray.100">
+      <Flex h="16px" borderRadius="full" overflow="hidden" border="1px solid" borderColor="whiteAlpha.200">
         {pipeline.map(seg => (
           <Box
             key={seg.key}
             flex={`${seg.percent} 0 auto`}
-            bg={`${seg.colorPalette}.500`}
-            _dark={{ bg: `${seg.colorPalette}.400` }}
+            bg={seg.color}
           />
         ))}
       </Flex>
@@ -342,20 +521,29 @@ function PipelineBar({ pipeline, total }) {
   )
 }
 
-
 function StatusBadges({ byStatus = {} }) {
   const entries = Object.entries(byStatus)
   if (entries.length === 0) {
-    return <Text color="gray.500">—</Text>
+    return <Text color="whiteAlpha.500">—</Text>
   }
 
   return (
     <HStack wrap="wrap" spacing={2} rowGap={2}>
       {entries.map(([k, v]) => {
-        const palette = pickStatusPalette(k)
+        const color = getStatusColor(k)
         return (
-          <Badge key={k} colorPalette={palette} variant="soft" px={2} py={1} borderRadius="md">
-            {k}: <Box as="span" fontWeight="semibold" ml="4px">{v}</Box>
+          <Badge 
+            key={k} 
+            bg={`${color}20`}
+            color={color}
+            border="1px solid"
+            borderColor={`${color}40`}
+            px={3} 
+            py={1} 
+            borderRadius="md"
+            fontWeight="semibold"
+          >
+            {k}: {v}
           </Badge>
         )
       })}
@@ -365,41 +553,30 @@ function StatusBadges({ byStatus = {} }) {
 
 /* ---------- Helpers ---------- */
 
-function formatStatusShort(byStatus = {}) {
-  const entries = Object.entries(byStatus)
-  if (entries.length === 0) return '—'
-  const short = entries
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([k, v]) => `${k}: ${v}`)
-    .join(' • ')
-  return short
-}
-
-function pickStatusPalette(status) {
+function getStatusColor(status) {
   switch (status) {
-    case 'PENDING': return 'gray'
-    case 'PAID': return 'blue'
-    case 'PROCESSING': return 'cyan'
-    case 'SHIPPING': return 'teal'
-    case 'DELIVERED': return 'purple'
-    case 'COMPLETED': return 'green'
-    case 'CANCELLED': return 'red'
-    case 'REFUNDED': return 'orange'
-    default: return 'gray'
+    case 'PENDING': return '#9CA3AF'
+    case 'PAID': return '#2563EB'
+    case 'PROCESSING': return '#06B6D4'
+    case 'SHIPPING': return '#14B8A6'
+    case 'DELIVERED': return '#8B5CF6'
+    case 'COMPLETED': return '#10B981'
+    case 'CANCELLED': return '#EF4444'
+    case 'REFUNDED': return '#F59E0B'
+    default: return '#9CA3AF'
   }
 }
 
 function pickPipelinePercents(byStatus = {}, total = 0) {
   const order = [
-    { key: 'PENDING',    label: 'Pending',    colorPalette: 'gray'   },
-    { key: 'PAID',       label: 'Paid',       colorPalette: 'blue'   },
-    { key: 'PROCESSING', label: 'Processing', colorPalette: 'cyan'   },
-    { key: 'SHIPPING',   label: 'Shipping',   colorPalette: 'teal'   },
-    { key: 'DELIVERED',  label: 'Delivered',  colorPalette: 'purple' },
-    { key: 'COMPLETED',  label: 'Completed',  colorPalette: 'green'  },
-    { key: 'CANCELLED',  label: 'Cancelled',  colorPalette: 'red'    },
-    { key: 'REFUNDED',   label: 'Refunded',   colorPalette: 'orange' },
+    { key: 'PENDING',    label: 'Pending',    color: '#9CA3AF'   },
+    { key: 'PAID',       label: 'Paid',       color: '#2563EB'   },
+    { key: 'PROCESSING', label: 'Processing', color: '#06B6D4'   },
+    { key: 'SHIPPING',   label: 'Shipping',   color: '#14B8A6'   },
+    { key: 'DELIVERED',  label: 'Delivered',  color: '#8B5CF6' },
+    { key: 'COMPLETED',  label: 'Completed',  color: '#10B981'  },
+    { key: 'CANCELLED',  label: 'Cancelled',  color: '#EF4444'    },
+    { key: 'REFUNDED',   label: 'Refunded',   color: '#F59E0B' },
   ]
   if (!total) {
     return order.map(o => ({ ...o, percent: 0 }))
@@ -408,18 +585,7 @@ function pickPipelinePercents(byStatus = {}, total = 0) {
     const count = byStatus[o.key] || 0
     const percent = Math.round((count / total) * 100)
     return { ...o, percent }
-  }).filter(seg => seg.percent > 0) // ẩn đoạn 0% để bar gọn hơn
-}
-
-function getLast7Days() {
-  const days = []
-  const today = new Date()
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(today.getDate() - i)
-    days.push(`${d.getDate()}/${d.getMonth() + 1}`)
-  }
-  return days
+  }).filter(seg => seg.percent > 0)
 }
 
 const ranges = createListCollection({

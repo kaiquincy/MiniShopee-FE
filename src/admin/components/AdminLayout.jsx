@@ -1,30 +1,43 @@
 // ✅ Gộp import Chakra v3 vào một chỗ
 import {
-  Box, HStack, VStack, Heading, Text, Button, Tooltip, Separator, Flex, Icon,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  VStack
 } from '@chakra-ui/react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { FiLayout, FiUsers, FiPackage, FiClipboard, FiSettings } from 'react-icons/fi';
+import { FiClipboard, FiLayout, FiPackage, FiSettings, FiUsers } from 'react-icons/fi';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 
 const NavItem = ({ to, icon, children }) => {
   const loc = useLocation()
   const active = loc.pathname.startsWith(to)
   return (
-    <Button as={NavLink} to={to} justifyContent="flex-start"
-            variant={active ? 'solid' : 'ghost'} w="full">
-      {children}
+    <Button as={NavLink}
+      to={to}
+      justifyContent="flex-start"
+      w="full"
+      px={12}
+      py={6}
+      borderRadius={0}
+      outline={0}
+      bg={active ? "gray.50" : "black"}
+      color={active ? "black" : "white"}
+      _hover={{ bg: "gray.50", color: "black" }}
+      >
+        {children}
     </Button>
   )
 }
 
 export default function AdminLayout() {
   return (
-    <Flex gap="16px" align="stretch">
+    <Flex minH="100vh" bg="gray.900">
       {/* Sidebar */}
-      <Box w={{ base: '220px' }} bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p="12px">
-        <VStack align="stretch" spacing="6px">
-          <Heading size="sm" px="8px" py="6px">Admin Center</Heading>
-          <Separator my="6px" />
+      <Box w="260px" bg="gray.900" py={4} color="white">
+        <VStack align="stretch" gap={0}>
+          <Heading fontWeight="bold" size="lg" px={8} mb={2}>Admin Center</Heading>
           <NavItem to="/admin/dashboard" icon={FiLayout}>Dashboard</NavItem>
           <NavItem to="/admin/orders" icon={FiClipboard}>Orders</NavItem>
           <NavItem to="/admin/users" icon={FiUsers}>Users</NavItem>
@@ -34,7 +47,7 @@ export default function AdminLayout() {
       </Box>
 
       {/* Content */}
-      <Box flex="1" minW={0}>
+      <Box flex={1} py={6} px={10} bg="gray.50" rounded="xl">
         <Outlet />
       </Box>
     </Flex>

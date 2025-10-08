@@ -1,19 +1,36 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
 import {
-  Box, Button, Flex, Heading, SimpleGrid, GridItem, Stack, Separator,
-  Field, Input, Textarea, Select, Switch, NumberInput,
-  Image, Icon, Text, HStack, Badge, Portal, createListCollection, IconButton
+  Badge,
+  Box, Button,
+  createListCollection,
+  Field,
+  Flex, Heading,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  NumberInput,
+  Portal,
+  Select,
+  Separator,
+  SimpleGrid,
+  Stack,
+  Switch,
+  Text,
+  Textarea,
+  VStack
 } from '@chakra-ui/react'
-import { FiEdit } from 'react-icons/fi'
-import { getProduct, updateProduct } from '../api/seller'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FiArrowLeft, FiImage, FiSave, FiX } from 'react-icons/fi'
+import { useNavigate, useParams } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
+import { getProduct, updateProduct } from '../api/seller'
 
 export default function SellerProductEdit() {
   const { id } = useParams()
   const nav = useNavigate()
   const [p, setP] = useState(null)
-  const fileInputRef = useRef(null); // Ref để kích hoạt input file
+  const fileInputRef = useRef(null)
+  
   const states = createListCollection({
     items: [
       { label: "ACTIVE", value: "ACTIVE" },
@@ -23,38 +40,30 @@ export default function SellerProductEdit() {
     ],
   })
 
-  
   useEffect(() => {
     getProduct(id).then(res => {
-      // res.categories là array object
       const ids = res.categories?.map(c => c.id) || []
       setP({ ...res, categoryIds: ids })
     })
   }, [id])
 
-  // Preview ảnh nếu đổi file mới
   const previewUrl = useMemo(() => {
     if (p?.imageFile instanceof File) return URL.createObjectURL(p.imageFile)
     return p?.imageUrl || ''
   }, [p?.imageFile, p?.imageUrl])
 
-  // categoryIds nhập dạng "1,2,3"
   const categoryIdsText = useMemo(() => {
-    const ids = p?.categoryIds;                  // ✅ an toàn khi p = null
-    const arr = Array.isArray(ids) ? ids : (ids ? [ids] : []);
-    return arr.join(',');
-  }, [p?.categoryIds]);
+    const ids = p?.categoryIds
+    const arr = Array.isArray(ids) ? ids : (ids ? [ids] : [])
+    return arr.join(',')
+  }, [p?.categoryIds])
 
   if (!p) return null
-
-
 
   const onFileChange = (e) => {
     const f = e.target.files?.[0]
     if (f) setP(prev => ({ ...prev, imageFile: f }))
   }
-
-
 
   const setCategoryIdsText = (val) => {
     const ids = val
@@ -69,13 +78,11 @@ export default function SellerProductEdit() {
   const save = async () => {
     try {
       const fd = new FormData()
-      // Required
       fd.append('name', p.name ?? '')
       fd.append('description', p.description ?? '')
       fd.append('price', String(p.price ?? 0))
       fd.append('quantity', String(p.quantity ?? 0))
 
-      // Optional
       if (p.sku)   fd.append('sku', p.sku)
       if (p.brand) fd.append('brand', p.brand)
       if (p.type)  fd.append('type', p.type)
@@ -85,67 +92,80 @@ export default function SellerProductEdit() {
       if (p.dimensions)            fd.append('dimensions', p.dimensions)
       if (p.isFeatured != null)    fd.append('isFeatured', String(!!p.isFeatured))
 
-      // Ảnh: ưu tiên file; nếu không có file, gửi imageUrl (nếu BE chấp nhận)
       if (p.imageFile instanceof File) {
-        fd.append('img', p.imageFile) // đổi thành 'image' nếu BE yêu cầu
+        fd.append('img', p.imageFile)
       }
 
-      // categoryIds: append nhiều lần cùng key
       if (p.categoryIds && p.categoryIds.length) {
         p.categoryIds.forEach(cid => fd.append('categoryIds', cid))
       }
 
       await updateProduct(id, fd)
-      toaster.create({ type:'success', description:'Đã cập nhật sản phẩm' })
+      toaster.create({ type:'success', description:'Product updated successfully' })
       nav('/seller/products')
     } catch (e) {
-      toaster.create({ type:'error', description: e?.response?.data?.message || 'Lỗi cập nhật' })
+      toaster.create({ type:'error', description: e?.response?.data?.message || 'Update failed' })
     }
   }
 
   return (
-    <Box bg="white" borderRadius="lg" p={6} border="1px solid #eee" maxW="980px" mx="auto">
-      <Heading size="md" mb={5}>Chỉnh sửa sản phẩm</Heading>
+    <Box color="white">
+      {/* Header */}
+      <Flex justify="space-between" align="center" mb={8}>
+        <Box>
+          <HStack mb={2}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<FiArrowLeft />}
+              onClick={() => nav('/seller/products')}
+              color="whiteAlpha.600"
+              _hover={{ color: "white", bg: "whiteAlpha.100" }}
+            >
+              Back to Products
+            </Button>
+          </HStack>
+          <Heading size="2xl" fontWeight="black" mb={2}>Edit Product</Heading>
+          <Text color="whiteAlpha.600">Update product information and details</Text>
+        </Box>
+      </Flex>
 
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
-        {/* Cột trái: Ảnh */}
-        <GridItem>
-          <Stack spacing={4}>
-            <Field.Root>
-              <Field.Label>Ảnh sản phẩm</Field.Label>
-              <Box position="relative" maxW="360px" >
-                {/* <AspectRatio ratio={1} maxW="360px" borderRadius="md" overflow="hidden" bg="gray.50"> */}
+      {/* Main Form */}
+      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" borderRadius="lg" overflow="hidden">
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap={0}>
+          {/* Left Column - Image & Basic Info */}
+          <Box p={8} borderRight={{ lg: "1px solid" }} borderColor="whiteAlpha.200">
+            <Stack spacing={6}>
+              {/* Image Upload */}
+              <Box>
+                <Text fontSize="sm" fontWeight="bold" mb={3} color="whiteAlpha.700" textTransform="uppercase" letterSpacing="wider">
+                  Product Image
+                </Text>
+                <Box position="relative" borderRadius="lg" overflow="hidden" bg="gray.800">
                   <Image
                     src={import.meta.env.VITE_API_URL + "/uploads/" + previewUrl || 'https://via.placeholder.com/600x600?text=Product'}
                     alt={p.name}
                     objectFit="cover"
-                    borderRadius={"lg"}
+                    w="100%"
+                    aspectRatio="1"
                   />
-                {/* </AspectRatio> */}
                   <Box
                     position="absolute"
-                    top="0"
-                    left="0"
-                    right="0"
-                    bottom="0"
+                    inset="0"
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                    bg="blackAlpha.500"
-                    borderRadius={"lg"}
+                    bg="blackAlpha.700"
                     opacity={0}
                     _hover={{ opacity: 1 }}
-                    transition="opacity 0.2s"
+                    transition="opacity 0.3s"
+                    cursor="pointer"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    <IconButton
-                      size="lg"
-                      variant="solid"
-                      colorScheme="blue"
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label="Chỉnh sửa ảnh"
-                    >
-                      <Icon as={FiEdit} />
-                    </IconButton>
+                    <VStack spacing={2}>
+                      <Icon as={FiImage} boxSize={8} color="white" />
+                      <Text fontWeight="semibold">Change Image</Text>
+                    </VStack>
                   </Box>
                   <Input
                     type="file"
@@ -154,67 +174,99 @@ export default function SellerProductEdit() {
                     display="none"
                     ref={fileInputRef}
                   />
-
+                </Box>
+                <HStack mt={3} spacing={2}>
+                  <Badge bg="whiteAlpha.100" color="whiteAlpha.700" px={2} py={1}>PNG/JPG</Badge>
+                  <Badge bg="whiteAlpha.100" color="whiteAlpha.700" px={2} py={1}>Max 5MB</Badge>
+                </HStack>
               </Box>
-              <HStack mt={3} spacing={3} align="center">
-                <Badge variant="subtle" colorScheme="gray">PNG/JPG, &lt; 5MB</Badge>
-              </HStack>
-            </Field.Root>
 
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+              <Separator borderColor="whiteAlpha.200" />
+
+              {/* Brand & SKU */}
+              <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label>Brand</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Brand</Field.Label>
                   <Input
                     placeholder="Nike, Apple..."
                     value={p.brand || ''}
                     onChange={e => setP({ ...p, brand: e.target.value })}
+                    bg="gray.800"
+                    border="1px solid"
+                    borderColor="whiteAlpha.200"
+                    color="white"
+                    _placeholder={{ color: "whiteAlpha.500" }}
+                    _focus={{ borderColor: "brand.500" }}
                   />
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>SKU</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">SKU</Field.Label>
                   <Input
-                    placeholder="Mã sản phẩm nội bộ"
+                    placeholder="Product code"
                     value={p.sku || ''}
                     onChange={e => setP({ ...p, sku: e.target.value })}
+                    bg="gray.800"
+                    border="1px solid"
+                    borderColor="whiteAlpha.200"
+                    color="white"
+                    _placeholder={{ color: "whiteAlpha.500" }}
+                    _focus={{ borderColor: "brand.500" }}
                   />
                 </Field.Root>
               </SimpleGrid>
 
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+              {/* Type & Status */}
+              <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label>Loại (type)</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Type</Field.Label>
                   <NumberInput.Root
                     value={p.type || ''}
                     onValueChange={(details) => setP({ ...p, type: details.valueAsNumber })}
                   >
-                    <NumberInput.Input placeholder="VD: physical / digital"/>
+                    <NumberInput.Input 
+                      placeholder="1, 2, 3..."
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _placeholder={{ color: "whiteAlpha.500" }}
+                      _focus={{ borderColor: "brand.500" }}
+                    />
                   </NumberInput.Root>
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>Trạng thái (status)</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Status</Field.Label>
                   <Select.Root
                     collection={states}
                     value={p.status || ''}
-                    // onValueChange = {e => setP({ ...p, status: e.target.value })}
-                    onValueChange = {(details) => setP({ ...p, status: details.value })}
+                    onValueChange={(details) => setP({ ...p, status: details.value })}
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
-                      <Select.Trigger>
-                        <Select.ValueText placeholder="Select state" />
+                      <Select.Trigger
+                        bg="gray.800"
+                        border="1px solid"
+                        borderColor="whiteAlpha.200"
+                        color="white"
+                        _focus={{ borderColor: "brand.500" }}
+                      >
+                        <Select.ValueText placeholder="Select status" />
                       </Select.Trigger>
                       <Select.IndicatorGroup>
                         <Select.Indicator />
                       </Select.IndicatorGroup>
                     </Select.Control>
-
                     <Portal>
                       <Select.Positioner>
-                        <Select.Content>
+                        <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
                           {states.items.map((state) => (
-                            <Select.Item item={state} key={state.value}>
+                            <Select.Item 
+                              item={state} 
+                              key={state.value}
+                              _hover={{ bg: "whiteAlpha.100" }}
+                            >
                               {state.label}
                               <Select.ItemIndicator />
                             </Select.Item>
@@ -225,127 +277,218 @@ export default function SellerProductEdit() {
                   </Select.Root>
                 </Field.Root>
               </SimpleGrid>
+            </Stack>
+          </Box>
 
-
-
-          </Stack>
-        </GridItem>
-
-        {/* Cột phải: Thông tin chi tiết */}
-        <GridItem>
-          <Stack spacing={4} Separator={<Separator />}>
-            <Stack spacing={4}>
+          {/* Right Column - Product Details */}
+          <Box p={8}>
+            <Stack spacing={6}>
+              {/* Name */}
               <Field.Root>
-                <Field.Label>Tên sản phẩm</Field.Label>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Product Name *</Field.Label>
                 <Input
-                  placeholder="Tên"
+                  placeholder="Enter product name"
                   value={p.name || ''}
                   onChange={e => setP({ ...p, name: e.target.value })}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  size="lg"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
+              {/* Description */}
               <Field.Root>
-                <Field.Label>Mô tả</Field.Label>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Description *</Field.Label>
                 <Textarea
-                  placeholder="Mô tả chi tiết"
+                  placeholder="Detailed product description"
                   value={p.description || ''}
                   onChange={e => setP({ ...p, description: e.target.value })}
                   rows={5}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+              <Separator borderColor="whiteAlpha.200" />
+
+              {/* Price & Discount Price */}
+              <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label>Price</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Price *</Field.Label>
                   <NumberInput.Root
                     min={0}
                     value={p.price != null ? String(p.price) : "0"}
                     onValueChange={(details) => setP({ ...p, price: details.valueAsNumber })}
                   >
-                    <NumberInput.Input placeholder="Giá (USD)"/>
-                    <NumberInput.Control/>
+                    <NumberInput.Input 
+                      placeholder="0.00"
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    />
+                    <NumberInput.Control />
                   </NumberInput.Root>
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>Giá sau giảm (Optional)</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Discount Price</Field.Label>
                   <NumberInput.Root
                     min={0}
                     value={p.discountPrice ?? ''}
                     onValueChange={(details) => setP({ ...p, discountPrice: details.valueAsNumber })}
                   >
-                    <NumberInput.Input placeholder="Giá giảm (USD)"/>
-                    <NumberInput.Control></NumberInput.Control>
+                    <NumberInput.Input 
+                      placeholder="0.00"
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    />
+                    <NumberInput.Control />
                   </NumberInput.Root>
                 </Field.Root>
               </SimpleGrid>
 
-              <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+              {/* Quantity & Weight */}
+              <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label>Tồn kho</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Stock Quantity *</Field.Label>
                   <NumberInput.Root
                     min={0}
                     value={p.quantity ?? 0}
                     onValueChange={(details) => setP({ ...p, quantity: details.valueAsNumber })}
                   >
-                    <NumberInput.Input placeholder="Số lượng"/>
-                    <NumberInput.Control></NumberInput.Control>
+                    <NumberInput.Input 
+                      placeholder="0"
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    />
+                    <NumberInput.Control />
                   </NumberInput.Root>
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>Weight (kg)</Field.Label>
+                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Weight (kg)</Field.Label>
                   <NumberInput.Root
                     min={0}
                     precision={2}
                     value={p.weight ?? ''}
                     onValueChange={(details) => setP({ ...p, weight: details.valueAsNumber })}
                   >
-                    <NumberInput.Input placeholder="VD: 0.5"/>
-                    <NumberInput.Control></NumberInput.Control>
+                    <NumberInput.Input 
+                      placeholder="0.00"
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    />
+                    <NumberInput.Control />
                   </NumberInput.Root>
                 </Field.Root>
               </SimpleGrid>
 
+              {/* Dimensions */}
               <Field.Root>
-                <Field.Label>Dimensions (Dài x Rộng x Cao)</Field.Label>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Dimensions</Field.Label>
                 <Input
-                  placeholder="Kích thước (cm)"
+                  placeholder="L x W x H (cm)"
                   value={p.dimensions || ''}
                   onChange={e => setP({ ...p, dimensions: e.target.value })}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
+              {/* Category IDs */}
               <Field.Root>
-                <Field.Label>Danh mục (categoryIds)</Field.Label>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Category IDs</Field.Label>
                 <Input
-                  placeholder="Nhập ID, phân tách bằng dấu phẩy. VD: 1,2,3"
+                  placeholder="1,2,3"
                   value={categoryIdsText}
                   onChange={e => setCategoryIdsText(e.target.value)}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
                 />
-                <Text mt={1} fontSize="sm" color="gray.500">
-                  Mẹo: Bạn cũng có thể dùng component chọn nhiều danh mục và lưu thành mảng ID.
+                <Text mt={1} fontSize="xs" color="whiteAlpha.500">
+                  Enter category IDs separated by commas
                 </Text>
               </Field.Root>
 
-              <Field.Root display="flex" alignItems="center">
-                <Field.Label mb="0">Gắn nhãn nổi bật (isFeatured)</Field.Label>
-                  <Switch.Root id="is-featured" checked={p.isFeatured} onCheckedChange={(details) => setP({ ...p, isFeatured: details.checked })}>
-                      <Switch.HiddenInput />
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
+              {/* Featured Toggle */}
+              <Field.Root>
+                <HStack justify="space-between" p={4} bg="gray.800" borderRadius="md" border="1px solid" borderColor="whiteAlpha.200">
+                  <Box>
+                    <Text fontWeight="semibold" mb={1}>Featured Product</Text>
+                    <Text fontSize="sm" color="whiteAlpha.600">Display this product prominently</Text>
+                  </Box>
+                  <Switch.Root 
+                    checked={p.isFeatured} 
+                    onCheckedChange={(details) => setP({ ...p, isFeatured: details.checked })}
+                    colorPalette="brand"
+                  >
+                    <Switch.HiddenInput />
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
                   </Switch.Root>
+                </HStack>
               </Field.Root>
             </Stack>
-          </Stack>
-        </GridItem>
-      </SimpleGrid>
+          </Box>
+        </SimpleGrid>
 
-      <Flex mt={6} gap={3} justify="flex-end">
-        <Button variant="outline" onClick={() => history.back()}>Hủy</Button>
-        <Button onClick={save}>Lưu</Button>
-      </Flex>
+        {/* Footer Actions */}
+        <Box 
+          p={6} 
+          borderTop="1px solid" 
+          borderColor="whiteAlpha.200"
+          bg="gray.950"
+        >
+          <Flex justify="flex-end" gap={3}>
+            <Button
+              variant="ghost"
+              leftIcon={<FiX />}
+              onClick={() => nav('/seller/products')}
+              color="whiteAlpha.700"
+              _hover={{ bg: "whiteAlpha.100", color: "white" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              bg="brand.500"
+              color="white"
+              leftIcon={<FiSave />}
+              onClick={save}
+              _hover={{ bg: "brand.600" }}
+            >
+              Save Changes
+            </Button>
+          </Flex>
+        </Box>
+      </Box>
     </Box>
   )
 }

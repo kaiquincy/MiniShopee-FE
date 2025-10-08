@@ -16,10 +16,28 @@ export default function Header() {
   const enter = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(true), 60) }
   const leave = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(false), 120) }
 
-  // console.log('User in header:', user.role)
+  const isSellerOrAdmin = location.pathname.startsWith("/seller") || location.pathname.startsWith("/admin")
+  const isLandingPage = location.pathname === "/"
+
+  // Hide header on landing page - carousel will have its own
+  if (isLandingPage) return null
 
   return (
-    <Box as="header" position="sticky" top={0} zIndex={100} className="glass" bg="transparent">
+    <Box 
+      as="header" 
+      position="fixed"
+      top={0}
+      left={0}
+      right={0}
+      zIndex={1000}
+      className="glass" 
+      bg={isSellerOrAdmin ? "gray.900" : "white"} 
+      color={isSellerOrAdmin ? "white" : "gray.900"}
+      borderBottom="1px solid"
+      borderColor={isSellerOrAdmin ? "gray.800" : "gray.200"}
+      backdropFilter="blur(10px)"
+      bgColor={isSellerOrAdmin ? "gray.900" : "rgba(255, 255, 255, 0.95)"}
+    >
       <Box maxW="7xl" mx="auto" py={3} px={4}>
         <Flex align="center" gap={4} justify="space-between">
           <Heading size="xl" fontWeight="bold" color="brand.700">
@@ -110,12 +128,11 @@ export default function Header() {
             {token ? (
               <Menu.Root
                 open={menuOpen}
-                onOpenChange={(e) => setMenuOpen(e.open)}    // cho phép click toggle
+                onOpenChange={(e) => setMenuOpen(e.open)}
                 lazyMount={false}
                 unmountOnExit={false}
                 positioning={{ placement: 'bottom-end' }}
               >
-                {/* asChild để tránh <button> trong <button> */}
                 <Menu.Trigger asChild onPointerEnter={enter} onPointerLeave={leave}>
                   <IconButton
                     aria-label="User"
@@ -127,7 +144,6 @@ export default function Header() {
                   </IconButton>
                 </Menu.Trigger>
 
-                {/* giữ DOM + bắt hover trên content */}
                 <Portal>
                   <Menu.Positioner onPointerEnter={enter} onPointerLeave={leave}>
                     <Menu.Content
@@ -153,16 +169,15 @@ export default function Header() {
                         <ChakraText>My Info</ChakraText>
                       </Menu.Item>
 
-                    <Menu.Item
-                      value="orders"
-                      onClick={() => nav('/orders')}
-                      display="flex" alignItems="center" gap="3" px="3" py="2"
-                      _hover={{ bg: 'gray.50', cursor: 'pointer' }}
-                    >
-                      <Icon as={FiShoppingBag} />
-                      <ChakraText>My Orders</ChakraText>
-                    </Menu.Item>
-
+                      <Menu.Item
+                        value="orders"
+                        onClick={() => nav('/orders')}
+                        display="flex" alignItems="center" gap="3" px="3" py="2"
+                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      >
+                        <Icon as={FiShoppingBag} />
+                        <ChakraText>My Orders</ChakraText>
+                      </Menu.Item>
 
                       {user?.role?.includes('ROLE_ADMIN') && (
                         <Menu.Item
@@ -175,22 +190,20 @@ export default function Header() {
                           <ChakraText>Seller Center</ChakraText>
                         </Menu.Item>
                       )}
-                    
 
-                    {user?.role?.includes('ROLE_ADMIN') && (
-                      <Menu.Item
-                        value="admin"
-                        onClick={() => nav('/admin')}
-                        display="flex" alignItems="center" gap="3" px="3" py="2"
-                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
-                      >
-                        <Icon as={FiPackage} />
-                        <ChakraText>Admin Center</ChakraText>
-                      </Menu.Item>
-                    )}
+                      {user?.role?.includes('ROLE_ADMIN') && (
+                        <Menu.Item
+                          value="admin"
+                          onClick={() => nav('/admin')}
+                          display="flex" alignItems="center" gap="3" px="3" py="2"
+                          _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                        >
+                          <Icon as={FiPackage} />
+                          <ChakraText>Admin Center</ChakraText>
+                        </Menu.Item>
+                      )}
 
                       <Separator my="2" />
-
 
                       <Menu.Item
                         value="logout"
