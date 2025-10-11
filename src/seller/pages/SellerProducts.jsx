@@ -30,7 +30,6 @@ export default function SellerProducts() {
     load()
   }
 
-  console.log(items)
 
   return (
     <Box color="white">

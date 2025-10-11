@@ -24,6 +24,9 @@ import { FiArrowLeft, FiImage, FiPlus, FiX } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
 import { createProduct } from '../api/seller'
+import VariantsBuilder from '../components/VariantsBuilder'
+import { buildPayloadObject } from '../utils/buildPayload'
+
 
 export default function SellerProductNew() {
   const nav = useNavigate()
@@ -36,7 +39,9 @@ export default function SellerProductNew() {
     weight: undefined, dimensions: '',
     isFeatured: false,
     categoryIds: [],
-    imageUrl: '', imageFile: undefined
+    imageUrl: '', imageFile: undefined,
+    variantGroups: [],
+    variants: []
   })
   const fileInputRef = useRef(null)
   
@@ -48,6 +53,14 @@ export default function SellerProductNew() {
       { label: "OUT_OF_STOCK", value: "OUT_OF_STOCK" },
     ],
   })
+
+    const typeList = createListCollection({
+    items: [
+      { label: 'PHYSICAL', value: 'PHYSICAL' },
+      { label: 'DIGITAL', value: 'DIGITAL' },
+    ]
+  })
+
 
   const previewUrl = useMemo(() => {
     if (p?.imageFile instanceof File) return URL.createObjectURL(p.imageFile)
@@ -78,27 +91,26 @@ export default function SellerProductNew() {
   const save = async () => {
     try {
       const fd = new FormData()
-      fd.append('name', p.name ?? '')
-      fd.append('description', p.description ?? '')
-      fd.append('price', String(p.price ?? 0))
-      fd.append('quantity', String(p.quantity ?? 0))
 
-      if (p.sku)   fd.append('sku', p.sku)
-      if (p.brand) fd.append('brand', p.brand)
-      if (p.type)  fd.append('type', p.type)
-      if (p.status) fd.append('status', p.status)
-      if (p.discountPrice != null) fd.append('discountPrice', String(p.discountPrice))
-      if (p.weight != null)        fd.append('weight', String(p.weight))
-      if (p.dimensions)            fd.append('dimensions', p.dimensions)
-      if (p.isFeatured != null)    fd.append('isFeatured', String(!!p.isFeatured))
+      //1. Thêm payload (dưới dạng JSON string)
+      const payload = buildPayloadObject(p)
+      fd.append('payload', new Blob(
+        [JSON.stringify(payload)],
+        { type: 'application/json' }
+      ))
 
+
+      //2. Thêm ảnh đại diện (nếu có)
       if (p.imageFile instanceof File) {
         fd.append('img', p.imageFile)
       }
 
-      if (p.categoryIds && p.categoryIds.length) {
-        p.categoryIds.forEach(cid => fd.append('categoryIds', cid))
-      }
+      //3. Thêm ảnh từng variant (nếu có)
+      ;(p.variants || []).forEach(v => {
+        if (v?.imageFile instanceof File && v?.imageKey) {
+          fd.append('variantImages[' + v.imageKey + ']', v.imageFile)
+        }
+      })
 
       await createProduct(fd)
       toaster.create({ type: 'success', description: 'Product created successfully!' })
@@ -147,7 +159,7 @@ export default function SellerProductNew() {
                 <Box position="relative" borderRadius="lg" overflow="hidden" bg="gray.800">
                   {previewUrl ? (
                     <Image
-                      src={import.meta.env.VITE_API_URL + "/uploads/" + previewUrl}
+                      src={previewUrl}
                       alt="Product preview"
                       objectFit="cover"
                       w="100%"
@@ -204,6 +216,42 @@ export default function SellerProductNew() {
 
               <Separator borderColor="whiteAlpha.200" />
 
+              {/* Name */}
+              <Field.Root>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Product Name *</Field.Label>
+                <Input
+                  placeholder="Enter product name"
+                  value={p.name || ''}
+                  onChange={e => setP({ ...p, name: e.target.value })}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  size="lg"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
+                />
+              </Field.Root>
+
+              {/* Description */}
+              <Field.Root>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Description *</Field.Label>
+                <Textarea
+                  placeholder="Detailed product description"
+                  value={p.description || ''}
+                  onChange={e => setP({ ...p, description: e.target.value })}
+                  rows={5}
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  color="white"
+                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _focus={{ borderColor: "brand.500" }}
+                />
+              </Field.Root>
+
+              <Separator borderColor="whiteAlpha.200" />
+
               {/* Brand & SKU */}
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
@@ -241,27 +289,41 @@ export default function SellerProductNew() {
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
                   <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Type</Field.Label>
-                  <NumberInput.Root
+                  <Select.Root
+                    collection={typeList}
                     value={p.type || ''}
-                    onValueChange={(details) => setP({ ...p, type: details.valueAsNumber })}
+                    onValueChange={(d) => setP({ ...p, type: d.value })}
+                    // defaultValue={["PHYSICAL"]} // sửa đây để chọn đúng type lúc load
                   >
-                    <NumberInput.Input 
-                      placeholder="1, 2, 3..."
-                      bg="gray.800"
-                      border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
-                      _placeholder={{ color: "whiteAlpha.500" }}
-                      _focus={{ borderColor: "brand.500" }}
-                    />
-                  </NumberInput.Root>
+                    <Select.HiddenSelect />
+                    <Select.Control>
+                      <Select.Trigger
+                        bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
+                        _focus={{ borderColor: 'brand.500' }}
+                      >
+                        <Select.ValueText placeholder="Select type" />
+                      </Select.Trigger>
+                      <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
+                    </Select.Control>
+                    <Portal>
+                      <Select.Positioner>
+                        <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
+                          {typeList.items.map(it => (
+                            <Select.Item key={it.value} item={it} _hover={{ bg: 'whiteAlpha.100' }}>
+                              {it.label}<Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Portal>
+                  </Select.Root>
                 </Field.Root>
 
                 <Field.Root>
                   <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Status</Field.Label>
                   <Select.Root
                     collection={states}
-                    value={p.status || ''}
+                    value={p.status || ['ACTIVE']}
                     onValueChange={(details) => setP({ ...p, status: details.value })}
                   >
                     <Select.HiddenSelect />
@@ -279,6 +341,7 @@ export default function SellerProductNew() {
                         <Select.Indicator />
                       </Select.IndicatorGroup>
                     </Select.Control>
+
                     <Portal>
                       <Select.Positioner>
                         <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
@@ -298,47 +361,36 @@ export default function SellerProductNew() {
                   </Select.Root>
                 </Field.Root>
               </SimpleGrid>
+
+              <Separator borderColor="whiteAlpha.200" />
+
+
+              {/* Featured Toggle */}
+              <Field.Root pt={4}>
+                <HStack justify="space-between" p={4} bg="gray.800" borderRadius="md" border="1px solid" borderColor="whiteAlpha.200">
+                  <Box>
+                    <Text fontWeight="semibold" mb={1}>Featured Product</Text>
+                    <Text fontSize="sm" color="whiteAlpha.600">Display this product prominently</Text>
+                  </Box>
+                  <Switch.Root 
+                    checked={p.isFeatured} 
+                    onCheckedChange={(details) => setP({ ...p, isFeatured: details.checked })}
+                    colorPalette="brand"
+                  >
+                    <Switch.HiddenInput />
+                    <Switch.Control>
+                      <Switch.Thumb />
+                    </Switch.Control>
+                  </Switch.Root>
+                </HStack>
+              </Field.Root>
+
             </Stack>
           </Box>
 
           {/* Right Column - Product Details */}
           <Box p={8}>
             <Stack spacing={6}>
-              {/* Name */}
-              <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Product Name *</Field.Label>
-                <Input
-                  placeholder="Enter product name"
-                  value={p.name || ''}
-                  onChange={e => setP({ ...p, name: e.target.value })}
-                  bg="gray.800"
-                  border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
-                  size="lg"
-                  _placeholder={{ color: "whiteAlpha.500" }}
-                  _focus={{ borderColor: "brand.500" }}
-                />
-              </Field.Root>
-
-              {/* Description */}
-              <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Description *</Field.Label>
-                <Textarea
-                  placeholder="Detailed product description"
-                  value={p.description || ''}
-                  onChange={e => setP({ ...p, description: e.target.value })}
-                  rows={5}
-                  bg="gray.800"
-                  border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
-                  _placeholder={{ color: "whiteAlpha.500" }}
-                  _focus={{ borderColor: "brand.500" }}
-                />
-              </Field.Root>
-
-              <Separator borderColor="whiteAlpha.200" />
 
               {/* Price & Discount Price */}
               <SimpleGrid columns={2} gap={4}>
@@ -458,28 +510,26 @@ export default function SellerProductNew() {
                 </Text>
               </Field.Root>
 
-              {/* Featured Toggle */}
+
+
+              {/* Variants Builder */}
               <Field.Root>
-                <HStack justify="space-between" p={4} bg="gray.800" borderRadius="md" border="1px solid" borderColor="whiteAlpha.200">
-                  <Box>
-                    <Text fontWeight="semibold" mb={1}>Featured Product</Text>
-                    <Text fontSize="sm" color="whiteAlpha.600">Display this product prominently</Text>
-                  </Box>
-                  <Switch.Root 
-                    checked={p.isFeatured} 
-                    onCheckedChange={(details) => setP({ ...p, isFeatured: details.checked })}
-                    colorPalette="brand"
-                  >
-                    <Switch.HiddenInput />
-                    <Switch.Control>
-                      <Switch.Thumb />
-                    </Switch.Control>
-                  </Switch.Root>
-                </HStack>
+                <Box mt={8}>
+                  <VariantsBuilder
+                    value={{ variantGroups: p.variantGroups, variants: p.variants }}
+                    onChange={({ variantGroups, variants }) => setP(prev => ({ ...prev, variantGroups, variants }))}
+                  />
+                </Box> 
               </Field.Root>
+
+
             </Stack>
+       
+
           </Box>
+
         </SimpleGrid>
+
 
         {/* Footer Actions */}
         <Box 
