@@ -6,6 +6,7 @@ import {
   Image as ChakraImage
 } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
+import RatingDialog from '../components/RatingDialog'
 
 const STATUS_STYLE = {
   processing: { palette: 'yellow', border: 'yellow.400' },
@@ -103,9 +104,12 @@ function OrderCard({ order: o }) {
   const style = STATUS_STYLE[status] || STATUS_STYLE.pending
   const created = o.createdAt ? new Date(o.createdAt).toLocaleString() : ''
   const items = Array.isArray(o.items) ? o.items : []
+  const [ratingOpen, setRatingOpen] = useState(false)
+  const onRatingOpenChange = ({ open }) => setRatingOpen(open)
   const preview = items.slice(0, 3)
   const more = Math.max(0, items.length - preview.length)
   const itemsCount = items.reduce((s, it) => s + (it.quantity || 0), 0)
+
 
   return (
     <Box
@@ -199,7 +203,7 @@ function OrderCard({ order: o }) {
         <Text fontWeight="bold">{o.totalAmount}$</Text>
       </HStack>
 
-      <HStack justify="flex-end" mt={3} spacing="2">
+      <HStack justify="flex-end" mt={3} spacing={2}>
         {status === 'shipping' && (
           <Button as={Link} to={`/orders/${o.id}/track`} size="sm" variant="ghost">
             Theo dõi
@@ -210,10 +214,34 @@ function OrderCard({ order: o }) {
             Mua lại
           </Button>
         )}
-        <Button as={Link} to={`/orders/${o.id}`} size="sm" variant="outline">
-          Contact Seller
-        </Button>
+        {status === 'completed' ? (
+          <RatingDialog
+            order={o}
+            items={items} 
+            onSubmit={async ({ orderId, productId, variantId, stars, comment, files }) => {
+              // TODO: call API của bạn
+              // const fd = new FormData()
+              // fd.append('orderId', orderId)
+              // fd.append('productId', productId)
+              // if (variantId) fd.append('variantId', variantId)
+              // fd.append('stars', String(stars))
+              // fd.append('comment', comment || '')
+              // files.forEach(f => fd.append('images', f))
+              // await createRating(fd)
+              alert(`Submit rating: ${stars} sao, ${comment || '(no comment)'}, ${files.length} ảnh`)
+
+            }}
+          >
+    <Button size="sm" variant="outline">Rating</Button>
+  </RatingDialog>
+        ) : (
+          <Button as={Link} to={`/orders/${o.id}`} size="sm" variant="outline">
+            Contact Seller
+          </Button>
+        )}
       </HStack>
+
+
     </Box>
   )
 }

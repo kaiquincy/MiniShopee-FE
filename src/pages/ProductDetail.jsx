@@ -48,7 +48,7 @@ export default function ProductDetail() {
         setLoading(false)
       }
     })()
-    getRatings(id).then(setRatings).catch(() => {})
+    getRatings(id).then(res => setRatings(res?.content ?? [])).catch(() => {})
     getsum(id).then(setRatingSummary).catch(() => {})
     return () => { mounted = false }
   }, [id])
@@ -100,6 +100,8 @@ export default function ProductDetail() {
   const { onCopy, hasCopied } = useClipboard(pageUrl)
 
   const imgBase = import.meta.env.VITE_API_URL + '/uploads/'
+  const urlOrNull = (path) => path ? (path.startsWith('http') ? path : imgBase + path) : null;
+
   const mainImg = useMemo(() => {
     if (!p) return 'https://via.placeholder.com/800x600?text=Loading'
     // nếu biến thể có ảnh riêng => ưu tiên
@@ -465,53 +467,80 @@ export default function ProductDetail() {
         <Separator mb={4} />
         <VStack align="stretch" gap={3}>
           {ratings.map(r => (
-            <Box
-              key={r.id}
-              bg="white"
-              p={4}
-              borderRadius="lg"
-              boxShadow="sm"
-              _hover={{ boxShadow: 'md' }}
-            >
+<Box
+  key={r.id}
+  bg="white"
+  p={4}
+  borderRadius="lg"
+  boxShadow="sm"
+  _hover={{ boxShadow: 'md' }}
+>
+  <HStack justify="space-between" align="start">
+    <HStack>
+      <Avatar.Root>
+        <Avatar.Fallback name={r.anonymous ? 'Anonymous' : r.username} />
+        <Avatar.Image src={avatarSrcOf(r)} />
+      </Avatar.Root>
 
-              <HStack justify="space-between" align="start">
-                <HStack>
-                  <Avatar.Root>
-                    <Avatar.Fallback name={r.username} />
-                    <Avatar.Image src={avatarSrcOf(r)} />
-                  </Avatar.Root>
-                  <VStack align="start" gap={0}>
-                    <HStack>
-                      <Badge>{r.stars}★</Badge>
-                      <Text color="gray.700" fontWeight="medium">{r.username}</Text>
-                    </HStack>
-                    {/* nếu thích hiển thị thời gian ngay dưới tên */}
-                    <Text color="gray.500" fontSize="xs">{new Date(r.createdAt).toLocaleString()}</Text>
-                  </VStack>
-                </HStack>
+      <VStack align="start" gap={0}>
+        <HStack>
+          <Badge>{r.stars}★</Badge>
+          <Text color="gray.700" fontWeight="medium">
+            {r.anonymous ? 'Người dùng ẩn danh' : (r.username || 'User')}
+          </Text>
+        </HStack>
+        <Text color="gray.500" fontSize="xs">
+          {new Date(r.createdAt.replace(' ', 'T')).toLocaleString()}
+        </Text>
+      </VStack>
+    </HStack>
 
-                <HStack gap={1}>
-                    <IconButton
-                      aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
-                      size="xs"
-                      variant={likedIds.has(r.id) ? 'solid' : 'outline'}
-                      colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
-                      onClick={() => handleToggleLike(r.id)}
-                      aria-pressed={likedIds.has(r.id)}
-                    >
-                      <LuThumbsUp />
-                    </IconButton>
-                    <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
-                      {likeCounts[r.id] ?? 0}
-                    </Text>
-                  </HStack>
+    <HStack gap={1}>
+      <IconButton
+        aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
+        size="xs"
+        variant={likedIds.has(r.id) ? 'solid' : 'outline'}
+        colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
+        onClick={() => handleToggleLike(r.id)}
+        aria-pressed={likedIds.has(r.id)}
+      >
+        <LuThumbsUp />
+      </IconButton>
+      <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
+        {likeCounts[r.id] ?? 0}
+      </Text>
+    </HStack>
+  </HStack>
 
-                {/* hoặc giữ thời gian bên phải như cũ, thì bỏ dòng thời gian nhỏ ở trên */}
-                {/* <Text color="gray.500" fontSize="sm">{new Date(r.createdAt).toLocaleString()}</Text> */}
-              </HStack>
+  {/* Nội dung bình luận */}
+  {!!r.comment && <Text mt={2} color="gray.800">{r.comment}</Text>}
 
-              <Text mt={2} color="gray.800">{r.comment || '—'}</Text>
-            </Box>
+  {/* Ảnh đính kèm */}
+  {!!r.imageUrls?.length && (
+    <Wrap mt={3} gap={2}>
+      {r.imageUrls.map((img, i) => (
+        <WrapItem key={i}>
+          <Box
+            borderRadius="md"
+            overflow="hidden"
+            border="1px solid"
+            borderColor="gray.200"
+            cursor="zoom-in"
+            onClick={() => {
+              // mở lightbox sẵn có, chuyển sang ảnh trong dialog nếu muốn
+              onOpen();
+              // bạn có thể gắn state riêng cho ảnh review nếu cần
+            }}
+          >
+            <AspectRatio ratio={1} w="72px">
+              <Image src={urlOrNull(img)} alt={`review-${r.id}-${i}`} objectFit="cover" />
+            </AspectRatio>
+          </Box>
+        </WrapItem>
+      ))}
+    </Wrap>
+  )}
+</Box>
           ))}
           {ratings.length === 0 && <Text color="gray.500">Chưa có đánh giá</Text>}
         </VStack>
