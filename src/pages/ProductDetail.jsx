@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { fetchProductById } from '../api/products'
-import { getRatings, getRatingSummary as getsum} from '../api/ratings'
+import { getRatings, toggleRatingLike, getRatingSummary as getsum } from '../api/ratings'
 import {
   Box, Image, Heading, Text, Button, VStack, HStack, Badge, Wrap, WrapItem,
   Separator, NumberInput, SimpleGrid, Skeleton, AspectRatio, Stack,
-  IconButton, useDisclosure,
- useClipboard, Kbd, Icon, CloseButton, Dialog, Portal,Avatar 
+  IconButton, useDisclosure, useClipboard, Kbd, Icon, CloseButton,
+  Dialog, Portal, Avatar, SelectRoot, SelectTrigger, SelectValueText, SelectContent, SelectItem,
 } from '@chakra-ui/react'
 
 import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, LuThumbsUp } from 'react-icons/lu'
@@ -19,12 +19,25 @@ export default function ProductDetail() {
   const navigate = useNavigate()
   const [p, setP] = useState(null)
   const [ratingSummary, setRatingSummary] = useState(null)
+
+  // Ratings + pageable
   const [ratings, setRatings] = useState([])
+  const [ratingPage, setRatingPage] = useState(0)               // 0-based
+  const [ratingSize, setRatingSize] = useState(5)
+  const [ratingSortKey, setRatingSortKey] = useState('createdAtDesc');
+
+  const [ratingSort, setRatingSort] = useState('createdAt,DESC')
+  const [ratingTotal, setRatingTotal] = useState(0)
+  const [ratingHasMore, setRatingHasMore] = useState(false)
+  const [loadingRatings, setLoadingRatings] = useState(false)
+
   const [qty, setQty] = useState(1)
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
-  const [likedIds, setLikedIds] = useState(new Set())        // những rating đã like bởi current user
-  const [likeCounts, setLikeCounts] = useState({})           // { [ratingId]: count }
+
+  // like optimistic
+  const [likedIds, setLikedIds] = useState(new Set())
+  const [likeCounts, setLikeCounts] = useState({})
 
   // selections: { [groupName]: optionValue }
   const [sel, setSel] = useState({})
@@ -32,6 +45,25 @@ export default function ProductDetail() {
 
   const { isOpen, onOpen, onClose } = useDisclosure()
 
+  const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const { onCopy, hasCopied } = useClipboard(pageUrl)
+
+  const imgBase = import.meta.env.VITE_API_URL + '/uploads/'
+  const urlOrNull = (path) => path ? (path.startsWith('http') ? path : imgBase + path) : null
+
+  const moreRef = useRef(null)
+  const abortRatingsRef = useRef(null)
+
+  const SORT_MAP = {
+    createdAtDesc: 'createdAt,DESC',
+    createdAtAsc:  'createdAt,ASC',
+    likeCountDesc: 'likeCount,DESC',
+    starsDesc:     'stars,DESC',
+    starsAsc:      'stars,ASC',
+  };
+  const backendSort = SORT_MAP[ratingSortKey] ?? 'createdAt,DESC';
+
+  // ===== fetch product =====
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -48,11 +80,12 @@ export default function ProductDetail() {
         setLoading(false)
       }
     })()
-    getRatings(id).then(res => setRatings(res?.content ?? [])).catch(() => {})
+
     getsum(id).then(setRatingSummary).catch(() => {})
     return () => { mounted = false }
   }, [id])
 
+  // ===== ratings like counts from payload (fallback 0) =====
   useEffect(() => {
     const nextCounts = {}
     const nextLiked = new Set()
@@ -64,10 +97,55 @@ export default function ProductDetail() {
     setLikedIds(nextLiked)
   }, [ratings])
 
+  // ===== pageable loader =====
+  const loadRatings = useCallback(async (page = 0, append = false) => {
+    if (abortRatingsRef.current) abortRatingsRef.current.abort()
+    abortRatingsRef.current = new AbortController()
+
+    setLoadingRatings(true)
+    try {
+      const res = await getRatings(id, { page, size: ratingSize, sort: backendSort });
+      setRatingTotal(res.totalElements ?? 0)
+      setRatingPage(res.number ?? page)
+      setRatingHasMore(!res.last)
+
+      setRatings(prev => append ? [...prev, ...(res.content || [])] : (res.content || []))
+    } catch (e) {
+      toaster.create({ title: 'Không tải được đánh giá', status: 'error' })
+      if (!append) setRatings([])
+      setRatingHasMore(false)
+    } finally {
+      setLoadingRatings(false)
+    }
+  }, [id, ratingSize, ratingSort])
+
+  // Reset khi đổi id/sort/size
+  useEffect(() => {
+    setRatings([])
+    setRatingPage(0)
+    setRatingHasMore(false)
+    setRatingTotal(0)
+    loadRatings(0, false)
+  }, [id, ratingSort, ratingSize, loadRatings])
+
+  // Infinite scroll (tùy chọn)
+  useEffect(() => {
+    const el = moreRef.current
+    if (!el) return
+    const io = new IntersectionObserver(entries => {
+      const [e] = entries
+      if (e.isIntersecting && ratingHasMore && !loadingRatings) {
+        loadRatings(ratingPage + 1, true)
+      }
+    }, { rootMargin: '120px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [moreRef, ratingHasMore, loadingRatings, ratingPage, loadRatings])
+
   const handleToggleLike = async (ratingId) => {
     const isLiked = likedIds.has(ratingId)
 
-    // cập nhật lạc quan
+    // optimistic
     setLikedIds(prev => {
       const s = new Set(prev)
       isLiked ? s.delete(ratingId) : s.add(ratingId)
@@ -79,9 +157,9 @@ export default function ProductDetail() {
     }))
 
     try {
-      await toggleRatingLike(ratingId, !isLiked) // API: POST /ratings/:id/like {liked:true/false}
+      await toggleRatingLike(ratingId, !isLiked)
     } catch (e) {
-      // revert nếu lỗi
+      // revert
       setLikedIds(prev => {
         const s = new Set(prev)
         isLiked ? s.add(ratingId) : s.delete(ratingId)
@@ -95,12 +173,14 @@ export default function ProductDetail() {
     }
   }
 
+  const avatarSrcOf = (r) => {
+    const raw = r.avatarUrl || r.userAvatar || r.photoUrl
+    if (raw) return raw.startsWith('http') ? raw : `${import.meta.env.VITE_API_URL}/uploads/${raw}`
+    const seed = encodeURIComponent(r.username || 'User')
+    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`
+  }
 
-  const pageUrl = typeof window !== 'undefined' ? window.location.href : ''
-  const { onCopy, hasCopied } = useClipboard(pageUrl)
-
-  const imgBase = import.meta.env.VITE_API_URL + '/uploads/'
-  const urlOrNull = (path) => path ? (path.startsWith('http') ? path : imgBase + path) : null;
+  if (!p && !loading) return null
 
   const mainImg = useMemo(() => {
     if (!p) return 'https://via.placeholder.com/800x600?text=Loading'
@@ -122,22 +202,6 @@ export default function ProductDetail() {
     ;(p.variants || []).forEach(v => pushImg(v.imageUrl ? imgBase + v.imageUrl : null))
     return arr.length ? arr : [mainImg]
   }, [p, mainImg])
-
-  // preload thumbnails để chuyển mượt hơn
-
-  const avatarSrcOf = (r) => {
-    const raw = r.avatarUrl || r.userAvatar || r.photoUrl
-    if (raw) {
-      // nếu server trả về path tương đối -> ghép base; nếu đã là URL tuyệt đối -> giữ nguyên
-      return raw.startsWith('http') ? raw : `${import.meta.env.VITE_API_URL}/uploads/${raw}`
-    }
-    // fallback: tạo avatar chữ cái đầu theo tên
-    const seed = encodeURIComponent(r.username || 'User')
-    return `https://api.dicebear.com/7.x/initials/svg?seed=${seed}`
-  }
-
-
-  if (!p && !loading) return null
 
   const avg = Number((ratingSummary?.averageStars) || 0)
   const avgLabel = avg.toFixed(1)
@@ -324,12 +388,19 @@ export default function ProductDetail() {
               <Badge borderRadius="full" px="2.5" py="0.5" fontWeight="semibold">{avgLabel}★</Badge>
               {renderStars(avg)}
               <Text>({count} đánh giá)</Text>
-              {stockShown <= 5 && stockShown > 0 && (
-                <Badge colorPalette="orange" borderRadius="full">Sắp hết</Badge>
-              )}
-              {stockShown === 0 && (
-                <Badge colorPalette="red" borderRadius="full">Hết hàng</Badge>
-              )}
+              {(() => {
+                const stockShown = selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)
+                return (
+                  <>
+                    {stockShown <= 5 && stockShown > 0 && (
+                      <Badge colorPalette="orange" borderRadius="full">Sắp hết</Badge>
+                    )}
+                    {stockShown === 0 && (
+                      <Badge colorPalette="red" borderRadius="full">Hết hàng</Badge>
+                    )}
+                  </>
+                )
+              })()}
             </HStack>
 
             {/* Giá */}
@@ -338,14 +409,16 @@ export default function ProductDetail() {
                 <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color="brand.700">
                   {priceFmt(Number(effectivePrice || 0))} USD
                 </Text>
-                {(hasDiscount || (basePrice && basePrice > effectivePrice)) && (
-                  <HStack gap={2}>
-                    <Text as="s" color="gray.500">{priceFmt(Number(basePrice || 0))} USD</Text>
-                    <Badge colorPalette="red">
-                      -{Math.max(0, Math.round(100 - (Number(effectivePrice) / (Number(basePrice) || 1)) * 100))}%
-                    </Badge>
-                  </HStack>
-                )}
+                {(() => {
+                  const showStrike = (hasDiscount || (basePrice && basePrice > effectivePrice))
+                  const pct = Math.max(0, Math.round(100 - (Number(effectivePrice) / (Number(basePrice) || 1)) * 100))
+                  return showStrike && (
+                    <HStack gap={2}>
+                      <Text as="s" color="gray.500">{priceFmt(Number(basePrice || 0))} USD</Text>
+                      <Badge colorPalette="red">-{pct}%</Badge>
+                    </HStack>
+                  )
+                })()}
               </HStack>
               {p?.shortDescription && (
                 <Text mt={2} color="gray.700">{p.shortDescription}</Text>
@@ -403,7 +476,7 @@ export default function ProductDetail() {
             <HStack color="gray.600" fontSize="sm" wrap="wrap" gap={3}>
               <Text>Mã SKU: <b>{selectedVariant?.skuCode || p?.sku || '—'}</b></Text>
               <Text>•</Text>
-              <Text>Tồn: <b>{stockShown}</b></Text>
+              <Text>Tồn: <b>{selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)}</b></Text>
               <Text>•</Text>
               <HStack>
                 <LuCircleCheck />
@@ -423,7 +496,7 @@ export default function ProductDetail() {
               <NumberInput.Root
                 size="sm"
                 min={1}
-                max={Math.max(stockShown, 1)}
+                max={Math.max(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0), 1)}
                 value={qty}
                 onChange={(v)=>setQty(Number(v)||1)}
                 w={{ base: 'full', sm: '120px' }}
@@ -442,7 +515,7 @@ export default function ProductDetail() {
                 w={{ base: 'full', sm: 'auto' }}
                 size="md"
               >
-                {stockShown > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
+                {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
               </Button>
 
               <Tooltip content={hasCopied ? 'Đã sao chép link' : 'Sao chép link sản phẩm'} openDelay={200}>
@@ -463,86 +536,142 @@ export default function ProductDetail() {
 
       {/* Đánh giá */}
       <Box mt={{ base: 8, md: 12 }}>
-        <Heading size="md" mb={3}>Đánh giá</Heading>
+        <HStack justify="space-between" align="center" mb={3}>
+          <Heading size="md">Đánh giá</Heading>
+          <HStack gap={3}>
+            <Text color="gray.600" fontSize="sm">
+              {ratings.length}/{ratingTotal} mục
+            </Text>
+            <SelectRoot
+              value={[String(ratingSize)]}
+              onValueChange={(e) => {
+                const raw = e.value?.[0];
+                const next = parseInt(raw ?? '', 10);
+                if (!Number.isNaN(next)) setRatingSize(next);
+              }}
+            >
+              <SelectTrigger w="140px" bg="white">
+                <SelectValueText placeholder="Số dòng / trang" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem item="5">5/trang</SelectItem>
+                <SelectItem item="10">10/trang</SelectItem>
+                <SelectItem item="20">20/trang</SelectItem>
+              </SelectContent>
+            </SelectRoot>
+
+
+            <SelectRoot
+              value={[ratingSortKey]}
+              onValueChange={(e) => setRatingSortKey(e.value?.[0] || 'createdAtDesc')}
+            >
+              <SelectTrigger w="220px" bg="white">
+                <SelectValueText placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem item="createdAtDesc">Mới nhất</SelectItem>
+                <SelectItem item="createdAtAsc">Cũ nhất</SelectItem>
+                <SelectItem item="likeCountDesc">Hữu ích nhất</SelectItem>
+                <SelectItem item="starsDesc">Sao cao → thấp</SelectItem>
+                <SelectItem item="starsAsc">Sao thấp → cao</SelectItem>
+              </SelectContent>
+            </SelectRoot>
+
+          </HStack>
+        </HStack>
         <Separator mb={4} />
+
         <VStack align="stretch" gap={3}>
           {ratings.map(r => (
-<Box
-  key={r.id}
-  bg="white"
-  p={4}
-  borderRadius="lg"
-  boxShadow="sm"
-  _hover={{ boxShadow: 'md' }}
->
-  <HStack justify="space-between" align="start">
-    <HStack>
-      <Avatar.Root>
-        <Avatar.Fallback name={r.anonymous ? 'Anonymous' : r.username} />
-        <Avatar.Image src={avatarSrcOf(r)} />
-      </Avatar.Root>
+            <Box
+              key={r.id}
+              bg="white"
+              p={4}
+              borderRadius="lg"
+              boxShadow="sm"
+              _hover={{ boxShadow: 'md' }}
+            >
+              <HStack justify="space-between" align="start">
+                <HStack>
+                  <Avatar.Root>
+                    <Avatar.Fallback name={r.anonymous ? 'Anonymous' : r.username} />
+                    <Avatar.Image src={avatarSrcOf(r)} />
+                  </Avatar.Root>
 
-      <VStack align="start" gap={0}>
-        <HStack>
-          <Badge>{r.stars}★</Badge>
-          <Text color="gray.700" fontWeight="medium">
-            {r.anonymous ? 'Người dùng ẩn danh' : (r.username || 'User')}
-          </Text>
-        </HStack>
-        <Text color="gray.500" fontSize="xs">
-          {new Date(r.createdAt.replace(' ', 'T')).toLocaleString()}
-        </Text>
-      </VStack>
-    </HStack>
+                  <VStack align="start" gap={0}>
+                    <HStack>
+                      <Badge>{r.stars}★</Badge>
+                      <Text color="gray.700" fontWeight="medium">
+                        {r.anonymous ? 'Người dùng ẩn danh' : (r.username || 'User')}
+                      </Text>
+                    </HStack>
+                    <Text color="gray.500" fontSize="xs">
+                      {new Date(r.createdAt).toLocaleString()}
+                    </Text>
+                  </VStack>
+                </HStack>
 
-    <HStack gap={1}>
-      <IconButton
-        aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
-        size="xs"
-        variant={likedIds.has(r.id) ? 'solid' : 'outline'}
-        colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
-        onClick={() => handleToggleLike(r.id)}
-        aria-pressed={likedIds.has(r.id)}
-      >
-        <LuThumbsUp />
-      </IconButton>
-      <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
-        {likeCounts[r.id] ?? 0}
-      </Text>
-    </HStack>
-  </HStack>
+                <HStack gap={1}>
+                  <IconButton
+                    aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
+                    size="xs"
+                    variant={likedIds.has(r.id) ? 'solid' : 'outline'}
+                    colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
+                    onClick={() => handleToggleLike(r.id)}
+                    aria-pressed={likedIds.has(r.id)}
+                  >
+                    <LuThumbsUp />
+                  </IconButton>
+                  <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
+                    {likeCounts[r.id] ?? 0}
+                  </Text>
+                </HStack>
+              </HStack>
 
-  {/* Nội dung bình luận */}
-  {!!r.comment && <Text mt={2} color="gray.800">{r.comment}</Text>}
+              {/* Nội dung bình luận */}
+              {!!r.comment && <Text mt={2} color="gray.800">{r.comment}</Text>}
 
-  {/* Ảnh đính kèm */}
-  {!!r.imageUrls?.length && (
-    <Wrap mt={3} gap={2}>
-      {r.imageUrls.map((img, i) => (
-        <WrapItem key={i}>
-          <Box
-            borderRadius="md"
-            overflow="hidden"
-            border="1px solid"
-            borderColor="gray.200"
-            cursor="zoom-in"
-            onClick={() => {
-              // mở lightbox sẵn có, chuyển sang ảnh trong dialog nếu muốn
-              onOpen();
-              // bạn có thể gắn state riêng cho ảnh review nếu cần
-            }}
-          >
-            <AspectRatio ratio={1} w="72px">
-              <Image src={urlOrNull(img)} alt={`review-${r.id}-${i}`} objectFit="cover" />
-            </AspectRatio>
-          </Box>
-        </WrapItem>
-      ))}
-    </Wrap>
-  )}
-</Box>
+              {/* Ảnh đính kèm */}
+              {!!r.imageUrls?.length && (
+                <Wrap mt={3} gap={2}>
+                  {r.imageUrls.map((img, i) => (
+                    <WrapItem key={i}>
+                      <Box
+                        borderRadius="md"
+                        overflow="hidden"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        cursor="zoom-in"
+                        onClick={() => onOpen()}
+                      >
+                        <AspectRatio ratio={1} w="72px">
+                          <Image src={urlOrNull(img)} alt={`review-${r.id}-${i}`} objectFit="cover" />
+                        </AspectRatio>
+                      </Box>
+                    </WrapItem>
+                  ))}
+                </Wrap>
+              )}
+            </Box>
           ))}
-          {ratings.length === 0 && <Text color="gray.500">Chưa có đánh giá</Text>}
+
+          {loadingRatings && <Text color="gray.500">Đang tải...</Text>}
+          {(!loadingRatings && ratings.length === 0) && <Text color="gray.500">Chưa có đánh giá</Text>}
+
+          {/* Footer: nút xem thêm + sentinel cho infinite scroll */}
+          {ratingHasMore && (
+            <VStack>
+              <Button
+                onClick={() => loadRatings(ratingPage + 1, true)}
+                isLoading={loadingRatings}
+                variant="outline"
+                size="sm"
+              >
+                Xem thêm
+              </Button>
+              <Box ref={moreRef} h="1px" w="100%" />
+            </VStack>
+          )}
         </VStack>
       </Box>
 
@@ -571,39 +700,39 @@ export default function ProductDetail() {
             )}
           </VStack>
           <Button size="md" onClick={handleAddToCart} isDisabled={!canAdd}>
-            {stockShown > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
+            {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
           </Button>
         </HStack>
       </Box>
 
       {/* Lightbox */}
-     <Dialog.Root
-       open={isOpen}
-       onOpenChange={(next) => (next ? onOpen() : onClose())}
-       size="4xl"
-       placement="center"
-     >
-       <Portal>
-         <Dialog.Backdrop />
-         <Dialog.Positioner>
-           <Dialog.Content bg="transparent" boxShadow="none" p={0}>
-             <Dialog.CloseTrigger asChild>
-               <CloseButton bg="white" _hover={{ bg: 'gray.100' }} position="absolute" top="2" right="2" />
-             </Dialog.CloseTrigger>
-             <Dialog.Body p={0}>
-               <AspectRatio ratio={1}>
-                 <Image
-                   src={thumbs[activeIdx] || mainImg}
-                   alt={p?.name}
-                   objectFit="contain"
-                   bg="black"
-                 />
-               </AspectRatio>
-             </Dialog.Body>
-           </Dialog.Content>
-         </Dialog.Positioner>
-       </Portal>
-     </Dialog.Root>
+      <Dialog.Root
+        open={isOpen}
+        onOpenChange={(next) => (next ? onOpen() : onClose())}
+        size="4xl"
+        placement="center"
+      >
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content bg="transparent" boxShadow="none" p={0}>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton bg="white" _hover={{ bg: 'gray.100' }} position="absolute" top="2" right="2" />
+              </Dialog.CloseTrigger>
+              <Dialog.Body p={0}>
+                <AspectRatio ratio={1}>
+                  <Image
+                    src={thumbs[activeIdx] || mainImg}
+                    alt={p?.name}
+                    objectFit="contain"
+                    bg="black"
+                  />
+                </AspectRatio>
+              </Dialog.Body>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </Box>
   )
 }
