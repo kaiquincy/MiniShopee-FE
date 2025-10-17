@@ -99,8 +99,7 @@ export default function LandingCarousel() {
             <Box
                 position="absolute"
                 inset="0"
-                bg={activeSlide.color}
-                opacity={0.15}
+                bg={`${activeSlide.color}26`}
                 transition="background-color 1s ease"
             />
 

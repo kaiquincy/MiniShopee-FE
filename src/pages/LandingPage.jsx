@@ -337,8 +337,7 @@ export default function LandingPage() {
                             <Box
                                 w="50px"
                                 h="50px"
-                                bg="#2563EB"
-                                opacity={0.2}
+                                bg="#2563EB33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
@@ -355,8 +354,7 @@ export default function LandingPage() {
                             <Box
                                 w="50px"
                                 h="50px"
-                                bg="#16A34A"
-                                opacity={0.2}
+                                bg="#16A34A33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
@@ -373,8 +371,7 @@ export default function LandingPage() {
                             <Box
                                 w="50px"
                                 h="50px"
-                                bg="#9333EA"
-                                opacity={0.2}
+                                bg="#9333EA33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
@@ -393,19 +390,17 @@ export default function LandingPage() {
             {/* ================= NEWSLETTER ================= */}
             <Box bg="black" py={20} position="relative" overflow="hidden">
                 {/* Large background text */}
-                <Text
+                <Box
                     position="absolute"
                     top="50%"
                     left="50%"
                     transform="translate(-50%, -50%)"
                     fontSize={{ base: "8xl", md: "12xl" }}
                     fontWeight="black"
-                    color="whiteAlpha.50"
                     whiteSpace="nowrap"
                     pointerEvents="none"
                 >
-                    SUBSCRIBE
-                </Text>
+                </Box>
 
                 <Container maxW="container.lg" position="relative" textAlign="center">
                     <VStack spacing={6}>

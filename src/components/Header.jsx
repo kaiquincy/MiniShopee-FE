@@ -21,7 +21,7 @@ export default function Header() {
 
   // Hide header on landing page - carousel will have its own
   if (isLandingPage) return null
-
+  console.log(isSellerOrAdmin)
   return (
     <Box 
       as="header" 
@@ -40,8 +40,8 @@ export default function Header() {
     >
       <Box maxW="7xl" mx="auto" py={3} px={4}>
         <Flex align="center" gap={4} justify="space-between">
-          <Heading size="xl" fontWeight="bold" color="brand.700">
-            <Link to="/">mini-Shopee</Link>
+          <Heading size="2xl" fontWeight="black">
+            <Link to="/">mini<ChakraText as="span" color='brand.500'>Shopee</ChakraText></Link>
           </Heading>
 
           <InputGroup
@@ -62,8 +62,9 @@ export default function Header() {
             {/* Chat */}
             <IconButton
               aria-label="Chat"
-              variant="ghost"
-              colorPalette="gray"
+              color={isSellerOrAdmin ? "white" : "gray.900"}
+              bg={isSellerOrAdmin ? "gray.900" : "white"}
+              _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
               fontSize="20px"
               icon={<Icon as={FiMessageSquare} />}
               onClick={() => nav('/chat')}
@@ -75,8 +76,9 @@ export default function Header() {
             <Box position="relative">
               <IconButton
                 aria-label="Notifications"
-                variant="ghost"
-                colorPalette="gray"
+                color={isSellerOrAdmin ? "white" : "gray.900"}
+                bg={isSellerOrAdmin ? "gray.900" : "white"}
+                _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
                 fontSize="20px"
                 icon={<Icon as={FiBell} />}
                 onClick={() => nav('/notifications')}
@@ -101,8 +103,9 @@ export default function Header() {
             <Box position="relative">
               <IconButton
                 aria-label="Cart"
-                variant="ghost"
-                colorPalette="gray"
+                color={isSellerOrAdmin ? "white" : "gray.900"}
+                bg={isSellerOrAdmin ? "gray.900" : "white"}
+                _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
                 fontSize="20px"
                 onClick={() => nav('/cart')}
               >
@@ -136,8 +139,10 @@ export default function Header() {
                 <Menu.Trigger asChild onPointerEnter={enter} onPointerLeave={leave}>
                   <IconButton
                     aria-label="User"
-                    variant="ghost"
-                    colorPalette="gray"
+                    color={isSellerOrAdmin ? "white" : "gray.900"}
+                    bg={isSellerOrAdmin ? "gray.900" : "white"}
+                    outline="none"
+                    _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
                     fontSize="20px"
                   >
                     <Icon as={FiUser} />

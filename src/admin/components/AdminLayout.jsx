@@ -1,55 +1,102 @@
-// ✅ Gộp import Chakra v3 vào một chỗ
 import {
   Box,
   Button,
   Flex,
-  Heading,
+  HStack,
+  Icon,
+  Text,
   VStack
 } from '@chakra-ui/react';
-import { FiClipboard, FiLayout, FiPackage, FiSettings, FiUsers } from 'react-icons/fi';
+import { FiClipboard, FiLayout, FiPackage, FiSettings, FiShield, FiUsers } from 'react-icons/fi';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
+const menuItems = [
+  { to: '/admin/dashboard', label: 'Dashboard', icon: FiLayout },
+  { to: '/admin/orders', label: 'Orders', icon: FiClipboard },
+  { to: '/admin/users', label: 'Users', icon: FiUsers },
+  { to: '/admin/products', label: 'Products', icon: FiPackage },
+  { to: '/admin/settings', label: 'Settings', icon: FiSettings },
+]
 
-const NavItem = ({ to, icon, children }) => {
+const NavItem = ({ to, children, icon }) => {
   const loc = useLocation()
   const active = loc.pathname.startsWith(to)
   return (
-    <Button as={NavLink}
+    <Button
+      as={NavLink}
       to={to}
       justifyContent="flex-start"
       w="full"
-      px={12}
-      py={6}
-      borderRadius={0}
-      outline={0}
-      bg={active ? "gray.50" : "black"}
-      color={active ? "black" : "white"}
-      _hover={{ bg: "gray.50", color: "black" }}
-      >
-        {children}
+      h="auto"
+      py={3}
+      px={4}
+      borderRadius="none"
+      bg={active ? "white" : "transparent"}
+      color={active ? "#1E3A8A" : "whiteAlpha.700"}
+      borderLeft="3px solid"
+      borderColor={active ? "#3B82F6" : "transparent"}
+      fontWeight={active ? "bold" : "normal"}
+      _hover={{ 
+        bg: active ? "white" : "whiteAlpha.100",
+        color: active ? "#1E3A8A" : "white"
+      }}
+      transition="all 0.2s"
+    >
+      <HStack spacing={3} w="full">
+        <Icon as={icon} boxSize={5} />
+        <Text>{children}</Text>
+      </HStack>
     </Button>
   )
 }
 
 export default function AdminLayout() {
   return (
-    <Flex minH="100vh" bg="gray.900">
+    <Flex minH="100vh" bg="#1E3A8A">
       {/* Sidebar */}
-      <Box w="260px" bg="gray.900" py={4} color="white">
-        <VStack align="stretch" gap={0}>
-          <Heading fontWeight="bold" size="lg" px={8} mb={2}>Admin Center</Heading>
-          <NavItem to="/admin/dashboard" icon={FiLayout}>Dashboard</NavItem>
-          <NavItem to="/admin/orders" icon={FiClipboard}>Orders</NavItem>
-          <NavItem to="/admin/users" icon={FiUsers}>Users</NavItem>
-          <NavItem to="/admin/products" icon={FiPackage}>Products</NavItem>
-          <NavItem to="/admin/settings" icon={FiSettings}>Settings</NavItem>
+      <Box 
+        w="280px" 
+        bg="#1E40AF"
+        borderRight="1px solid"
+        borderColor="whiteAlpha.200"
+        position="fixed"
+        h="100vh"
+      >
+        {/* Logo/Header */}
+        <Box p={6} borderBottom="1px solid" borderColor="whiteAlpha.200">
+          <HStack spacing={3} mb={1}>
+            <Box
+              p={2}
+              bg="#3B82F6"
+              borderRadius="lg"
+            >
+              <Icon as={FiShield} boxSize={6} color="white" />
+            </Box>
+            <Text fontWeight="black" fontSize="2xl" color="white">
+              Admin
+            </Text>
+          </HStack>
+          <Text fontSize="sm" color="whiteAlpha.700" mt={1}>
+            System Management
+          </Text>
+        </Box>
+
+        {/* Navigation */}
+        <VStack align="stretch" gap={1} p={4}>
+          {menuItems.map((item) => (
+            <NavItem key={item.to} to={item.to} icon={item.icon}>
+              {item.label}
+            </NavItem>
+          ))}
         </VStack>
       </Box>
 
-      {/* Content */}
-      <Box flex={1} py={6} px={10} bg="gray.50" rounded="xl">
-        <Outlet />
+      {/* Main Content */}
+      <Box flex={1} ml="280px" bg="#EFF6FF" minH="100vh">
+        <Box maxW="1600px" mx="auto" p={8}>
+          <Outlet />
+        </Box>
       </Box>
     </Flex>
-  );
+  )
 }

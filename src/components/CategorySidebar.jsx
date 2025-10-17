@@ -1,7 +1,7 @@
+import { Box, Button, IconButton, VStack } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
-import api from '../api/client'
-import { VStack, Button, Box, IconButton } from '@chakra-ui/react'
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi'
+import api from '../api/client'
 
 function Node({ node, onChoose, activeId, level = 0 }) {
   const [open, setOpen] = useState(true)
@@ -15,25 +15,37 @@ function Node({ node, onChoose, activeId, level = 0 }) {
           <IconButton
             size="xs"
             variant="ghost"
-            aria-label={open ? 'Thu gọn' : 'Mở rộng'}
+            aria-label={open ? 'Collapse' : 'Expand'}
             onClick={() => setOpen(o => !o)}
-            icon={open ? <FiChevronDown /> : <FiChevronRight />}
-          />
+            color="#6C757D"
+            _hover={{ bg: "#F8F9FA", color: "#212529" }}
+          >
+            {open ? <FiChevronDown /> : <FiChevronRight />}
+          </IconButton>
         ) : (
-          <Box w="24px" /> // chừa chỗ cho icon để canh hàng
+          <Box w="24px" />
         )}
         <Button
-          variant={isActive ? 'solid' : 'ghost'}
+          variant="ghost"
           size="sm"
           onClick={() => onChoose(node)}
-          aria-current={isActive ? 'page' : undefined}
+          justifyContent="flex-start"
+          flex={1}
+          bg={isActive ? "#E7F5FF" : "transparent"}
+          color={isActive ? "#1971C2" : "#495057"}
+          fontWeight={isActive ? "semibold" : "normal"}
+          _hover={{ 
+            bg: isActive ? "#D0EBFF" : "#F8F9FA",
+            color: "#212529"
+          }}
+          borderRadius="md"
         >
           {node.name}
         </Button>
       </Box>
 
       {hasChildren && open && (
-        <Box pl={4} borderLeft="1px solid #eee" ml="12px">
+        <Box pl={4} borderLeft="1px solid" borderColor="#DEE2E6" ml="12px" mt={1}>
           {node.children.map(ch => (
             <Node
               key={ch.id}
@@ -70,21 +82,31 @@ export default function CategorySidebar({ onChange, activeId }) {
   }, [])
 
   return (
-    <VStack
-      align="stretch"
-      spacing={2}
-      bg="white"
-      p={3}
-      borderRadius="md"
-      className="glass"
-      minW="240px"
-    >
-      <Button size="sm" onClick={() => onChange(null)} variant={!activeId ? 'solid' : 'outline'}>
-        Tất cả
+    <VStack align="stretch" spacing={1}>
+      <Button 
+        size="sm" 
+        onClick={() => onChange(null)} 
+        justifyContent="flex-start"
+        bg={!activeId ? "#212529" : "transparent"}
+        color={!activeId ? "white" : "#495057"}
+        fontWeight={!activeId ? "semibold" : "normal"}
+        _hover={{ 
+          bg: !activeId ? "#343A40" : "#F8F9FA",
+          color: !activeId ? "white" : "#212529"
+        }}
+        borderRadius="md"
+      >
+        All Categories
       </Button>
 
       {loading ? (
-        <Box p={2} color="gray.500">Đang tải danh mục…</Box>
+        <Box p={3} color="#6C757D" fontSize="sm" textAlign="center">
+          Loading categories...
+        </Box>
+      ) : tree.length === 0 ? (
+        <Box p={3} color="#6C757D" fontSize="sm" textAlign="center">
+          No categories available
+        </Box>
       ) : (
         tree.map(n => (
           <Node key={n.id} node={n} onChoose={onChange} activeId={activeId} />
