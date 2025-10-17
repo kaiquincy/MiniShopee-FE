@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchProductById } from '../api/products'
+import { fetchProductById, getSimilarProducts } from '../api/products'
 import { getRatings, toggleRatingLike, getRatingSummary as getsum } from '../api/ratings'
 import {
   Box, Image, Heading, Text, Button, VStack, HStack, Badge, Wrap, WrapItem,
@@ -13,6 +13,7 @@ import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, 
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
 import { Tooltip } from '../components/ui/Tooltip'
+import ProductCard from '../components/ProductCard'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -27,6 +28,9 @@ export default function ProductDetail() {
   const [ratingSortKey, setRatingSortKey] = useState('createdAtDesc');
 
   const [ratingSort, setRatingSort] = useState('createdAt,DESC')
+  const [similar, setSimilar] = useState([])
+  const [loadingSimilar, setLoadingSimilar] = useState(false)
+  const railRef = useRef(null)
   const [ratingTotal, setRatingTotal] = useState(0)
   const [ratingHasMore, setRatingHasMore] = useState(false)
   const [loadingRatings, setLoadingRatings] = useState(false)
@@ -84,6 +88,22 @@ export default function ProductDetail() {
     getsum(id).then(setRatingSummary).catch(() => {})
     return () => { mounted = false }
   }, [id])
+
+
+
+  // ===== similar products by category (priceBand mặc định null -> bỏ lọc giá) =====
+  useEffect(() => {
+    let alive = true
+    setLoadingSimilar(true)
+    getSimilarProducts(id, { limit: 12 /*, priceBand: undefined*/ })
+      .then(list => { if (alive) setSimilar(list || []) })
+      .catch(() => { if (alive) setSimilar([]) })
+      .finally(() => { if (alive) setLoadingSimilar(false) })
+    return () => { alive = false }
+  }, [id])
+
+
+
 
   // ===== ratings like counts from payload (fallback 0) =====
   useEffect(() => {
@@ -266,6 +286,9 @@ export default function ProductDetail() {
       </HStack>
     )
   }
+
+
+
 
   return (
     <Box w="full" px={{ base: 4, sm: 6, md: 10, lg: 24 }} py={{ base: 6, md: 8 }}>
@@ -539,10 +562,10 @@ export default function ProductDetail() {
         <HStack justify="space-between" align="center" mb={3}>
           <Heading size="md">Đánh giá</Heading>
           <HStack gap={3}>
-            <Text color="gray.600" fontSize="sm">
+            {/* <Text color="gray.600" fontSize="sm">
               {ratings.length}/{ratingTotal} mục
-            </Text>
-            <SelectRoot
+            </Text> */}
+            {/* <SelectRoot
               value={[String(ratingSize)]}
               onValueChange={(e) => {
                 const raw = e.value?.[0];
@@ -558,7 +581,7 @@ export default function ProductDetail() {
                 <SelectItem item="10">10/trang</SelectItem>
                 <SelectItem item="20">20/trang</SelectItem>
               </SelectContent>
-            </SelectRoot>
+            </SelectRoot> */}
 
 
             <SelectRoot
@@ -674,6 +697,91 @@ export default function ProductDetail() {
           )}
         </VStack>
       </Box>
+
+
+      {/* Sản phẩm tương tự */}
+      <Box mt={{ base: 10, md: 12 }}>
+        <HStack justify="space-between" align="center" mb={3}>
+          <Heading size="md">Sản phẩm tương tự</Heading>
+          {p?.categoryIds?.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/category/${p.categoryIds[0]}`)}
+            >
+              Xem tất cả →
+            </Button>
+          )}
+        </HStack>
+
+        <Box position="relative">
+          {/* Nút cuộn trái/phải (ẩn trên mobile) */}
+          <IconButton
+            aria-label="Prev"
+            variant="ghost"
+            position="absolute"
+            left={-2}
+            top="50%"
+            transform="translateY(-50%)"
+            onClick={() => { if (railRef.current) railRef.current.scrollBy({ left: -320, behavior: 'smooth' }) }}
+            display={{ base: 'none', md: 'flex' }}
+            zIndex={1}
+          >
+            <LuChevronLeft />
+          </IconButton>
+
+          <IconButton
+            aria-label="Next"
+            variant="ghost"
+            position="absolute"
+            right={-2}
+            top="50%"
+            transform="translateY(-50%)"
+            onClick={() => { if (railRef.current) railRef.current.scrollBy({ left: 320, behavior: 'smooth' }) }}
+            display={{ base: 'none', md: 'flex' }}
+            zIndex={1}
+          >
+            <LuChevronRight />
+          </IconButton>
+
+          <HStack
+            ref={railRef}
+            overflowX="auto"
+            gap={3}
+            py={2}
+            px={1}
+            sx={{ scrollbarWidth: 'thin' }}
+          >
+            {/* {loadingSimilar && Array.from({ length: 6 }).map((_, i) => (
+              <Box key={i} w="190px" flex="0 0 auto" bg="white" borderRadius="xl" boxShadow="sm" p="1.5">
+                <Skeleton>
+                  <AspectRatio ratio={1} borderRadius="lg" />
+                </Skeleton>
+                <VStack align="stretch" gap={1} mt="2">
+                  <Skeleton h="18px" />
+                  <Skeleton h="18px" w="70%" />
+                  <Skeleton h="16px" w="40%" />
+                </VStack>
+              </Box>
+            ))} */}
+
+            {!loadingSimilar && similar.length === 0 && (
+              <Text color="gray.500" px="2">Không tìm thấy sản phẩm tương tự.</Text>
+            )}
+
+            <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} gap={4} mb={6}>
+              {!loadingSimilar && similar.map(item => (
+                <ProductCard
+                  key={item.id}
+                  p={item}
+                  onAdd={() => navigate(`/product/${item.id}`)}
+                />
+              ))}
+            </SimpleGrid>
+          </HStack>
+        </Box>
+      </Box>
+
 
       {/* Sticky action bar (mobile) */}
       <Box
