@@ -1,6 +1,6 @@
 import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser } from 'react-icons/fi'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -196,17 +196,29 @@ export default function Header() {
                       </Menu.Item>
                     )}
 
-                      {user?.role?.includes('ROLE_ADMIN') && (
-                        <Menu.Item
-                          value="admin"
-                          onClick={() => nav('/admin')}
-                          display="flex" alignItems="center" gap="3" px="3" py="2"
-                          _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                    {user?.role?.includes('ROLE_ADMIN') && (
+                      <Menu.Item
+                        value="admin"
+                        onClick={() => nav('/admin')}
+                        gap={2.5}
+                        _hover={{ bg: 'gray.50', cursor: 'pointer' }}
+                      >
+                        <Box
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          w={5}  // 20px, match icon default size
+                          h={5}  // Giữ square, không to ra
+                          bg="#3B82F6"
+                          borderRadius="lg"
+                          flexShrink={0}  // Ngăn Box bị shrink nếu cần
+                          mr={0}
                         >
-                          <Icon as={FiPackage} />
-                          <ChakraText>Admin Center</ChakraText>
-                        </Menu.Item>
-                      )}
+                          <Icon as={FiShield} boxSize={3} color="white" />  {/* boxSize=4 (~16px) để fit snug, không overflow */}
+                        </Box>
+                        Admin Center
+                      </Menu.Item>
+                    )}
 
                       <Separator my="2" />
 

@@ -9,7 +9,7 @@ import {
   Dialog, Portal, Avatar, SelectRoot, SelectTrigger, SelectValueText, SelectContent, SelectItem,
 } from '@chakra-ui/react'
 
-import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, LuThumbsUp } from 'react-icons/lu'
+import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, LuThumbsUp, LuPackage, LuShoppingCart } from 'react-icons/lu'
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
 import { Tooltip } from '../components/ui/Tooltip'
@@ -263,9 +263,9 @@ export default function ProductDetail() {
     }
     try {
       await addToCart(p.id, qty, selectedVariant?.id)
-      toaster.create({ title: 'Đã thêm vào giỏ', status: 'success' })
+      toaster.create({ title: 'Đã Add to cart', status: 'success' })
     } catch {
-      toaster.create({ title: 'Không thể thêm vào giỏ', status: 'error' })
+      toaster.create({ title: 'Không thể Add to cart', status: 'error' })
     }
   }
 
@@ -520,15 +520,12 @@ export default function ProductDetail() {
                 size="sm"
                 min={1}
                 max={Math.max(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0), 1)}
-                value={qty}
-                onChange={(v)=>setQty(Number(v)||1)}
+                defaultValue={qty}
+                onValueChange={(v)=>setQty(Number(v.value)||1)}
                 w={{ base: 'full', sm: '120px' }}
                 aria-label="Số lượng"
               >
-                <NumberInput.Control>
-                  <NumberInput.IncrementTrigger aria-label="Tăng (↑)" />
-                  <NumberInput.DecrementTrigger aria-label="Giảm (↓)" />
-                </NumberInput.Control>
+                <NumberInput.Control/>
                 <NumberInput.Input />
               </NumberInput.Root>
 
@@ -538,7 +535,7 @@ export default function ProductDetail() {
                 w={{ base: 'full', sm: 'auto' }}
                 size="md"
               >
-                {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
+                <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
               </Button>
 
               <Tooltip content={hasCopied ? 'Đã sao chép link' : 'Sao chép link sản phẩm'} openDelay={200}>
@@ -560,7 +557,14 @@ export default function ProductDetail() {
       {/* Đánh giá */}
       <Box mt={{ base: 8, md: 12 }}>
         <HStack justify="space-between" align="center" mb={3}>
-          <Heading size="md">Đánh giá</Heading>
+        <HStack gap={2} align="center">
+            <Icon as={LuStar} color="yellow.400" boxSize={5} />  {/* Icon sao để thu hút */}
+            <Heading size="md" lineHeight="1.2">
+              Ratings {ratingSummary && `(${avgLabel}★)`}  {/* Tích hợp avg */}
+            </Heading>
+          </HStack>
+
+
           <HStack gap={3}>
             {/* <Text color="gray.600" fontSize="sm">
               {ratings.length}/{ratingTotal} mục
@@ -699,20 +703,29 @@ export default function ProductDetail() {
       </Box>
 
 
+
+
+
       {/* Sản phẩm tương tự */}
       <Box mt={{ base: 10, md: 12 }}>
-        <HStack justify="space-between" align="center" mb={3}>
-          <Heading size="md">Sản phẩm tương tự</Heading>
-          {p?.categoryIds?.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/category/${p.categoryIds[0]}`)}
-            >
-              Xem tất cả →
-            </Button>
-          )}
+      <HStack justify="space-between" align="center" mb={3}>
+        <HStack gap={2} align="center">
+          <Icon as={LuPackage} color="brand.500" boxSize={5} />  {/* Icon sản phẩm để thu hút, dùng brand color cho unify */}
+          <Heading size="md" lineHeight="1.2">
+            Similar products {similar.length > 0 && `(${similar.length})`}  {/* Tích hợp count */}
+          </Heading>
         </HStack>
+        
+        {p?.categoryIds?.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/category/${p.categoryIds[0]}`)}
+          >
+            See all →
+          </Button>
+        )}
+      </HStack>
 
         <Box position="relative">
           {/* Nút cuộn trái/phải (ẩn trên mobile) */}
@@ -797,6 +810,7 @@ export default function ProductDetail() {
       >
         <HStack justify="space-between">
           <VStack align="start" gap={0}>
+
             <Text fontSize="md" fontWeight="bold">{priceFmt(Number(effectivePrice || 0))} USD</Text>
             {(hasDiscount || (basePrice && basePrice > effectivePrice)) && (
               <HStack gap={2} fontSize="xs" color="gray.500">
@@ -807,8 +821,8 @@ export default function ProductDetail() {
               </HStack>
             )}
           </VStack>
-          <Button size="md" onClick={handleAddToCart} isDisabled={!canAdd}>
-            {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}
+          <Button leftIcon={<LuShoppingCart size={20} />} size="md" onClick={handleAddToCart} isDisabled={!canAdd}>
+            <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
           </Button>
         </HStack>
       </Box>
