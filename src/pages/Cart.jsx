@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { getCart, removeCartItem, clearCart } from '../api/cart'
-import { Box, Button, Heading, HStack, Text, VStack, Image, Badge  } from '@chakra-ui/react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Box, Button, Icon, HStack, Text, VStack, Image, Badge  } from '@chakra-ui/react'
+import { LuShoppingCart } from 'react-icons/lu'
+import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 
 export default function Cart() {
@@ -11,9 +11,66 @@ export default function Cart() {
   useEffect(() => { reloadCart() }, [reloadCart])
   if (!cart) return null
 
+const isEmpty = cart.items?.length === 0
+
+  if (isEmpty) {
+    return (
+      <Box mx={10} my={8} textAlign="center">
+        {/* Empty State Header */}
+        <Box mb={8}>
+          {/* <HStack spacing={3} mb={3} justify="center"> */}
+            <Box
+              w="100px"
+              h="100px"
+              bg="#F1F3F5"
+              borderRadius="full"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              mx="auto"
+              mb={5}
+            > 
+              <Icon as={LuShoppingCart} boxSize={12} color="#6C757D" />
+            </Box>
+            
+          {/* </HStack> */}
+            <Text fontSize="4xl" fontWeight="black" color="#212529">
+              Your Cart is currently empty
+            </Text>
+          <Text color="#6C757D" fontSize="lg" mt={2}>
+            Browse our products and add items to your cart.
+            </Text>
+        </Box>
+        
+        {/* Empty Action */}
+        <VStack spacing={4}>
+          <Button 
+            size="lg" 
+            colorScheme="brand" 
+            onClick={() => nav('/products')}  // Hoặc nav('/shop') nếu có route shop
+            leftIcon={<LuShoppingCart />}
+          >
+            Start Shopping
+          </Button>
+        </VStack>
+      </Box>
+    )
+  }
+
   return (
-    <Box>
-      <Heading size="md" mb={4}>Your Cart</Heading>
+    <Box mx={10} mt={8}>
+        {/* Page Header */}
+        <Box mb={8}>
+          <HStack spacing={3} mb={3}>
+            <Icon as={LuShoppingCart} boxSize={7} color="#495057" />
+            <Text fontSize="4xl" fontWeight="black" color="#212529">
+              Your Cart
+            </Text>
+          </HStack>
+          <Text color="#6C757D" fontSize="lg">
+            Review the items in your cart before proceeding to checkout.
+          </Text>
+        </Box>
       <VStack align="stretch" spacing={3}>
         {cart.items?.map(it => (
           <HStack key={it.id} justify="space-between" bg="white" p={3} borderRadius="md" className="glass">

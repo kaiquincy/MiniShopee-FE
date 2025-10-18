@@ -1,9 +1,11 @@
-import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator } from '@chakra-ui/react'
-import { useRef, useState } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield } from 'react-icons/fi'
+import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack, HStack, Button } from '@chakra-ui/react'
+import { useRef, useState, useEffect } from 'react'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { myNotifications, markRead, unreadCount } from '../api/notifications'
+
 
 export default function Header() {
   const nav = useNavigate()
@@ -16,12 +18,84 @@ export default function Header() {
   const enter = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(true), 60) }
   const leave = () => { clearTimeout(timerRef.current); timerRef.current = setTimeout(() => setMenuOpen(false), 120) }
 
+  // Notification states
+  const [notifications, setNotifications] = useState([])
+  const [unread, setUnread] = useState(0)
+  const [notifMenuOpen, setNotifMenuOpen] = useState(false)
+  const notifTimerRef = useRef(null)
+  const notifEnter = () => { clearTimeout(notifTimerRef.current); notifTimerRef.current = setTimeout(() => setNotifMenuOpen(true), 60) }
+  const notifLeave = () => { clearTimeout(notifTimerRef.current); notifTimerRef.current = setTimeout(() => setNotifMenuOpen(false), 120) }
+
   const isSellerOrAdmin = location.pathname.startsWith("/seller") || location.pathname.startsWith("/admin")
   const isLandingPage = location.pathname === "/"
 
+  const loadNotifications = async () => {
+      try {
+        const notifs = await myNotifications()
+        setNotifications(notifs.slice(0, 5)) // Preview top 5
+        const unreadCnt = await unreadCount()
+        setUnread(unreadCnt)
+      } catch (e) {
+        console.error('Failed to load notifications:', e)
+      }
+    }
+
+  useEffect(() => {
+      loadNotifications()
+    }, [])
+
+  const handleNotifClick = async (n) => {
+      if (!n.read) {
+        await markRead(n.id)
+        setUnread(prev => Math.max(0, prev - 1))
+      }
+      nav('/notifications')
+    }
+
+  // Phân loại thông báo cho icon và badge
+  const getTypeIcon = (type) => {
+    const icons = {
+      ORDER_UPDATED: FiPackage,
+      promotion: FiTag,
+      SYSTEM: FiSettings,
+      review: FiStar,
+      default: FiBell
+    }
+    const IconComponent = icons[type] || icons.default
+    const colors = {
+      ORDER_UPDATED: 'blue.500',
+      promotion: 'green.500',
+      SYSTEM: 'yellow.500',
+      review: 'purple.500',
+      default: 'gray.500'
+    }
+    const color = colors[type] || colors.default
+    return <Icon as={IconComponent} boxSize={4} color={color} />
+  }
+
+  const getTypeBadge = (type) => {
+    const types = {
+      ORDER_UPDATED: { colorPalette: 'blue', label: 'Order' },
+      promotion: { colorPalette: 'green', label: 'Promotion' },
+      SYSTEM: { colorPalette: 'yellow', label: 'System' },
+      review: { colorPalette: 'purple', label: 'Review' },
+      default: { colorPalette: 'gray', label: 'Other' }
+    }
+    const config = types[type] || types.default
+    return (
+      <Badge 
+        colorPalette={config.colorPalette} 
+        variant="subtle" 
+        fontSize="xs" 
+        mr={1}
+      >
+        {config.label}
+      </Badge>
+    )
+  }
+
   // Hide header on landing page - carousel will have its own
   if (isLandingPage) return null
-  console.log(isSellerOrAdmin)
   return (
     <Box 
       as="header" 
@@ -72,32 +146,155 @@ export default function Header() {
               <Icon as={FiMessageSquare} />
             </IconButton>
 
-            {/* Notifications + badge */}
-            <Box position="relative">
-              <IconButton
-                aria-label="Notifications"
-                color={isSellerOrAdmin ? "white" : "gray.900"}
-                bg={isSellerOrAdmin ? "gray.900" : "white"}
-                _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
-                fontSize="20px"
-                icon={<Icon as={FiBell} />}
-                onClick={() => nav('/notifications')}
-              >
-                <Icon as={FiBell} />
-              </IconButton>
-              <Badge
-                position="absolute"
-                top="0.08em"
-                right="0.4em"
-                borderRadius="full"
-                px="0.5em"
-                fontSize="0.6em"
-                fontWeight={900}
-                colorPalette="red"
-              >
-                9
-              </Badge>
-            </Box>
+            {/* Notifications + badge + hover menu */}
+            <Menu.Root
+              open={notifMenuOpen}
+              onOpenChange={(e) => setNotifMenuOpen(e.open)}
+              lazyMount={false}
+              unmountOnExit={false}
+              positioning={{ placement: 'bottom-end' }}
+            >
+              <Menu.Trigger asChild onPointerEnter={notifEnter} onPointerLeave={notifLeave}>
+                <Box position="relative">
+                  <IconButton
+                    aria-label="Notifications"
+                    color={isSellerOrAdmin ? "white" : "gray.900"}
+                    bg={isSellerOrAdmin ? "gray.900" : "white"}
+                    _hover={{ color: isSellerOrAdmin ? "gray.900" : "white", bg: isSellerOrAdmin ? "white" : "gray.900" }}
+                    fontSize="20px"
+                    icon={<Icon as={FiBell} />}
+                    onClick={() => nav('/notifications')}
+                  >
+                    <Icon as={FiBell} />
+                  </IconButton>
+                  {unread > 0 && (
+                    <Badge
+                      position="absolute"
+                      top="0.08em"
+                      right="0.4em"
+                      borderRadius="full"
+                      px="0.5em"
+                      fontSize="0.6em"
+                      fontWeight={900}
+                      colorPalette="red"
+                    >
+                      {unread}
+                    </Badge>
+                  )}
+                </Box>
+              </Menu.Trigger>
+
+              <Portal>
+                <Menu.Positioner onPointerEnter={notifEnter} onPointerLeave={notifLeave}>
+                  <Menu.Content
+                    bg="white"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    rounded="xl"
+                    shadow="2xl"
+                    minW="360px"
+                    maxW="400px"
+                    maxH="500px"
+                    py={0}
+                    overflow="hidden"
+                  >
+                    <Box
+                      px={4}
+                      py={3}
+                      bg="gray.50"
+                      borderBottom="1px solid"
+                      borderColor="gray.100"
+                    >
+                      <HStack justify="space-between">
+                        <Heading size="sm" color="gray.800">Notifications</Heading>
+                        <Badge colorPalette="black" variant="solid" px={2} py={0.5}>
+                          {unread} unread
+                        </Badge>
+                      </HStack>
+                    </Box>
+
+                    {notifications.length === 0 ? (
+                      <VStack spacing={4} py={8} px={4} textAlign="center">
+                        <Icon as={FiBell} boxSize={12} color="gray.300" />
+                        <VStack spacing={1}>
+                          <ChakraText fontSize="sm" fontWeight="medium" color="gray.700">No notifications yet</ChakraText>
+                          <ChakraText fontSize="xs" color="gray.500">Stay tuned for updates!</ChakraText>
+                        </VStack>
+                      </VStack>
+                    ) : (
+                      <VStack spacing={0} maxH="400px" overflowY="auto">
+                        {notifications.map(n => (
+                          <Box
+                            key={n.id}
+                            px={4}
+                            py={3}
+                            borderBottom="1px solid"
+                            borderColor="gray.50"
+                            _hover={{ bg: 'gray.25' }}
+                            transition="background-color 0.15s ease"
+                            cursor="pointer"
+                            onClick={() => handleNotifClick(n)}
+                            width="full"
+                          >
+                            <HStack spacing={3} align="start">
+                              <Box
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                w={10}
+                                h={10}
+                                bg="gray.100"
+                                borderRadius="full"
+                                flexShrink={0}
+                              >
+                                {getTypeIcon(n.type)}
+                              </Box>
+                              <VStack align="start" flex={1} spacing={1}>
+                                <HStack spacing={1}>
+                                  <ChakraText fontSize="sm" fontWeight="medium" noOfLines={1}>{n.title || 'New Notification'}</ChakraText>
+                                  {getTypeBadge(n.type)}
+                                </HStack>
+                                <ChakraText fontSize="sm" noOfLines={2} color="gray.700">{n.message}</ChakraText>
+                                <ChakraText fontSize="xs" color="gray.500">
+                                  {new Date(n.createdAt).toLocaleDateString('en-US', { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    hour: 'numeric', 
+                                    minute: '2-digit' 
+                                  })}
+                                </ChakraText>
+                              </VStack>
+                              {!n.read && (
+                                <Box
+                                  w={2}
+                                  h={2}
+                                  bg="red.500"
+                                  borderRadius="full"
+                                  mt={1}
+                                  flexShrink={0}
+                                />
+                              )}
+                            </HStack>
+                          </Box>
+                        ))}
+                      </VStack>
+                    )}
+                    
+                    <Box px={4} py={3} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        w="full"
+                        colorPalette="blue"
+                        onClick={() => nav('/notifications')}
+                      >
+                        View all notifications
+                      </Button>
+                    </Box>
+                  </Menu.Content>
+                </Menu.Positioner>
+              </Portal>
+            </Menu.Root>
 
             {/* Cart + badge */}
             <Box position="relative">
