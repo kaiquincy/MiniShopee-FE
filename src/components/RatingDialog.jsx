@@ -97,6 +97,7 @@ export default function RatingDialog({ order, items, onSubmit, children }) {
       setSubmitting(true)
       await onSubmit?.({
         orderId: order?.id ?? order?.orderId,
+        orderItemId: it.orderItemId,
         productId: it.productId,
         variantId: it.variantId,
         stars,

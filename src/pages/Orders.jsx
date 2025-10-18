@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listOrders } from '../api/orders'
+import { addRating } from '../api/ratings'
 import {
   Box, Heading, VStack, HStack, Text, Badge,
   Tabs, Button, Stack, Skeleton, Separator,
@@ -218,17 +219,20 @@ function OrderCard({ order: o }) {
           <RatingDialog
             order={o}
             items={items} 
-            onSubmit={async ({ orderId, productId, variantId, stars, comment, files }) => {
+            onSubmit={async ({ orderId, orderItemId ,productId, variantId, stars, comment, files }) => {
               // TODO: call API của bạn
-              // const fd = new FormData()
-              // fd.append('orderId', orderId)
-              // fd.append('productId', productId)
-              // if (variantId) fd.append('variantId', variantId)
-              // fd.append('stars', String(stars))
-              // fd.append('comment', comment || '')
-              // files.forEach(f => fd.append('images', f))
-              // await createRating(fd)
-              alert(`Submit rating: ${stars} sao, ${comment || '(no comment)'}, ${files.length} ảnh`)
+              const fd = new FormData()
+              const ratingData = {
+                orderItemId,
+                // productId,
+                // variantId: variantId || null,
+                stars,
+                comment: comment || ''
+              }
+              fd.append('payload', JSON.stringify(ratingData))
+              files.forEach(f => fd.append('images', f))
+              await addRating(fd)
+              // alert(`Submit rating: ${stars} sao, ${comment || '(no comment)'}, ${files.length} ảnh`)
 
             }}
           >
