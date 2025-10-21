@@ -16,6 +16,7 @@ import AccountAddresses from './pages/AccountAddresses'
 import ReturnPage from './pages/Return.jsx'
 import CancelPage from './pages/Cancel.jsx'
 import AdminApp from './admin/AdminApp.jsx'
+import Profile from './pages/Profile.jsx'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="account/addresses" element={<ProtectedRoute><AccountAddresses/></ProtectedRoute>} />
           <Route path="payment/return" element={<ReturnPage />} />
           <Route path="payment/cancel" element={<CancelPage />} />
+          <Route path="profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
 
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />

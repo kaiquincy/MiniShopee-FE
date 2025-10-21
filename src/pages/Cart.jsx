@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { Box, Button, Icon, HStack, Text, VStack, Image, Badge  } from '@chakra-ui/react'
-import { LuShoppingCart } from 'react-icons/lu'
+import { Box, Button, Icon, HStack, Text, VStack, Image, Badge, IconButton  } from '@chakra-ui/react'
+import { LuShoppingCart, LuTrash2 } from 'react-icons/lu'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 
@@ -59,18 +59,20 @@ const isEmpty = cart.items?.length === 0
 
   return (
     <Box mx={10} mt={8}>
-        {/* Page Header */}
-        <Box mb={8}>
-          <HStack spacing={3} mb={3}>
-            <Icon as={LuShoppingCart} boxSize={7} color="#495057" />
-            <Text fontSize="4xl" fontWeight="black" color="#212529">
-              Your Cart
-            </Text>
-          </HStack>
-          <Text color="#6C757D" fontSize="lg">
-            Review the items in your cart before proceeding to checkout.
+      {/* Page Header */}
+      <Box mb={8}>
+        <HStack spacing={3} mb={3}>
+          <Icon as={LuShoppingCart} boxSize={7} color="#495057" />
+          <Text fontSize="4xl" fontWeight="black" color="#212529">
+            Your Cart
           </Text>
-        </Box>
+        </HStack>
+        <Text color="#6C757D" fontSize="lg">
+          Review the items in your cart before proceeding to checkout.
+        </Text>
+      </Box>
+
+      {/* content */}
       <VStack align="stretch" spacing={3}>
         {cart.items?.map(it => (
           <HStack key={it.id} justify="space-between" bg="white" p={3} borderRadius="md" className="glass">
@@ -96,7 +98,9 @@ const isEmpty = cart.items?.length === 0
 
             <Text>x{it.quantity}</Text>
             <Text fontWeight="bold">{(it.productPrice * it.quantity).toLocaleString()} USD</Text>
-            <Button size="sm" variant="outline" onClick={async()=>{ await removeCartItem(it.productId); load() }}>Delete</Button>
+            <IconButton size="sm" variant="ghost" colorPalette="red" onClick={async()=>{ await removeCartItem(it.productId); load() }}>
+              <LuTrash2 />
+            </IconButton>
             
             
           </HStack>
@@ -104,7 +108,7 @@ const isEmpty = cart.items?.length === 0
       </VStack>
 
 
-      
+      {/* Toal */}
       <HStack mt={4} justify="space-between">
         <Button variant="outline" onClick={async()=>{ await clearCart(); load() }}>Delete All</Button>
         <HStack>

@@ -4,10 +4,11 @@ import { addRating } from '../api/ratings'
 import {
   Box, Heading, VStack, HStack, Text, Badge,
   Tabs, Button, Stack, Skeleton, Separator,
-  Image as ChakraImage
+  Image as ChakraImage, Icon
 } from '@chakra-ui/react'
 import { Link } from 'react-router-dom'
 import RatingDialog from '../components/RatingDialog'
+import {FiShoppingBag} from 'react-icons/fi'
 
 const STATUS_STYLE = {
   processing: { palette: 'yellow', border: 'yellow.400' },
@@ -49,8 +50,19 @@ export default function Orders() {
   }, [orders, value])
 
   return (
-    <Box>
-      <Heading size="md" mb={3}>My Orders</Heading>
+    <Box px={40} py={8}>
+      <Box mb={8}>
+        <HStack spacing={3} mb={3}>
+          <Icon as={FiShoppingBag} boxSize={7} color="#495057" />
+          <Text fontSize="4xl" fontWeight="black" color="#212529">
+            My Orders
+          </Text>
+        </HStack>
+        <Text color="#6C757D" fontSize="lg">
+          Manage and review your orders
+        </Text>
+      </Box>
+
 
       {/* Thanh bar lọc (Chakra v3 Tabs API) */}
       <Tabs.Root value={value} onValueChange={(e) => setValue(e.value)} variant="plain">

@@ -363,7 +363,7 @@ export default function Header() {
 
                       <Menu.Item
                         value="info"
-                        onClick={() => nav('/account')}
+                        onClick={() => nav('/profile')}
                         display="flex" alignItems="center" gap="3" px="3" py="2"
                         _hover={{ bg: 'gray.50', cursor: 'pointer' }}
                       >

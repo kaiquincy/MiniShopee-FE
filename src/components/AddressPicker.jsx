@@ -4,7 +4,6 @@ import { Flex } from '@chakra-ui/react/flex'
 import { Grid } from '@chakra-ui/react/grid'
 import { Button } from '@chakra-ui/react/button'
 import { Input } from '@chakra-ui/react/input'
-import { toaster } from '../components/ui/toaster'
 import { getAddresses, createAddress, makeDefaultAddress } from '../api/addresses'
 import { FiX, FiCheckCircle, FiPlus } from 'react-icons/fi'
 
