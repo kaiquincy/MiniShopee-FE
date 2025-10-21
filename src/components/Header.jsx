@@ -1,10 +1,10 @@
-import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack, HStack, Button } from '@chakra-ui/react'
-import { useRef, useState, useEffect } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
+import { Badge, Box, Button, Text as ChakraText, Flex, Heading, HStack, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack } from '@chakra-ui/react'
+import { useEffect, useRef, useState } from 'react'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
+import { markRead, myNotifications, unreadCount } from '../api/notifications'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { myNotifications, markRead, unreadCount } from '../api/notifications'
 
 
 export default function Header() {
@@ -194,14 +194,13 @@ export default function Header() {
                     shadow="2xl"
                     minW="360px"
                     maxW="400px"
-                    maxH="500px"
+                    maxH="550px"
                     py={0}
                     overflow="hidden"
                   >
                     <Box
                       px={4}
                       py={3}
-                      bg="gray.50"
                       borderBottom="1px solid"
                       borderColor="gray.100"
                     >
@@ -222,7 +221,7 @@ export default function Header() {
                         </VStack>
                       </VStack>
                     ) : (
-                      <VStack spacing={0} maxH="400px" overflowY="auto">
+                      <VStack spacing={0} maxH="250px" overflowY="auto">
                         {notifications.map(n => (
                           <Box
                             key={n.id}
@@ -280,7 +279,7 @@ export default function Header() {
                       </VStack>
                     )}
                     
-                    <Box px={4} py={3} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
+                    <Box px={4} py={3} borderTop="1px solid" borderColor="gray.100">
                       <Button
                         variant="ghost"
                         size="sm"

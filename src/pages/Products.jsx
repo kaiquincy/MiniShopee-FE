@@ -9,6 +9,7 @@ import {
   Icon,
   IconButton,
   Input,
+  InputAddon,
   InputGroup,
   Portal,
   Select,
@@ -28,12 +29,8 @@ import { useCart } from '../context/CartContext'
 
 const sortOptions = createListCollection({
   items: [
-    { label: "Default", value: "" },
     { label: "Price: Low → High", value: "priceAsc" },
     { label: "Price: High → Low", value: "priceDesc" },
-    { label: "Rating: Low → High", value: "rateAsc" },
-    { label: "Rating: High → Low", value: "rateDesc" },
-    
   ],
 })
 
@@ -60,11 +57,11 @@ export default function Products() {
     sort: sort[0] || undefined,
     page,
     size
-  }), [q, category, sort, page])
+  }), [q, category, sort, page, size])
 
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil((data?.totalElements || 0) / size)),
-    [data?.totalElements, size]
+    () => data?.totalPages || 1,
+    [data?.totalPages]
   )
 
   const abortRef = useRef(null)
@@ -247,8 +244,8 @@ export default function Products() {
               <Flex flex={1} minW={{ base: "full", md: "300px" }}>
                 <InputGroup 
                   startElement={<Icon as={FiSearch} color="#ADB5BD" />}
-                  endElement={
-                    q && (
+                  endElement={q && (
+                    <InputAddon placement="end">
                       <IconButton
                         size="xs"
                         variant="ghost"
@@ -257,8 +254,8 @@ export default function Products() {
                       >
                         <Icon as={FiX} color="#6C757D" />
                       </IconButton>
-                    )}
-                  >
+                    </InputAddon>
+                  )}>
                   <Input
                     placeholder="Search products by name..."
                     value={searchInput}
@@ -295,7 +292,7 @@ export default function Products() {
               <Select.Root
                 collection={sortOptions}
                 value={sort}
-                onValueChange={(e) => {setSort(e.value); console.log(sort, e.value)}}
+                onValueChange={(e) => setSort(e.value)}
                 width={{ base: "full", md: "200px" }}
                 flexShrink={0}
               >

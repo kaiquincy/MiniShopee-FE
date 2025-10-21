@@ -1,10 +1,10 @@
-import { Badge, Box, Button, Container, Flex, Grid, HStack, Icon, IconButton, Image, Input, InputGroup, Menu, Portal, Separator, Text, VStack, Heading, Text as ChakraText } from "@chakra-ui/react";
+import { Badge, Box, Button, Text as ChakraText, Container, Flex, Grid, Heading, HStack, Icon, IconButton, Image, Input, InputGroup, Menu, Portal, Separator, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { FiArrowUpRight, FiBell, FiLogOut, FiMessageCircle, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiTag,FiSettings,FiStar  } from "react-icons/fi";
+import { FiBell, FiLogOut, FiMessageCircle, FiPackage, FiSearch, FiSettings, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { markRead, myNotifications, unreadCount } from '../api/notifications';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { myNotifications, markRead, unreadCount } from '../api/notifications'
 
 
 import camera from "../assets/landingpage/carousel/camera.png";
@@ -750,28 +750,6 @@ export default function LandingCarousel() {
                         ))}
                     </Box>
                 </Grid>
-
-                {/* Bottom Info Bar */}
-                <HStack
-                    justify="space-between"
-                    py={6}
-                    borderTop="1px solid"
-                    borderColor="whiteAlpha.200"
-                    flexWrap="wrap"
-                    gap={4}
-                >
-                    <HStack spacing={2} fontSize="sm" color="whiteAlpha.600">
-                        <FiArrowUpRight />
-                        <Text>Scroll to explore</Text>
-                    </HStack>
-                    <HStack spacing={8} fontSize="sm">
-                        <Text color="whiteAlpha.600">Free Shipping</Text>
-                        <Text color="whiteAlpha.600">•</Text>
-                        <Text color="whiteAlpha.600">Money Back Guarantee</Text>
-                        <Text color="whiteAlpha.600">•</Text>
-                        <Text color="whiteAlpha.600">24/7 Support</Text>
-                    </HStack>
-                </HStack>
             </Container>
 
             <style>
