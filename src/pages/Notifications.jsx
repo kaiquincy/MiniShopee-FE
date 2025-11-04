@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { myNotifications, markRead, unreadCount } from '../api/notifications'
 import { Box, Heading, VStack, HStack, Text, Badge, Icon, Button } from '@chakra-ui/react'
 import { LuPackage, LuTag, LuSettings, LuStar, LuBell } from 'react-icons/lu'
 import { useNavigate } from 'react-router-dom'
+import { customOrderUpdateTypes } from '../constants/notificationTypes'
+
+
+
 
 export default function Notifications() {
   const [list, setList] = useState([]); 
@@ -24,6 +28,7 @@ export default function Notifications() {
 
   // Phân loại thông báo dựa trên trường 'type' (giả định API trả về n.type như 'order', 'promotion', 'system', 'review')
   const getTypeBadge = (type) => {
+    const normalized = type?.startsWith('ORDER_UPDATED') ? 'ORDER_UPDATED' : type
     const types = {
       ORDER_UPDATED: { colorScheme: 'blue', label: 'Order' },
       promotion: { colorScheme: 'green', label: 'Promotion' },
@@ -31,10 +36,10 @@ export default function Notifications() {
       review: { colorScheme: 'purple', label: 'Review' },
       default: { colorScheme: 'gray', label: 'Other' }
     }
-    const config = types[type] || types.default
+    const config = types[normalized] || types.default
     return (
       <Badge 
-        colorScheme={config.colorScheme} 
+        colorPalette={config.colorScheme} 
         variant="subtle" 
         fontSize="xs" 
         mr={2}
@@ -46,6 +51,7 @@ export default function Notifications() {
 
   // Icon dựa trên type
   const getTypeIcon = (type) => {
+    const normalized = type?.startsWith('ORDER_UPDATED') ? 'ORDER_UPDATED' : type
     const icons = {
       ORDER_UPDATED: LuPackage,
       promotion: LuTag,
@@ -53,7 +59,7 @@ export default function Notifications() {
       review: LuStar,
       default: LuBell
     }
-    const IconComponent = icons[type] || icons.default
+    const IconComponent = icons[normalized] || icons.default
     const colors = {
       ORDER_UPDATED: 'blue.500',
       promotion: 'green.500',
@@ -61,7 +67,7 @@ export default function Notifications() {
       review: 'purple.500',
       default: 'gray.500'
     }
-    const color = colors[type] || colors.default
+    const color = colors[normalized] || colors.default
     return <Icon as={IconComponent} boxSize={10} color={color} />
   }
 
@@ -75,7 +81,52 @@ export default function Notifications() {
         <Badge colorScheme="red">{unread} unreads</Badge>
       </HStack>
       <VStack align="stretch" spacing={3}>
-        {displayedList.map(n=>(
+        {displayedList.map(n=> {
+
+        const renderTextWithId = (text, id) => {
+          if (!text) return null
+          const parts = text.split('#${id}')
+          return (
+            <>
+              {parts.map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {index < parts.length - 1 && (
+                    <Text as="span" color="blue.500" >
+                      #MSP202Z{id}
+                    </Text>
+                  )}
+                </React.Fragment>
+              ))}
+            </>
+          )
+        }
+
+        // Nếu là type mới -> dùng toàn bộ cấu hình custom
+        const custom = customOrderUpdateTypes[n.type]
+        const title = custom?.title ?? (n.title || 'New Notification')
+        const message = custom
+          ? renderTextWithId(custom.message, n.referenceId)
+          : n.message
+        const IconComp = custom?.icon
+        const iconColor = custom?.color
+        const badge = custom?.badge
+
+
+        // Nếu không phải type mới -> fallback về logic cũ
+        const iconEl = IconComp ? (
+          <Icon as={IconComp} boxSize={10} color={iconColor} />
+        ) : (
+          getTypeIcon(n.type)
+        )
+
+        const badgeEl = badge ? (
+          <Badge colorPalette={badge.colorScheme}>{badge.label}</Badge>
+        ) : (
+          getTypeBadge(n.type)
+        )
+
+        return(
           <Box
             key={n.id}
             as="button"
@@ -89,7 +140,7 @@ export default function Notifications() {
             _hover={{ bg: 'gray.50' }}
             transition="background-color 0.2s ease"
             display="flex"
-            alignItems="start"
+            alignItems="center"
             gap={3}
           >
             <Box
@@ -103,14 +154,14 @@ export default function Notifications() {
               mr={2}
               flexShrink={0}
             >
-              {getTypeIcon(n.type)}
+              {iconEl}
             </Box>
             <VStack align="start" flex={1} spacing={1}>
               <HStack align="start" spacing={2} mb={1}>
-                <Text fontSize="sm" fontWeight="medium" noOfLines={1}>{n.title || 'New Notification'}</Text>
-                {getTypeBadge(n.type)}  {/* Badge phân loại */}
+                <Text fontSize="sm" fontWeight="medium" noOfLines={1}>{title}</Text>
+                {badgeEl} {/* Badge phân loại */}
               </HStack>
-              <Text fontSize="sm" noOfLines={2} color="gray.700">{n.message}</Text>
+              <Text textAlign="left" fontSize="sm" color="gray.700">{message}</Text>
               <Text fontSize="xs" color="gray.500">
                 {new Date(n.createdAt).toLocaleString('vi-VN', { 
                   day: 'numeric', 
@@ -133,7 +184,9 @@ export default function Notifications() {
               />
             )}
           </Box>
-        ))}
+        )})}
+
+        {/* If 0 noti */}
         {list.length === 0 && (
           <VStack spacing={8} py={12} textAlign="center">
             <Box
@@ -162,7 +215,7 @@ export default function Notifications() {
                 variant="outline" 
                 onClick={() => nav('/')} 
                 leftIcon={<LuBell />}
-                colorScheme="gray"
+                colorPalette="gray"
                 size="md"
               >
                 Browse Products
@@ -171,7 +224,7 @@ export default function Notifications() {
                 variant="ghost" 
                 onClick={load}
                 leftIcon={<Icon as={LuBell} />}
-                colorScheme="gray"
+                colorPalette="gray"
                 size="md"
               >
                 Refresh
@@ -179,6 +232,8 @@ export default function Notifications() {
             </HStack>
           </VStack>
         )}
+
+        {/* View More */}
         {!showAll && list.length > maxToShow && (
           <Button
             variant="ghost"

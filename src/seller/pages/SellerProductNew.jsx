@@ -129,11 +129,11 @@ export default function SellerProductNew() {
             <Button
               variant="ghost"
               size="sm"
-              leftIcon={<FiArrowLeft />}
               onClick={() => nav('/seller/products')}
               color="whiteAlpha.600"
               _hover={{ color: "white", bg: "whiteAlpha.100" }}
             >
+              <FiArrowLeft />
               Back to Products
             </Button>
           </HStack>

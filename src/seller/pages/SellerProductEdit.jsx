@@ -2,9 +2,9 @@ import {
   Badge, Box, Button, createListCollection, Field, Flex, Heading, HStack, Icon, Image,
   Input, NumberInput, Portal, Select, Separator, SimpleGrid, Stack, Switch, Text, Textarea, VStack
 } from '@chakra-ui/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState} from 'react'
 import { FiArrowLeft, FiImage, FiSave } from 'react-icons/fi'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation  } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
 import VariantsBuilder from '../../seller/components/VariantsBuilder'
 import { buildPayloadObject } from '../utils/buildPayload'
@@ -19,13 +19,15 @@ const toPreviewSrc = (imageFile, imageUrl) => {
 }
 
 export default function SellerProductEdit() {
+  const location = useLocation()
+  const prefill = location.state?.prefill
   const nav = useNavigate()
   const { id } = useParams()
   const fileInputRef = useRef(null)
 
   const [p, setP] = useState({
     id: undefined,
-    name: '', description: '',
+    name: prefill?.name ?? '', description: prefill?.description ?? '',
     price: 0, discountPrice: undefined,
     quantity: 0,
     brand: '', sku: '',
@@ -44,7 +46,8 @@ export default function SellerProductEdit() {
     items: [
       { label: 'ACTIVE', value: 'ACTIVE' },
       { label: 'INACTIVE', value: 'INACTIVE' },
-      { label: 'DRAFT', value: 'DRAFT' },
+      { label: 'REJECTED', value: 'REJECTED' },
+      { label: 'PROCESSING', value: 'PROCESSING' },
       { label: 'OUT_OF_STOCK', value: 'OUT_OF_STOCK' },
     ],
   })
@@ -61,7 +64,7 @@ export default function SellerProductEdit() {
       try {
         const data = await getProduct(id) // <-- trả về DTO của bạn
         // map DTO -> state p
-        setP({
+        const base = {
           id: data.id,
           name: data.name ?? '',
           description: data.description ?? '',
@@ -76,10 +79,8 @@ export default function SellerProductEdit() {
           dimensions: data.dimensions ?? '',
           isFeatured: !!data.isFeatured,
           categoryIds: Array.isArray(data.categoryIds) ? data.categoryIds : [],
-          imageUrl: data.imageUrl ?? '',  // path/URL ảnh hiện tại
+          imageUrl: data.imageUrl ?? '',
           imageFile: undefined,
-
-          // variantGroups và variants giữ nguyên cấu trúc payload bạn đã chuẩn
           variantGroups: (data.variantGroups || []).map((g, idx) => ({
             name: g.name,
             sortOrder: g.sortOrder ?? (idx + 1),
@@ -90,13 +91,24 @@ export default function SellerProductEdit() {
             price: v.price ?? 0,
             stock: v.stock ?? 0,
             skuCode: v.skuCode ?? '',
-            imageKey: v.imageKey,         // ví dụ "color=Black|size=S"
-            imageUrl: v.imageUrl ?? '',   // URL ảnh variant hiện tại (nếu server trả về)
-            imageFile: undefined          // khi user chọn file mới sẽ set vào đây
+            imageKey: v.imageKey,
+            imageUrl: v.imageUrl ?? '',
+            imageFile: undefined
           }))
-        })
+        }
+
+        // ✅ PREFILL THẮNG API: chỉ override những field có prefill
+        const merged = {
+          ...base,
+          ...(prefill?.name != null ? { name: prefill.name } : {}),
+          ...(prefill?.description != null ? { description: prefill.description } : {}),
+          ...(prefill?.status != null ? { status: prefill.status } : {}),
+        }
+
+        setP(merged)
+
       } catch (err) {
-        toaster.create({ type: 'error', description: 'Failed to load product' })
+        toaster.create({ type: 'error', description: 'Failed to load product' + err })
         nav('/seller/products')
       }
     })()
@@ -163,11 +175,11 @@ export default function SellerProductEdit() {
             <Button
               variant="ghost"
               size="sm"
-              leftIcon={<FiArrowLeft />}
               onClick={() => nav('/seller/products')}
               color="whiteAlpha.600"
               _hover={{ color: "white", bg: "whiteAlpha.100" }}
             >
+              <FiArrowLeft />
               Back to Products
             </Button>
           </HStack>
