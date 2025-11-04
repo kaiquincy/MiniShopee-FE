@@ -300,8 +300,6 @@ export default function Products() {
                 <Select.Control>
                   <Select.Trigger
                     bg="white"
-                    border="1px solid"
-                    borderColor="#DEE2E6"
                     color="#495057"
                     h="48px"
                     borderRadius="lg"
@@ -317,10 +315,8 @@ export default function Products() {
                   <Select.Positioner>
                     <Select.Content
                       bg="white"
-                      borderColor="#DEE2E6"
                       shadow="lg"
                       borderRadius="lg"
-                      border="1px solid"
                     >
                       {sortOptions.items.map((option) => (
                         <Select.Item 
