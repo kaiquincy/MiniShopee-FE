@@ -13,6 +13,7 @@ export default function Layout() {
           <Outlet />
         </Container>
       </Box>
+      {/* Footer */}
       <Box zIndex={1000} as="footer" bg="black" color="gray.300" py={10}>
         <Container maxW="7xl">
           <Flex

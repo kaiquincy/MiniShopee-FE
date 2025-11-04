@@ -1,14 +1,31 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
-  Box, Text, Input, Button, Badge, HStack, Portal, Dialog , IconButton, Avatar,
-  DialogRoot, DialogContent, DialogHeader, DialogTitle, DialogBody,
-  DialogFooter, DialogCloseTrigger
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Dialog,
+  DialogBody,
+  DialogCloseTrigger,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTitle,
+  Flex,
+  Grid,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Portal,
+  Text,
+  VStack
 } from '@chakra-ui/react'
-import { Flex } from '@chakra-ui/react/flex'
-import { Icon } from '@chakra-ui/react/icon'
-import { FiUserCheck, FiUserX, FiRefreshCcw, FiAlertTriangle, FiInfo } from 'react-icons/fi'
-import { adminFetchUsers, adminUpdateUserStatus } from '../api/admin'
+import { useEffect, useMemo, useState } from 'react'
+import { FiAlertTriangle, FiInfo, FiRefreshCcw, FiSearch, FiUserCheck, FiUsers, FiUserX } from 'react-icons/fi'
 import { toaster } from '../../components/ui/toaster'
+import { adminFetchUsers, adminUpdateUserStatus } from '../api/admin'
 
 const STATUS = {
   ACTIVE: 'ACTIVE',
@@ -19,11 +36,11 @@ const STATUS = {
 
 const statusColor = (s) => {
   switch (s) {
-    case STATUS.ACTIVE: return 'green'
-    case STATUS.INACTIVE: return 'gray'
-    case STATUS.SUSPENDED: return 'orange'
-    case STATUS.DELETED: return 'red'
-    default: return 'gray'
+    case STATUS.ACTIVE: return '#10B981'
+    case STATUS.INACTIVE: return '#6B7280'
+    case STATUS.SUSPENDED: return '#F59E0B'
+    case STATUS.DELETED: return '#EF4444'
+    default: return '#6B7280'
   }
 }
 
@@ -33,7 +50,7 @@ export default function AdminUsers() {
   const [list, setList] = useState([])
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
-  const [busy, setBusy] = useState({}) // { [userId]: boolean }
+  const [busy, setBusy] = useState({})
   const [detailUser, setDetailUser] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -54,7 +71,7 @@ export default function AdminUsers() {
       toaster.create({ type: 'success', description: `${u.email} → ${nextStatus}` })
       await load()
     } catch (e) {
-      toaster.create({ type: 'error', description: e?.message || 'Không thể cập nhật' })
+      toaster.create({ type: 'error', description: e?.message || 'Cannot update status' })
     } finally {
       setBusy((p) => ({ ...p, [u.id]: false }))
     }
@@ -79,134 +96,374 @@ export default function AdminUsers() {
     )
   , [q, list])
 
+  const stats = useMemo(() => {
+    const total = list.length
+    const active = list.filter(u => u.status === STATUS.ACTIVE).length
+    const inactive = list.filter(u => u.status === STATUS.INACTIVE).length
+    const suspended = list.filter(u => u.status === STATUS.SUSPENDED).length
+    return { total, active, inactive, suspended }
+  }, [list])
+
   const openDetail = (u) => { setDetailUser(u); setIsOpen(true) }
   const closeDetail = () => { setIsOpen(false); setDetailUser(null) }
 
   return (
     <Box>
-      <Flex gap="10px" mb="12px" align="center" wrap="wrap">
-        <Input placeholder="Tìm user (email, tên, username)" value={q} onChange={e=>setQ(e.target.value)} w="320px" />
-        <Button onClick={load} leftIcon={<Icon as={FiRefreshCcw} />} isLoading={loading}>Reload</Button>
+      {/* Header */}
+      <Flex justify="space-between" align="center" mb={8}>
+        <Box>
+          <Heading size="2xl" fontWeight="black" mb={2} color="#1E3A8A">Users</Heading>
+          <Text color="#64748B">Manage user accounts and permissions</Text>
+        </Box>
       </Flex>
 
-      <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={2}>
-        <Box display="grid" gridTemplateColumns="60px 1fr 200px 260px" py={2} fontWeight="bold" borderBottom="1px solid #eee">
-          <Box>ID</Box><Box>Email</Box><Box>Username</Box><Box>Actions</Box>
+      {/* Stats Cards */}
+      <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={6} mb={6}>
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
+          <HStack spacing={3}>
+            <Box p={3} bg="#3B82F615" borderRadius="lg">
+              <Icon as={FiUsers} boxSize={5} color="#3B82F6" />
+            </Box>
+            <Box>
+              <Text color="#64748B" fontSize="sm" fontWeight="medium">Total Users</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.total}</Text>
+            </Box>
+          </HStack>
         </Box>
 
-        {filtered.map(u => {
-          const isBlockedToggle = u.status === STATUS.SUSPENDED || u.status === STATUS.DELETED
-          const nextToggleLabel = u.status === STATUS.ACTIVE ? 'Deactivate' : 'Activate'
-          const isSuspended = u.status === STATUS.SUSPENDED
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
+          <HStack spacing={3}>
+            <Box p={3} bg="#10B98115" borderRadius="lg">
+              <Icon as={FiUserCheck} boxSize={5} color="#10B981" />
+            </Box>
+            <Box>
+              <Text color="#64748B" fontSize="sm" fontWeight="medium">Active</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.active}</Text>
+            </Box>
+          </HStack>
+        </Box>
 
-          return (
-            <Box key={u.id} display="grid" gridTemplateColumns="60px 1fr 200px 260px"
-                 py={3} borderBottom="1px solid #f5f5f5" alignItems="center">
-              <Box>#{u.id}</Box>
-              <Box>
-                <Text fontWeight="medium">{u.email}</Text>
-                <HStack>
-                  <Badge colorPalette={statusColor(u.status)} variant="subtle">
-                    {u.status || 'INACTIVE'}
-                  </Badge>
-                  {u.role && <Badge variant="surface">{u.role}</Badge>}
-                </HStack>
-              </Box>
-              <Box><Text noOfLines={1}>{u.username || '—'}</Text></Box>
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
+          <HStack spacing={3}>
+            <Box p={3} bg="#6B728015" borderRadius="lg">
+              <Icon as={FiUserX} boxSize={5} color="#6B7280" />
+            </Box>
+            <Box>
+              <Text color="#64748B" fontSize="sm" fontWeight="medium">Inactive</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.inactive}</Text>
+            </Box>
+          </HStack>
+        </Box>
 
-              <HStack>
-                {/* <Tooltip content={isBlockedToggle ? 'Không thể toggle khi SUSPENDED/DELETED' : nextToggleLabel}> */}
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
+          <HStack spacing={3}>
+            <Box p={3} bg="#F59E0B15" borderRadius="lg">
+              <Icon as={FiAlertTriangle} boxSize={5} color="#F59E0B" />
+            </Box>
+            <Box>
+              <Text color="#64748B" fontSize="sm" fontWeight="medium">Suspended</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.suspended}</Text>
+            </Box>
+          </HStack>
+        </Box>
+      </Grid>
+
+      {/* Search Bar */}
+      <Flex gap={3} mb={6}>
+        <Box position="relative" flex={1} maxW="500px">
+          <Icon
+            as={FiSearch}
+            position="absolute"
+            left={4}
+            top="50%"
+            transform="translateY(-50%)"
+            color="#64748B"
+            boxSize={5}
+            zIndex={1}
+          />
+          <Input
+            placeholder="Search by email, name, or username..."
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            bg="white"
+            border="1px solid"
+            borderColor="#E2E8F0"
+            color="#1E293B"
+            pl={12}
+            h="48px"
+            borderRadius="lg"
+            _placeholder={{ color: "#94A3B8" }}
+            _focus={{ borderColor: "#3B82F6", boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
+          />
+        </Box>
+        <Button
+          onClick={load}
+          leftIcon={<Icon as={FiRefreshCcw} />}
+          isLoading={loading}
+          bg="white"
+          color="#1E293B"
+          border="1px solid"
+          borderColor="#E2E8F0"
+          h="48px"
+          px={6}
+          borderRadius="lg"
+          _hover={{ bg: "#F8FAFC" }}
+        >
+          Reload
+        </Button>
+      </Flex>
+
+      {/* Users Table */}
+      <Box bg="white" border="1px solid" borderColor="#E2E8F0" borderRadius="lg" shadow="sm" overflow="hidden">
+        {/* Table Header */}
+        <Grid
+          templateColumns="80px 1fr 200px 280px"
+          py={4}
+          px={6}
+          borderBottom="1px solid"
+          borderColor="#E2E8F0"
+          fontWeight="bold"
+          fontSize="sm"
+          color="#64748B"
+          textTransform="uppercase"
+          letterSpacing="wider"
+        >
+          <Box>ID</Box>
+          <Box>User Info</Box>
+          <Box>Username</Box>
+          <Box>Actions</Box>
+        </Grid>
+
+        {/* Table Body */}
+        {loading ? (
+          <Box p={12} textAlign="center">
+            <Text color="#64748B">Loading users...</Text>
+          </Box>
+        ) : filtered.length === 0 ? (
+          <Box p={12} textAlign="center">
+            <Icon as={FiUsers} boxSize={12} color="#CBD5E1" mb={4} />
+            <Text color="#64748B" fontSize="lg" mb={2}>No users found</Text>
+            <Text color="#94A3B8" fontSize="sm">
+              {q ? 'Try adjusting your search' : 'No users in the system'}
+            </Text>
+          </Box>
+        ) : (
+          filtered.map((u, idx) => {
+            const isBlockedToggle = u.status === STATUS.SUSPENDED || u.status === STATUS.DELETED
+            const isSuspended = u.status === STATUS.SUSPENDED
+            const color = statusColor(u.status)
+
+            return (
+              <Grid
+                key={u.id}
+                templateColumns="80px 1fr 200px 280px"
+                py={4}
+                px={6}
+                borderBottom={idx !== filtered.length - 1 ? "1px solid" : "none"}
+                borderColor="#F1F5F9"
+                alignItems="center"
+                transition="all 0.2s"
+                _hover={{ bg: "#F8FAFC" }}
+              >
+                {/* ID */}
+                <Box>
+                  <Text color="#3B82F6" fontWeight="semibold">#{u.id}</Text>
+                </Box>
+
+                {/* User Info */}
+                <Box>
+                  <Text fontWeight="semibold" color="#1E293B" mb={1}>{u.email}</Text>
+                  <HStack spacing={2}>
+                    <Badge
+                      bg={`${color}15`}
+                      color={color}
+                      border="1px solid"
+                      borderColor={`${color}30`}
+                      px={2}
+                      py={0.5}
+                      borderRadius="md"
+                      fontSize="xs"
+                      fontWeight="semibold"
+                    >
+                      {u.status || 'INACTIVE'}
+                    </Badge>
+                    {u.role && (
+                      <Badge
+                        bg="#F1F5F9"
+                        color={u.role == 'ADMIN' ? "#3B82F6" : "#475569"}
+                        px={2}
+                        py={0.5}
+                        borderRadius="md"
+                        fontSize="xs"
+                        fontWeight="semibold"
+                      >
+                        {u.role}
+                      </Badge>
+                    )}
+                  </HStack>
+                </Box>
+
+                {/* Username */}
+                <Box>
+                  <Text noOfLines={1} color="#64748B">{u.username || '—'}</Text>
+                </Box>
+
+                {/* Actions */}
+                <HStack spacing={2}>
                   <IconButton
                     aria-label="toggle-status"
                     size="sm"
-                    variant="outline"
+                    bg="white"
+                    border="1px solid"
+                    borderColor="#E2E8F0"
+                    color={u.status === STATUS.ACTIVE ? "#EF4444" : "#10B981"}
                     isDisabled={isBlockedToggle}
                     isLoading={!!busy[u.id]}
                     onClick={() => toggleActiveInactive(u)}
+                    _hover={{ bg: "#F8FAFC" }}
+                    title={isBlockedToggle ? 'Cannot toggle when SUSPENDED/DELETED' : (u.status === STATUS.ACTIVE ? 'Deactivate' : 'Activate')}
                   >
                     <Icon as={u.status === STATUS.ACTIVE ? FiUserX : FiUserCheck} />
                   </IconButton>
-                {/* </Tooltip> */}
 
-                {/* <Tooltip content={isSuspended ? 'Đã SUSPENDED' : 'Chuyển sang SUSPENDED'}> */}
                   <IconButton
                     aria-label="suspend-user"
                     size="sm"
-                    variant={isSuspended ? 'solid' : 'outline'}
+                    bg={isSuspended ? "#F59E0B15" : "white"}
+                    border="1px solid"
+                    borderColor={isSuspended ? "#F59E0B" : "#E2E8F0"}
+                    color="#F59E0B"
                     isDisabled={u.status === STATUS.DELETED || isSuspended}
                     isLoading={!!busy[u.id] && !isBlockedToggle}
                     onClick={() => suspendUser(u)}
+                    _hover={{ bg: isSuspended ? "#F59E0B15" : "#F8FAFC" }}
+                    title={isSuspended ? 'Already suspended' : 'Suspend user'}
                   >
                     <Icon as={FiAlertTriangle} />
                   </IconButton>
-                {/* </Tooltip> */}
 
-                {/* <Tooltip content="Xem thông tin"> */}
                   <IconButton
                     aria-label="info-user"
                     size="sm"
-                    variant="ghost"
+                    bg="white"
+                    border="1px solid"
+                    borderColor="#E2E8F0"
+                    color="#3B82F6"
                     onClick={() => openDetail(u)}
+                    _hover={{ bg: "#F8FAFC" }}
+                    title="View details"
                   >
                     <Icon as={FiInfo} />
                   </IconButton>
-                {/* </Tooltip> */}
-              </HStack>
-            </Box>
-          )
-        })}
-        {filtered.length === 0 && <Box p={6} textAlign="center" color="gray.500">Không có user</Box>}
+                </HStack>
+              </Grid>
+            )
+          })
+        )}
       </Box>
 
-      {/* Dialog chi tiết user (thay cho Modal) */}
+      {/* User Detail Dialog */}
       <DialogRoot open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner>
-
-            <DialogContent>
+            <DialogContent maxW="600px" bg="white" borderRadius="lg">
               <DialogCloseTrigger />
-              <DialogHeader>
-                <DialogTitle>Thông tin người dùng</DialogTitle>
+              <DialogHeader borderBottom="1px solid" borderColor="#E2E8F0" pb={4}>
+                <DialogTitle color="#1E3A8A" fontSize="xl" fontWeight="bold">User Information</DialogTitle>
               </DialogHeader>
-              <DialogBody>
+              <DialogBody py={6}>
                 {detailUser && (
-                  <Box>
-                    <HStack mb={4} align="center">
-                      <Avatar.Root>
-                        <Avatar.Fallback name={detailUser.fullName || detailUser.username} />
-                        <Avatar.Image src= {detailUser.avatarUrl || "undefined"} />
+                  <VStack align="stretch" spacing={6}>
+                    {/* User Header */}
+                    <HStack spacing={4}>
+                      <Avatar.Root size="xl">
+                        <Avatar.Fallback>{detailUser.fullName?.[0] || detailUser.username?.[0] || 'U'}</Avatar.Fallback>
+                        <Avatar.Image src={detailUser.avatarUrl} />
                       </Avatar.Root>
-                      <Box>
-                        <Text fontWeight="bold">{detailUser.fullName || '—'}</Text>
-                        <HStack>
-                          <Badge colorPalette={statusColor(detailUser.status)} variant="subtle">
+                      <Box flex={1}>
+                        <Text fontWeight="bold" fontSize="lg" color="#1E293B" mb={2}>
+                          {detailUser.fullName || detailUser.username || 'Unknown User'}
+                        </Text>
+                        <HStack spacing={2}>
+                          <Badge
+                            bg={`${statusColor(detailUser.status)}15`}
+                            color={statusColor(detailUser.status)}
+                            border="1px solid"
+                            borderColor={`${statusColor(detailUser.status)}30`}
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            fontSize="sm"
+                            fontWeight="semibold"
+                          >
                             {detailUser.status || 'INACTIVE'}
                           </Badge>
-                          {detailUser.role && <Badge variant="surface">{detailUser.role}</Badge>}
+                          {detailUser.role && (
+                            <Badge
+                              bg="#F1F5F9"
+                              color="#475569"
+                              px={3}
+                              py={1}
+                              borderRadius="md"
+                              fontSize="sm"
+                              fontWeight="semibold"
+                            >
+                              {detailUser.role}
+                            </Badge>
+                          )}
                         </HStack>
                       </Box>
                     </HStack>
 
-                    <Box display="grid" gridTemplateColumns="180px 1fr" rowGap="10px" columnGap="12px">
-                      <Text color="gray.600">Username</Text><Text>{detailUser.username || '—'}</Text>
-                      <Text color="gray.600">Email</Text><Text>{detailUser.email || '—'}</Text>
-                      <Text color="gray.600">Full name</Text><Text>{detailUser.fullName || '—'}</Text>
-                      <Text color="gray.600">Phone</Text><Text>{detailUser.phone || '—'}</Text>
-                      <Text color="gray.600">Date of birth</Text><Text>{fmt(detailUser.dateOfBirth)}</Text>
-                      <Text color="gray.600">Created at</Text><Text>{fmt(detailUser.createdAt)}</Text>
-                      <Text color="gray.600">Updated at</Text><Text>{fmt(detailUser.updatedAt)}</Text>
-                      <Text color="gray.600">Last login</Text><Text>{fmt(detailUser.lastLoginAt)}</Text>
-                      {/* <Text color="gray.600">Avatar URL</Text><Text>{detailUser.avatarUrl || '—'}</Text> */}
+                    {/* User Details Grid */}
+                    <Box
+                      bg="#F8FAFC"
+                      p={4}
+                      borderRadius="lg"
+                      border="1px solid"
+                      borderColor="#E2E8F0"
+                    >
+                      <Grid templateColumns="140px 1fr" rowGap={3} columnGap={4}>
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Username</Text>
+                        <Text color="#1E293B">{detailUser.username || '—'}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Email</Text>
+                        <Text color="#1E293B">{detailUser.email || '—'}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Full Name</Text>
+                        <Text color="#1E293B">{detailUser.fullName || '—'}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Phone</Text>
+                        <Text color="#1E293B">{detailUser.phone || '—'}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Date of Birth</Text>
+                        <Text color="#1E293B">{fmt(detailUser.dateOfBirth)}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Created At</Text>
+                        <Text color="#1E293B">{fmt(detailUser.createdAt)}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Updated At</Text>
+                        <Text color="#1E293B">{fmt(detailUser.updatedAt)}</Text>
+
+                        <Text color="#64748B" fontSize="sm" fontWeight="semibold">Last Login</Text>
+                        <Text color="#1E293B">{fmt(detailUser.lastLoginAt)}</Text>
+                      </Grid>
                     </Box>
-                  </Box>
+                  </VStack>
                 )}
               </DialogBody>
-              <DialogFooter>
-                <Button onClick={closeDetail}>Đóng</Button>
+              <DialogFooter borderTop="1px solid" borderColor="#E2E8F0" pt={4}>
+                <Button
+                  onClick={closeDetail}
+                  bg="#1E3A8A"
+                  color="white"
+                  _hover={{ bg: "#1E40AF" }}
+                >
+                  Close
+                </Button>
               </DialogFooter>
             </DialogContent>
-
           </Dialog.Positioner>
         </Portal>
       </DialogRoot>

@@ -208,7 +208,7 @@ export default function Header() {
                     >
                       <HStack justify="space-between">
                         <Heading size="sm" color="gray.800">Notifications</Heading>
-                        <Badge colorPalette="black" variant="solid" px={2} py={0.5}>
+                        <Badge colorPalette="gray" variant="subtle" px={2} py={0.5}>
                           {unread} unread
                         </Badge>
                       </HStack>
@@ -329,7 +329,6 @@ export default function Header() {
                     
                     <Box px={4} py={3} borderTop="1px solid" borderColor="gray.100">
                       <Button
-                        variant="ghost"
                         size="sm"
                         w="full"
                         colorPalette="blue"

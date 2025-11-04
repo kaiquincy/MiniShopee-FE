@@ -1,19 +1,40 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { fetchProductById, getSimilarProducts } from '../api/products'
-import { getRatings, toggleRatingLike, getRatingSummary as getsum } from '../api/ratings'
 import {
-  Box, Image, Heading, Text, Button, VStack, HStack, Badge, Wrap, WrapItem,
-  Separator, NumberInput, SimpleGrid, Skeleton, AspectRatio, Stack,
-  IconButton, useDisclosure, useClipboard, Kbd, Icon, CloseButton,
-  Dialog, Portal, Avatar, SelectRoot, SelectTrigger, SelectValueText, SelectContent, SelectItem,
+  AspectRatio,
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  CloseButton,
+  Dialog,
+  Heading,
+  HStack,
+  Icon,
+  IconButton,
+  Image,
+  Kbd,
+  NumberInput,
+  Portal,
+  SelectContent, SelectItem,
+  SelectRoot, SelectTrigger, SelectValueText,
+  Separator,
+  SimpleGrid, Skeleton,
+  Stack,
+  Text,
+  useClipboard,
+  useDisclosure,
+  VStack,
+  Wrap, WrapItem,
 } from '@chakra-ui/react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { fetchProductById, getSimilarProducts } from '../api/products'
+import { getRatings, getRatingSummary as getsum, toggleRatingLike } from '../api/ratings'
 
-import { LuStar, LuChevronLeft, LuChevronRight, LuCopy, LuCircleCheck, LuTruck, LuThumbsUp, LuPackage, LuShoppingCart } from 'react-icons/lu'
-import { toaster } from '../components/ui/toaster'
-import { useCart } from '../context/CartContext'
-import { Tooltip } from '../components/ui/Tooltip'
+import { LuChevronLeft, LuChevronRight, LuCircleCheck, LuCopy, LuPackage, LuShoppingCart, LuStar, LuThumbsUp, LuTruck } from 'react-icons/lu'
 import ProductCard from '../components/ProductCard'
+import { toaster } from '../components/ui/toaster'
+import { Tooltip } from '../components/ui/Tooltip'
+import { useCart } from '../context/CartContext'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -591,16 +612,17 @@ export default function ProductDetail() {
             <SelectRoot
               value={[ratingSortKey]}
               onValueChange={(e) => setRatingSortKey(e.value?.[0] || 'createdAtDesc')}
+              position="relative"
             >
               <SelectTrigger w="220px" bg="white">
                 <SelectValueText placeholder="Sắp xếp" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem item="createdAtDesc">Mới nhất</SelectItem>
-                <SelectItem item="createdAtAsc">Cũ nhất</SelectItem>
-                <SelectItem item="likeCountDesc">Hữu ích nhất</SelectItem>
-                <SelectItem item="starsDesc">Sao cao → thấp</SelectItem>
-                <SelectItem item="starsAsc">Sao thấp → cao</SelectItem>
+              <SelectContent position="absolute" width="220px" top="120%">
+                <SelectItem cursor="pointer" item="createdAtDesc">Mới nhất</SelectItem>
+                <SelectItem cursor="pointer" item="createdAtAsc">Cũ nhất</SelectItem>
+                <SelectItem cursor="pointer" item="likeCountDesc">Hữu ích nhất</SelectItem>
+                <SelectItem cursor="pointer" item="starsDesc">Sao cao → thấp</SelectItem>
+                <SelectItem cursor="pointer" item="starsAsc">Sao thấp → cao</SelectItem>
               </SelectContent>
             </SelectRoot>
 
