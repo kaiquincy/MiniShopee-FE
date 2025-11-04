@@ -2,7 +2,6 @@ import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input,
 import React, { useRef, useState, useEffect } from 'react'
 import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
-import { markRead, myNotifications, unreadCount } from '../api/notifications'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { myNotifications, markRead, unreadCount } from '../api/notifications'
