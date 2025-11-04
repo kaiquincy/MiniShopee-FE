@@ -1,10 +1,12 @@
-import { Badge, Box, Button, Text as ChakraText, Flex, Heading, HStack, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack } from '@chakra-ui/react'
-import { useEffect, useRef, useState } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser } from 'react-icons/fi'
+import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack, HStack, Button } from '@chakra-ui/react'
+import React, { useRef, useState, useEffect } from 'react'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { markRead, myNotifications, unreadCount } from '../api/notifications'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { myNotifications, markRead, unreadCount } from '../api/notifications'
+import { customOrderUpdateTypes } from '../constants/notificationTypes'
 
 
 export default function Header() {
@@ -70,7 +72,7 @@ export default function Header() {
       default: 'gray.500'
     }
     const color = colors[type] || colors.default
-    return <Icon as={IconComponent} boxSize={4} color={color} />
+    return <Icon as={IconComponent} boxSize={8} color={color} />
   }
 
   const getTypeBadge = (type) => {
@@ -88,6 +90,7 @@ export default function Header() {
         variant="subtle" 
         fontSize="xs" 
         mr={1}
+        mb={0}
       >
         {config.label}
       </Badge>
@@ -221,11 +224,56 @@ export default function Header() {
                         </VStack>
                       </VStack>
                     ) : (
-                      <VStack spacing={0} maxH="250px" overflowY="auto">
-                        {notifications.map(n => (
+                      <VStack spacing={0} maxH="400px" overflowY="auto">
+                        {notifications.map(n => {
+
+                          const renderTextWithId = (text, id) => {
+                            if (!text) return null
+                            const parts = text.split('#${id}')
+                            return (
+                              <>
+                                {parts.map((part, index) => (
+                                  <React.Fragment key={index}>
+                                    {part}
+                                    {index < parts.length - 1 && (
+                                      <ChakraText as="span" color="blue.500" >
+                                        #MSP202Z{id}
+                                      </ChakraText>
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </>
+                            )
+                          }
+
+                          // Nếu là type mới -> dùng toàn bộ cấu hình custom
+                          const custom = customOrderUpdateTypes[n.type]
+                          const title = custom?.title ?? (n.title || 'New Notification')
+                          const message = custom
+                            ? renderTextWithId(custom.message, n.referenceId)
+                            : n.message
+                          const IconComp = custom?.icon
+                          const iconColor = custom?.color
+                          const badge = custom?.badge
+
+
+                          // Nếu không phải type mới -> fallback về logic cũ
+                          const iconEl = IconComp ? (
+                            <Icon as={IconComp} boxSize={10} color={iconColor} />
+                          ) : (
+                            getTypeIcon(n.type)
+                          )
+
+                          const badgeEl = badge ? (
+                            <Badge colorPalette={badge.colorScheme}>{badge.label}</Badge>
+                          ) : (
+                            getTypeBadge(n.type)
+                          )         
+
+                        return(
                           <Box
                             key={n.id}
-                            px={4}
+                            px={2}
                             py={3}
                             borderBottom="1px solid"
                             borderColor="gray.50"
@@ -234,26 +282,27 @@ export default function Header() {
                             cursor="pointer"
                             onClick={() => handleNotifClick(n)}
                             width="full"
+                          
                           >
-                            <HStack spacing={3} align="start">
+                            <HStack spacing={3} align="center">
                               <Box
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                w={10}
-                                h={10}
+                                w={14}
+                                h={14}
                                 bg="gray.100"
                                 borderRadius="full"
                                 flexShrink={0}
                               >
-                                {getTypeIcon(n.type)}
+                                {iconEl}
                               </Box>
                               <VStack align="start" flex={1} spacing={1}>
                                 <HStack spacing={1}>
-                                  <ChakraText fontSize="sm" fontWeight="medium" noOfLines={1}>{n.title || 'New Notification'}</ChakraText>
-                                  {getTypeBadge(n.type)}
+                                  <ChakraText mb={0} pb={0} fontSize="xs" fontWeight="medium" noOfLines={1}>{title}</ChakraText>
+                                  {badgeEl}
                                 </HStack>
-                                <ChakraText fontSize="sm" noOfLines={2} color="gray.700">{n.message}</ChakraText>
+                                <ChakraText fontSize="xs" noOfLines={2} color="gray.700">{message}</ChakraText>
                                 <ChakraText fontSize="xs" color="gray.500">
                                   {new Date(n.createdAt).toLocaleDateString('en-US', { 
                                     month: 'short', 
@@ -275,7 +324,7 @@ export default function Header() {
                               )}
                             </HStack>
                           </Box>
-                        ))}
+                        )})}
                       </VStack>
                     )}
                     
