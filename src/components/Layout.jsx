@@ -13,7 +13,7 @@ export default function Layout() {
           <Outlet />
         </Container>
       </Box>
-      <Box zIndex={1000} as="footer" bg="gray.900" color="gray.300" py={10}>
+      <Box zIndex={1000} as="footer" bg="black" color="gray.300" py={10}>
         <Container maxW="7xl">
           <Flex
             direction={{ base: "column", md: "row" }}

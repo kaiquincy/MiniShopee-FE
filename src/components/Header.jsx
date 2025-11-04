@@ -2,6 +2,7 @@ import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input,
 import React, { useRef, useState, useEffect } from 'react'
 import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
+import { markRead, myNotifications, unreadCount } from '../api/notifications'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { myNotifications, markRead, unreadCount } from '../api/notifications'
@@ -196,14 +197,13 @@ export default function Header() {
                     shadow="2xl"
                     minW="360px"
                     maxW="400px"
-                    maxH="500px"
+                    maxH="550px"
                     py={0}
                     overflow="hidden"
                   >
                     <Box
                       px={4}
                       py={3}
-                      bg="gray.50"
                       borderBottom="1px solid"
                       borderColor="gray.100"
                     >
@@ -328,7 +328,7 @@ export default function Header() {
                       </VStack>
                     )}
                     
-                    <Box px={4} py={3} bg="gray.50" borderTop="1px solid" borderColor="gray.100">
+                    <Box px={4} py={3} borderTop="1px solid" borderColor="gray.100">
                       <Button
                         variant="ghost"
                         size="sm"

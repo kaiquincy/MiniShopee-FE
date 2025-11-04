@@ -19,7 +19,7 @@ export default function ProductCard({ p, onAdd }) {
       _hover={{
         transform: 'translateY(-4px)',
         shadow: 'lg',
-        borderColor: '#ADB5BD'
+        
       }}
       display="flex"
       flexDirection="column"
@@ -89,51 +89,45 @@ export default function ProductCard({ p, onAdd }) {
             fontWeight="semibold"
             fontSize="md"
             color="#212529"
-            noOfLines={2}
-            minH="48px"
-            lineHeight="1.5"
+            noOfLines={3}
+            lineHeight="1.4"
+            minH="4.2em"
             _hover={{ color: "#495057" }}
+            title={p.name}
           >
             {p.name}
           </Text>
         </Link>
 
-        {/* Price Section */}
-        <Box>
+        {/* Price + Add to Cart grouped at bottom */}
+        <VStack align="stretch" spacing={3} mt="auto">
+          {/* Price Section */}
           <HStack spacing={2} align="baseline">
-            <Text
-              fontSize="xl"
-              fontWeight="black"
-              color="#212529"
-            >
+            <Text fontSize="xl" fontWeight="black" color="#212529" whiteSpace="nowrap">
               ${finalPrice?.toLocaleString()}
             </Text>
             {p.discountPrice && (
-              <Text
-                fontSize="sm"
-                color="#ADB5BD"
-                textDecoration="line-through"
-              >
+              <Text fontSize="sm" color="#ADB5BD" textDecoration="line-through" whiteSpace="nowrap">
                 ${p.price?.toLocaleString()}
               </Text>
             )}
           </HStack>
-        </Box>
 
-        {/* Add to Cart Button */}
-        <Button
-          onClick={() => onAdd(p.id)}
-          bg="#212529"
-          color="white"
-          size="sm"
-          w="full"
-          leftIcon={<Icon as={FiShoppingCart} />}
-          _hover={{ bg: "#343A40" }}
-          mt="auto"
-        >
-          Add to Cart
-        </Button>
+          {/* Add to Cart Button */}
+          <Button
+            onClick={() => onAdd(p.id)}
+            bg="#212529"
+            color="white"
+            size="sm"
+            w="full"
+            leftIcon={<Icon as={FiShoppingCart} />}
+            _hover={{ bg: "white", border: "2px solid #212529", color: "#212529" }}
+          >
+            Add to Cart
+          </Button>
+        </VStack>
       </VStack>
+
     </Box>
   )
 }
