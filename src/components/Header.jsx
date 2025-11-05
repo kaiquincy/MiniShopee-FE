@@ -1,12 +1,11 @@
-import { Badge, Box, Text as ChakraText, Flex, Heading, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack, HStack, Button } from '@chakra-ui/react'
-import React, { useRef, useState, useEffect } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiShoppingBag, FiShoppingCart, FiUser, FiShield, FiTag, FiSettings,FiStar   } from 'react-icons/fi'
+import { Badge, Box, Button, Text as ChakraText, Flex, Heading, HStack, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack } from '@chakra-ui/react'
+import React, { useEffect, useRef, useState } from 'react'
+import { FiBell, FiLogOut, FiMessageSquare, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { markRead, myNotifications, unreadCount } from '../api/notifications'
+import { customOrderUpdateTypes } from '../constants/notificationTypes'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
-import { myNotifications, markRead, unreadCount } from '../api/notifications'
-import { customOrderUpdateTypes } from '../constants/notificationTypes'
 
 
 export default function Header() {
