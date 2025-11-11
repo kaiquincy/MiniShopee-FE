@@ -1,7 +1,7 @@
-import { Badge, Box, Button, Flex, HStack, Icon, Input, Text, VStack } from '@chakra-ui/react'
+import { Badge, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Text, VStack } from '@chakra-ui/react'
 import { Client } from '@stomp/stompjs'
 import { useEffect, useRef, useState } from 'react'
-import { FiMessageCircle, FiMessageSquare, FiPlus, FiSend, FiUser } from 'react-icons/fi'
+import { FiMessageCircle, FiMessageSquare, FiPlus, FiSend, FiUser, FiImage } from 'react-icons/fi'
 import { useLocation } from 'react-router-dom'
 import SockJS from 'sockjs-client'
 import { history, myRooms, openRoom } from '../api/chat'
@@ -14,16 +14,20 @@ export default function Chat() {
   const [input, setInput] = useState('')
   const [newRoomId, setNewRoomId] = useState('')
   const stompRef = useRef(null)
-  const messagesEndRef = useRef(null)
+  const messagesContainerRef = useRef(null)
+  const fileInputRef = useRef(null)
   const { token, user } = useAuth()
   const location = useLocation()
-  
+
   const isLightTheme = location.pathname === '/chat'
 
   useEffect(() => { myRooms().then(setRooms) }, [])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesContainerRef.current?.scrollTo({
+      top: messagesContainerRef.current.scrollHeight,
+      behavior: 'smooth'
+    })
   }, [messages])
 
   const connect = (roomId) => {
@@ -56,6 +60,35 @@ export default function Chat() {
       body: JSON.stringify({ roomId: active.roomId, type: 'TEXT', content: input })
     })
     setInput('')
+  }
+
+  const sendImage = (file) => {
+    if (!stompRef.current || !active || !file) return
+    // Optional: limit size (e.g., 5MB)
+    // if (file.size > 5 * 1024 * 1024) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const base64 = reader.result // data URL
+      stompRef.current.publish({
+        destination: '/app/chat.send',
+        body: JSON.stringify({
+          roomId: active.roomId,
+          type: 'IMAGE',
+          content: base64,
+          fileName: file.name,
+          mimeType: file.type
+        })
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const onPickImage = () => fileInputRef.current?.click()
+
+  const onImageSelected = (e) => {
+    const file = e.target.files?.[0]
+    if (file) sendImage(file)
+    e.target.value = ''
   }
 
   const createNewRoom = async () => {
@@ -135,7 +168,7 @@ export default function Chat() {
             {/* New Room Input */}
             <HStack spacing={2}>
               <Input
-                placeholder="User ID"
+                placeholder="Search someone by @username"
                 value={newRoomId}
                 onChange={e => setNewRoomId(e.target.value)}
                 bg={theme.inputBg}
@@ -196,10 +229,12 @@ export default function Chat() {
                     </Box>
                     <Box flex={1} minW={0}>
                       <Text fontWeight="bold" fontSize="sm" noOfLines={1} color={theme.text}>
-                        Room #{r.roomId}
-                      </Text>
+                        {r.userBFullName ? r.userBFullName : "(No Name)"}
+                      </Text> 
                       <Text fontSize="xs" color={theme.secondaryText} noOfLines={1}>
-                        Users: {r.userAId} • {r.userBId}
+                        {r?.lastMsg
+                          ? `${r.lastMsg.senderUsername === user?.username ? "You" : r.lastMsg.senderUsername}: ${r.lastMsg.content}`
+                          : 'No messages yet'}
                       </Text>
                     </Box>
                     {active?.roomId === r.roomId && (
@@ -240,9 +275,9 @@ export default function Chat() {
                     <Icon as={FiUser} color="white" />
                   </Box>
                   <Box>
-                    <Text fontWeight="bold" color={theme.text}>Room #{active.roomId}</Text>
+                    <Text fontWeight="bold" color={theme.text}>{active.userBFullName ? active.userBFullName : "(No Name)"}</Text>
                     <Text fontSize="sm" color={theme.secondaryText}>
-                      Users: {active.userAId} • {active.userBId}
+                      @{active.userBId}
                     </Text>
                   </Box>
                 </HStack>
@@ -264,6 +299,7 @@ export default function Chat() {
                     borderRadius: '4px' 
                   }
                 }}
+                ref={messagesContainerRef}
               >
                 {messages.length === 0 ? (
                   <Flex align="center" justify="center" h="full">
@@ -275,7 +311,7 @@ export default function Chat() {
                   </Flex>
                 ) : (
                   [...messages].reverse().map(m => {
-                    const isMe = m.senderId === user?.id
+                    const isMe = m.senderUsername === user?.username
                     return (
                       <Flex key={m.id} justify={isMe ? "flex-end" : "flex-start"}>
                         <Box
@@ -303,18 +339,57 @@ export default function Chat() {
                               {new Date(m.createdAt).toLocaleTimeString()}
                             </Text>
                           </HStack>
-                          <Text fontSize="sm">{m.content}</Text>
+
+                          {m.type === 'IMAGE' ? (
+                            <Box>
+                              <a href={m.content} target="_blank" rel="noreferrer">
+                                <Image
+                                  src={m.content}
+                                  alt={m.fileName || 'image'}
+                                  borderRadius="md"
+                                  maxH="320px"
+                                  objectFit="cover"
+                                  bg="blackAlpha.200"
+                                />
+                              </a>
+                              {m.fileName && (
+                                <Text fontSize="xs" mt={1} opacity={0.8}>
+                                  {m.fileName}
+                                </Text>
+                              )}
+                            </Box>
+                          ) : (
+                            <Text fontSize="sm">{m.content}</Text>
+                          )}
                         </Box>
                       </Flex>
                     )
                   })
                 )}
-                <div ref={messagesEndRef} />
               </VStack>
 
               {/* Input Area */}
               <Box p={4} borderTop="1px solid" borderColor={theme.border}>
                 <HStack spacing={3}>
+                  {/* Nút chọn ảnh */}
+                  <IconButton
+                    aria-label="Send image"
+                    onClick={onPickImage}
+                    bg={theme.inputBg}
+                    border="1px solid"
+                    borderColor={theme.border}
+                    _hover={{ bg: theme.hoverBg }}>
+                    <Icon as={FiImage} color={theme.mutedText} />
+                    </IconButton>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={onImageSelected}
+                  />
+
+                  {/* Ô nhập text */}
                   <Input
                     value={input}
                     onChange={e => setInput(e.target.value)}
@@ -329,18 +404,19 @@ export default function Chat() {
                     _hover={{ borderColor: "#3B82F6" }}
                     onKeyDown={e => e.key === 'Enter' && send()}
                   />
-                  <Button
+
+                  {/* Nút gửi chỉ icon */}
+                  <IconButton
+                    aria-label="Send message"
                     bg="#3B82F6"
                     color="white"
                     size="lg"
-                    px={6}
-                    leftIcon={<FiSend />}
                     _hover={{ bg: "#2563EB" }}
                     onClick={send}
                     isDisabled={!input.trim()}
                   >
-                    Send
-                  </Button>
+                    <Icon as={FiSend} />
+                  </IconButton>
                 </HStack>
               </Box>
             </>
