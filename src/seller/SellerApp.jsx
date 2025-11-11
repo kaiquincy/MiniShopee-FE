@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import SellerLayout from './components/SellerLayout'
 import SellerOrders from './pages/SellerOrders'
 import SellerProducts from './pages/SellerProducts'
@@ -9,6 +10,11 @@ import SellerAnalytics from './pages/SellerAnalytics'
 import SellerChat from './pages/SellerChat'
 
 export default function SellerApp() {
+  const { token, user } = useAuth()
+
+  if (!token) return <Navigate to="/login" replace />
+  if (user && user.role !== 'SELLER') return <Navigate to="/" replace />
+
   return (
     <Routes>
       <Route element={<SellerLayout />}>

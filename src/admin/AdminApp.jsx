@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import AdminLayout from './components/AdminLayout'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminOrders from './pages/AdminOrders'
@@ -7,6 +8,11 @@ import AdminProducts from './pages/AdminProducts'
 import AdminSettings from './pages/AdminSettings'
 
 export default function AdminApp() {
+  const { token, user } = useAuth()
+
+  if (!token) return <Navigate to="/login" replace />
+  if (user && user.role !== 'ADMIN') return <Navigate to="/" replace />
+
   return (
     <Routes>
       <Route element={<AdminLayout />}>
