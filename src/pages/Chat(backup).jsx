@@ -1,11 +1,12 @@
-import { Badge, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Text, VStack } from '@chakra-ui/react'
+import { Badge, Box, Button, Flex, HStack, Icon, IconButton,InputGroup , Image, Input, Text, VStack } from '@chakra-ui/react'
 import { Client } from '@stomp/stompjs'
 import { useEffect, useRef, useState } from 'react'
-import { FiMessageCircle, FiMessageSquare, FiPlus, FiSend, FiUser, FiImage } from 'react-icons/fi'
+import { FiMessageCircle, FiMessageSquare, FiPlus, FiSend, FiUser, FiImage, FiSearch } from 'react-icons/fi'
 import { useLocation } from 'react-router-dom'
 import SockJS from 'sockjs-client'
 import { history, myRooms, openRoom } from '../api/chat'
 import { useAuth } from '../context/AuthContext'
+
 
 export default function Chat() {
   const [rooms, setRooms] = useState([])
@@ -83,6 +84,23 @@ export default function Chat() {
     reader.readAsDataURL(file)
   }
 
+  function timeAgo(timestamp) {
+    const diff = Date.now() - new Date(timestamp).getTime()
+    const seconds = Math.floor(diff / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+    const days = Math.floor(hours / 24)
+    const months = Math.floor(days / 30)
+    const years = Math.floor(days / 365)
+
+    if (seconds < 60) return `${seconds}s`
+    if (minutes < 60) return `${minutes}m`
+    if (hours < 24) return `${hours}h`
+    if (days < 30) return `${days}d`
+    if (months < 12) return `${months}M`
+    return `${years}Y`
+  }
+
   const onPickImage = () => fileInputRef.current?.click()
 
   const onImageSelected = (e) => {
@@ -141,7 +159,7 @@ export default function Chat() {
         </Badge>
       </Flex>
 
-      <HStack align="stretch" spacing={6} h="calc(100vh - 250px)">
+      <HStack align="stretch" spacing={6} h="calc(100vh - 210px)">
         {/* Left Sidebar - Room List */}
         <VStack
           align="stretch"
@@ -155,7 +173,7 @@ export default function Chat() {
         >
           {/* Sidebar Header */}
           <Box p={4} borderBottom="1px solid" borderColor={theme.border}>
-            <Text 
+            {/* <Text 
               fontSize="sm" 
               fontWeight="bold" 
               color={theme.mutedText} 
@@ -164,23 +182,25 @@ export default function Chat() {
               mb={3}
             >
               Conversations
-            </Text>
+            </Text> */}
             {/* New Room Input */}
             <HStack spacing={2}>
-              <Input
-                placeholder="Search someone by @username"
-                value={newRoomId}
-                onChange={e => setNewRoomId(e.target.value)}
-                bg={theme.inputBg}
-                border="1px solid"
-                borderColor={theme.border}
-                color={theme.text}
-                size="sm"
-                _placeholder={{ color: theme.mutedText }}
-                _focus={{ borderColor: "#3B82F6", boxShadow: `0 0 0 1px #3B82F6` }}
-                _hover={{ borderColor: "#3B82F6" }}
-                onKeyDown={e => e.key === 'Enter' && createNewRoom()}
-              />
+              <InputGroup startElement={<FiSearch/>}>
+                <Input
+                  placeholder="Search someone by @username"
+                  value={newRoomId}
+                  onChange={e => setNewRoomId(e.target.value)}
+                  bg={theme.inputBg}
+                  // border="1px solid"
+                  // borderColor={theme.border}
+                  color={theme.text}
+                  size="sm"
+                  // _placeholder={{ color: theme.mutedText }}
+                  _focus={{ borderColor: "#3B82F6", boxShadow: `0 0 0 0 #3B82F6` }}
+                  _hover={{ borderColor: "#3B82F6" }}
+                  onKeyDown={e => e.key === 'Enter' && createNewRoom()}
+                />
+              </InputGroup>
               <Button
                 size="sm"
                 bg="#3B82F6"
@@ -216,26 +236,44 @@ export default function Chat() {
                 >
                   <HStack spacing={3}>
                     <Box
-                      w="40px"
-                      h="40px"
+                      w="50px"
+                      h="50px"
                       bg="#3B82F6"
                       borderRadius="full"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
-                      flexShrink={0}
                     >
-                      <Icon as={FiUser} color="white" />
+                      {/* <Icon as={FiUser} color="white" /> */}
+
+                      {r.userBAvatarUrl ? (
+                        <Image 
+                          src={import.meta.env.VITE_API_URL + "/uploads/" + r.userBAvatarUrl}
+                          alt={r.userBFullName || 'avatar'}
+                          borderRadius="full"
+                          // objectFit="cover"
+                        />
+                      ) : <Text color="white" fontWeight="bold" fontSize="lg">
+                            {r.userBFullName ? r.userBFullName.charAt(0).toUpperCase() : '?'}
+                          </Text>
+                      }
+
                     </Box>
                     <Box flex={1} minW={0}>
                       <Text fontWeight="bold" fontSize="sm" noOfLines={1} color={theme.text}>
                         {r.userBFullName ? r.userBFullName : "(No Name)"}
-                      </Text> 
-                      <Text fontSize="xs" color={theme.secondaryText} noOfLines={1}>
-                        {r?.lastMsg
-                          ? `${r.lastMsg.senderUsername === user?.username ? "You" : r.lastMsg.senderUsername}: ${r.lastMsg.content}`
-                          : 'No messages yet'}
                       </Text>
+                      <Box gap={1} display="flex" alignItems="center" flexDirection="row">
+                        <Text fontSize="xs" color={theme.secondaryText} noOfLines={1}>
+                          {r?.lastMsg
+                            ? `${r.lastMsg.senderUsername === user?.username ? "You" : r.lastMsg.senderUsername}: ${r.lastMsg.content}`
+                            : 'No messages yet'} 
+                        </Text>
+                        <Box w="4px" h="4px" bg={theme.secondaryText} borderRadius="full" />
+                        <Text fontSize="xs" color={theme.secondaryText}>
+                          {r.lastMsg?.createdAt ? timeAgo(r.lastMsg.createdAt) : ''}
+                        </Text>
+                      </Box> 
                     </Box>
                     {active?.roomId === r.roomId && (
                       <Box w="8px" h="8px" bg="#3B82F6" borderRadius="full" />
@@ -257,22 +295,32 @@ export default function Chat() {
           borderRadius="lg"
           overflow="hidden"
           shadow={isLightTheme ? 'sm' : 'none'}
+          gap={0}
         >
           {active ? (
             <>
               {/* Chat Header */}
-              <Box p={4} borderBottom="1px solid" borderColor={theme.border}>
+              <Box p={4} m={0} borderBottom="1px solid" borderColor={theme.border}>
                 <HStack spacing={3}>
                   <Box
-                    w="40px"
-                    h="40px"
-                    bg="#3B82F6"
+                    w="45px"
+                    h="45px"
+                    // bg="#3B82F6"
                     borderRadius="full"
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Icon as={FiUser} color="white" />
+                      {active.userBAvatarUrl ? (
+                        <Image 
+                          src={import.meta.env.VITE_API_URL + "/uploads/" + active.userBAvatarUrl}
+                          borderRadius="full"
+                          // objectFit="cover"
+                        />
+                      ) : <Text color="white" fontWeight="bold" fontSize="lg">
+                            {active.userBFullName ? active.userBFullName.charAt(0).toUpperCase() : '?'}
+                          </Text>
+                      }
                   </Box>
                   <Box>
                     <Text fontWeight="bold" color={theme.text}>{active.userBFullName ? active.userBFullName : "(No Name)"}</Text>
@@ -286,7 +334,7 @@ export default function Chat() {
               {/* Messages Area */}
               <VStack
                 align="stretch"
-                flex={1}
+                flex={2}
                 overflowY="auto"
                 p={4}
                 spacing={3}
@@ -325,19 +373,19 @@ export default function Chat() {
                           shadow="sm"
                         >
                           <HStack justify="space-between" mb={1} spacing={3}>
-                            <Text 
+                            {/* <Text 
                               fontSize="xs" 
                               fontWeight="bold" 
                               color={isMe ? "whiteAlpha.900" : "#3B82F6"}
                             >
                               {isMe ? 'You' : `User #${m.senderId}`}
-                            </Text>
-                            <Text 
+                            </Text> */}
+                            {/* <Text 
                               fontSize="xs" 
                               color={isMe ? "whiteAlpha.700" : theme.mutedText}
                             >
                               {new Date(m.createdAt).toLocaleTimeString()}
-                            </Text>
+                            </Text> */}
                           </HStack>
 
                           {m.type === 'IMAGE' ? (
@@ -400,7 +448,7 @@ export default function Chat() {
                     color={theme.text}
                     size="lg"
                     _placeholder={{ color: theme.mutedText }}
-                    _focus={{ borderColor: "#3B82F6", boxShadow: `0 0 0 1px #3B82F6` }}
+                    _focus={{ borderColor: "#3B82F6", boxShadow: `0 0 0 0px #3B82F6` }}
                     _hover={{ borderColor: "#3B82F6" }}
                     onKeyDown={e => e.key === 'Enter' && send()}
                   />

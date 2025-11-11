@@ -13,7 +13,7 @@ export default function SellerApp() {
   const { token, user } = useAuth()
 
   if (!token) return <Navigate to="/login" replace />
-  if (user && user.role !== 'SELLER') return <Navigate to="/" replace />
+  if (user && user.role !== 'ROLE_ADMIN' && user.role !== 'ROLE_SELLER') return <Navigate to="/" replace />
 
   return (
     <Routes>

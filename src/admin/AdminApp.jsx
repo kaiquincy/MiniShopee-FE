@@ -9,9 +9,8 @@ import AdminSettings from './pages/AdminSettings'
 
 export default function AdminApp() {
   const { token, user } = useAuth()
-
   if (!token) return <Navigate to="/login" replace />
-  if (user && user.role !== 'ADMIN') return <Navigate to="/" replace />
+  if (user && user.role !== 'ROLE_ADMIN') return <Navigate to="/" replace />
 
   return (
     <Routes>
