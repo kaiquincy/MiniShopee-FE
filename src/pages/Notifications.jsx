@@ -147,8 +147,8 @@ export default function Notifications() {
               display="flex"
               alignItems="center"
               justifyContent="center"
-              w={12}
-              h={12}
+              w={16}
+              h={16}
               bg="gray.100"
               borderRadius="full"
               mr={2}

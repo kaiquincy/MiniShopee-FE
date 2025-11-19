@@ -1,17 +1,20 @@
 import {
   Badge,
   Box,
+  createListCollection,
   Flex,
   Grid, Heading,
   HStack,
   Icon,
-  Separator,
+  Portal,
+  Select,
   Skeleton,
   Text,
   VStack
 } from '@chakra-ui/react'
 import { useEffect, useMemo, useState } from 'react'
 import {
+  FiCalendar,
   FiCheckCircle, FiClock,
   FiDollarSign,
   FiShoppingBag, FiTrendingUp, FiUsers
@@ -36,12 +39,23 @@ import { adminFetchOrders, adminFetchUsers } from '../api/admin'
 const currency = (n = 0) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(n) || 0)
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899']
-
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [orders, setOrders] = useState([])
   const [users, setUsers] = useState([])
+  
+  // Time range states
+  const [revenueRange, setRevenueRange] = useState('7')
+  const [ordersRange, setOrdersRange] = useState('7')
+  const [usersRange, setUsersRange] = useState('30')
+
+  const timeRangeOptions = createListCollection({
+    items: [
+      { label: 'Last 7 Days', value: '7' },
+      { label: 'Last 30 Days', value: '30' },
+      { label: 'Last 6 Months', value: '180' },
+    ],
+  })
 
   useEffect(() => {
     ;(async () => {
@@ -59,7 +73,7 @@ export default function AdminDashboard() {
 
   const stats = useMemo(() => {
     const totalOrders = orders.length
-    const totalRevenue = orders.reduce((s, o) => s + (Number(o.grandTotal) || 0), 0)
+    const totalRevenue = orders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
     const totalUsers = users.length
     
     const byStatus = orders.reduce((m, o) => {
@@ -71,28 +85,79 @@ export default function AdminDashboard() {
     const completedOrders = byStatus['COMPLETED'] || 0
     const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0
 
-    // Revenue by day (last 7 days)
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
+    // Helper function to generate date ranges
+    const generateDateRange = (days) => {
+      return Array.from({ length: parseInt(days) }, (_, i) => {
+        const d = new Date()
+        d.setDate(d.getDate() - (days - 1 - i))
+        return {
+          date: days <= 30 ? `${d.getMonth() + 1}/${d.getDate()}` : `${d.getMonth() + 1}/${d.getDate()}`,
+          dateObj: d,
+          fullDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        }
+      })
+    }
+
+    // Helper to group by interval for 6 months
+    const groupByInterval = (dateRange, intervalDays) => {
+      const grouped = []
+      for (let i = 0; i < dateRange.length; i += intervalDays) {
+        const chunk = dateRange.slice(i, Math.min(i + intervalDays, dateRange.length))
+        if (chunk.length > 0) {
+          const startDate = chunk[0].dateObj
+          const endDate = chunk[chunk.length - 1].dateObj
+          grouped.push({
+            dates: chunk,
+            label: intervalDays === 1 ? chunk[0].date : 
+                  `${startDate.getMonth() + 1}/${startDate.getDate()}-${endDate.getMonth() + 1}/${endDate.getDate()}`,
+            fullDate: chunk[0].fullDate,
+            startDate,
+            endDate
+          })
+        }
+      }
+      return grouped
+    }
+
+    // Revenue by selected range
+    const revenueDays = parseInt(revenueRange)
+    const revenueDateRange = generateDateRange(revenueDays)
+    const revenueGroups = revenueDays === 180 ? groupByInterval(revenueDateRange, 7) : 
+                          revenueDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+
+    const revenueByDay = revenueGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
+      const periodOrders = orders.filter(o => {
+        const orderDate = new Date(o.createdAt)
+        return orderDate >= startDate && orderDate <= endDate
+      })
       return {
-        date: `${d.getMonth() + 1}/${d.getDate()}`,
-        dateObj: d
+        date: label,
+        fullDate,
+        dateObj: startDate,
+        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
+        orders: periodOrders.length,
+        ordersList: periodOrders
       }
     })
 
-    const revenueByDay = last7Days.map(({ date, dateObj }) => {
-      const dayOrders = orders.filter(o => {
+    // Orders by selected range
+    const ordersDays = parseInt(ordersRange)
+    const orderDateRange = generateDateRange(ordersDays)
+    const orderGroups = ordersDays === 180 ? groupByInterval(orderDateRange, 7) : 
+                        orderDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+
+    const ordersByDay = orderGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
+      const periodOrders = orders.filter(o => {
         const orderDate = new Date(o.createdAt)
-        return (
-          orderDate.getDate() === dateObj.getDate() &&
-          orderDate.getMonth() === dateObj.getMonth()
-        )
+        return orderDate >= startDate && orderDate <= endDate
       })
       return {
-        date,
-        revenue: dayOrders.reduce((s, o) => s + (Number(o.grandTotal) || 0), 0),
-        orders: dayOrders.length
+        date: label,
+        fullDate,
+        dateObj: startDate,
+        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
+        orders: periodOrders.length,
+        ordersList: periodOrders
       }
     })
 
@@ -100,30 +165,48 @@ export default function AdminDashboard() {
     const statusData = Object.entries(byStatus).map(([status, count]) => ({
       name: status,
       value: count,
-      color: getStatusColor(status)
+      color: getStatusColor(status),
+      orders: orders.filter(o => o.status === status)
     }))
 
-    // User growth (last 30 days)
-    const last30Days = Array.from({ length: 30 }, (_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (29 - i))
-      return d
-    })
+    // User growth by selected range
+    const usersDays = parseInt(usersRange)
+    const userDateRange = generateDateRange(usersDays)
+    const userGroups = usersDays === 180 ? groupByInterval(userDateRange, 7) : 
+                       userDateRange.filter((d, i) => usersDays <= 30 || i % 5 === 0 || i === userDateRange.length - 1)
+                       .map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
 
-    const usersByDay = last30Days.reduce((acc, date, i) => {
+    const usersByDay = userGroups.map(({ label, fullDate, startDate, endDate }) => {
       const usersUpToDate = users.filter(u => {
+        if (!u.createdAt) return false
         const createdDate = new Date(u.createdAt)
-        return createdDate <= date
+        return createdDate <= endDate
       }).length
       
-      if (i % 5 === 0 || i === 29) {
-        acc.push({
-          date: `${date.getMonth() + 1}/${date.getDate()}`,
-          users: usersUpToDate
-        })
+      const newUsersInPeriod = users.filter(u => {
+        if (!u.createdAt) return false
+        const createdDate = new Date(u.createdAt)
+        return createdDate >= startDate && createdDate <= endDate
+      })
+      
+      return {
+        date: label,
+        fullDate,
+        users: usersUpToDate,
+        newUsers: newUsersInPeriod
       }
-      return acc
-    }, [])
+    })
+
+    // Recent orders (last 5)
+    const recentOrders = [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
+
+    // Recent users (last 5)
+    const recentUsers = [...users]
+      .filter(u => u.createdAt)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
 
     return { 
       totalOrders, 
@@ -134,10 +217,13 @@ export default function AdminDashboard() {
       completedOrders,
       avgOrderValue,
       revenueByDay,
+      ordersByDay,
       statusData,
-      usersByDay
+      usersByDay,
+      recentOrders,
+      recentUsers
     }
-  }, [orders, users])
+  }, [orders, users, revenueRange, ordersRange, usersRange])
 
   return (
     <Box>
@@ -206,11 +292,58 @@ export default function AdminDashboard() {
         />
       </Grid>
 
-      {/* Charts Grid */}
-      <Grid templateColumns={{ base: "1fr", xl: "2fr 1fr" }} gap={6} mb={8}>
-        {/* Revenue Trend */}
+      {/* Revenue Trend & Details */}
+      <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
         <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Revenue Trend (Last 7 Days)</Heading>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading size="md" color="#1E3A8A">Revenue Trend</Heading>
+            <Select.Root 
+              collection={timeRangeOptions}
+              value={[revenueRange]}
+              onValueChange={(e) => setRevenueRange(e.value[0])}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+
+              <Select.Control>
+                <Select.Trigger
+                  bg="white"
+                  color="#495057"
+                  h="36px"
+                  borderRadius="lg"
+                  _hover={{ bg: "#F8F9FA" }}
+                >
+                  <Select.ValueText placeholder="Select range" />
+                </Select.Trigger>
+
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+
+              <Portal>
+                <Select.Positioner zIndex={20}>
+                  <Select.Content
+                    bg="white"
+                    shadow="lg"
+                    borderRadius="lg"
+                  >
+                    {timeRangeOptions.items.map((option) => (
+                      <Select.Item
+                        key={option.value}
+                        item={option}
+                        _hover={{ bg: "#F8F9FA" }}
+                      >
+                        {option.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </Flex>
           <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.revenueByDay}>
@@ -245,7 +378,51 @@ export default function AdminDashboard() {
           </Box>
         </Box>
 
-        {/* Order Status Distribution */}
+        {/* Daily Revenue Details */}
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+          <Heading size="md" mb={4} color="#1E3A8A">
+            {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
+          </Heading>
+          <VStack align="stretch" spacing={3} maxH="300px" overflowY="auto">
+            {stats.revenueByDay.slice().reverse().map((day, idx) => (
+              <Box 
+                key={idx}
+                p={3}
+                bg={day.orders > 0 ? "#F8FAFC" : "transparent"}
+                borderRadius="md"
+                border="1px solid"
+                borderColor={day.orders > 0 ? "#E2E8F0" : "transparent"}
+              >
+                <Flex justify="space-between" align="center" mb={1}>
+                  <HStack spacing={2}>
+                    <Icon as={FiCalendar} boxSize={4} color="#64748B" />
+                    <Text fontSize="sm" fontWeight="semibold" color="#212529">
+                      {day.fullDate}
+                    </Text>
+                  </HStack>
+                  <Badge 
+                    bg="#3B82F615"
+                    color="#3B82F6"
+                    px={2}
+                    py={0.5}
+                    borderRadius="md"
+                    fontSize="xs"
+                  >
+                    {day.orders} orders
+                  </Badge>
+                </Flex>
+                <Text fontSize="lg" fontWeight="bold" color="#10B981">
+                  {currency(day.revenue)}
+                </Text>
+              </Box>
+            ))}
+          </VStack>
+        </Box>
+      </Grid>
+
+      {/* Order Status & Status Details */}
+      <Grid templateColumns={{ base: "1fr", xl: "1fr 1.5fr" }} gap={6} mb={8}>
+        {/* Order Status Pie Chart */}
         <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
           <Heading size="md" mb={4} color="#1E3A8A">Order Status</Heading>
           <Box h="300px">
@@ -277,16 +454,103 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </Box>
         </Box>
+
+        {/* Status Breakdown Details */}
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+          <Heading size="md" mb={4} color="#1E3A8A">Status Breakdown</Heading>
+          <Grid templateColumns="repeat(2, 1fr)" gap={3}>
+            {stats.statusData.map((status) => (
+              <Box
+                key={status.name}
+                p={4}
+                bg="#F8FAFC"
+                borderRadius="lg"
+                border="1px solid"
+                borderColor="#E2E8F0"
+              >
+                <Flex justify="space-between" align="start" mb={2}>
+                  <Badge 
+                    bg={`${status.color}15`}
+                    color={status.color}
+                    border="1px solid"
+                    borderColor={`${status.color}30`}
+                    px={2}
+                    py={1}
+                    borderRadius="md"
+                    fontSize="xs"
+                    fontWeight="semibold"
+                  >
+                    {status.name}
+                  </Badge>
+                  <Text fontSize="2xl" fontWeight="black" color="#212529">
+                    {status.value}
+                  </Text>
+                </Flex>
+                <Text fontSize="xs" color="#64748B">
+                  {((status.value / stats.totalOrders) * 100).toFixed(1)}% of total
+                </Text>
+              </Box>
+            ))}
+          </Grid>
+        </Box>
       </Grid>
 
-      {/* Orders & Users Charts */}
-      <Grid templateColumns={{ base: "1fr", lg: "repeat(2, 1fr)" }} gap={6} mb={8}>
-        {/* Orders Per Day */}
+      {/* Orders Per Day & Recent Orders */}
+      <Grid templateColumns={{ base: "1fr", xl: "1fr 1fr" }} gap={6} mb={8}>
+        {/* Orders Per Day Chart */}
         <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Orders Per Day</Heading>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading size="md" color="#1E3A8A">Orders Per Day</Heading>
+            <Select.Root 
+              collection={timeRangeOptions}
+              value={[ordersRange]}
+              onValueChange={(e) => setOrdersRange(e.value[0])}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+
+              <Select.Control>
+                <Select.Trigger
+                  bg="white"
+                  color="#495057"
+                  h="36px"
+                  borderRadius="lg"
+                  _hover={{ bg: "#F8F9FA" }}
+                >
+                  <Select.ValueText placeholder="Select range" />
+                </Select.Trigger>
+
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+
+              <Portal>
+                <Select.Positioner zIndex={20}>
+                  <Select.Content
+                    bg="white"
+                    shadow="lg"
+                    borderRadius="lg"
+                  >
+                    {timeRangeOptions.items.map((option) => (
+                      <Select.Item
+                        key={option.value}
+                        item={option}
+                        _hover={{ bg: "#F8F9FA" }}
+                      >
+                        {option.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </Flex>
           <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.revenueByDay}>
+              <BarChart data={stats.ordersByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
                 <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 12 }} />
                 <YAxis stroke="#64748B" tick={{ fontSize: 12 }} />
@@ -304,9 +568,116 @@ export default function AdminDashboard() {
           </Box>
         </Box>
 
-        {/* User Growth */}
+        {/* Recent Orders */}
         <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">User Growth (Last 30 Days)</Heading>
+          <Heading size="md" mb={4} color="#1E3A8A">Recent Orders</Heading>
+          {stats.recentOrders.length > 0 ? (
+            <VStack align="stretch" spacing={3}>
+              {stats.recentOrders.map((order) => (
+                <Box
+                  key={order.orderId}
+                  p={3}
+                  bg="#F8FAFC"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="#E2E8F0"
+                >
+                  <Flex justify="space-between" align="center" mb={2}>
+                    <Text fontSize="sm" fontWeight="bold" color="#212529">
+                      Order #{order.orderId}
+                    </Text>
+                    <Badge 
+                      bg={`${getStatusColor(order.status)}15`}
+                      color={getStatusColor(order.status)}
+                      border="1px solid"
+                      borderColor={`${getStatusColor(order.status)}30`}
+                      px={2}
+                      py={0.5}
+                      borderRadius="md"
+                      fontSize="xs"
+                    >
+                      {order.status}
+                    </Badge>
+                  </Flex>
+                  <Flex justify="space-between" align="center">
+                    <Text fontSize="xs" color="#64748B">
+                      {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </Text>
+                    <Text fontSize="md" fontWeight="bold" color="#10B981">
+                      {currency(order.totalAmount)}
+                    </Text>
+                  </Flex>
+                </Box>
+              ))}
+            </VStack>
+          ) : (
+            <Box textAlign="center" py={8}>
+              <Icon as={FiShoppingBag} boxSize={10} color="#E2E8F0" mb={2} />
+              <Text color="#64748B" fontSize="sm">No orders yet</Text>
+            </Box>
+          )}
+        </Box>
+      </Grid>
+
+      {/* User Growth & Recent Users */}
+      <Grid templateColumns={{ base: "1fr", xl: "1fr 1fr" }} gap={6} mb={8}>
+        {/* User Growth Chart */}
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading size="md" color="#1E3A8A">User Growth</Heading>
+            <Select.Root 
+              collection={timeRangeOptions}
+              value={[usersRange]}
+              onValueChange={(e) => setUsersRange(e.value[0])}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+
+              <Select.Control>
+                <Select.Trigger
+                  bg="white"
+                  color="#495057"
+                  h="36px"
+                  borderRadius="lg"
+                  _hover={{ bg: "#F8F9FA" }}
+                >
+                  <Select.ValueText placeholder="Select range" />
+                </Select.Trigger>
+
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+
+              <Portal>
+                <Select.Positioner zIndex={20}>
+                  <Select.Content
+                    bg="white"
+                    shadow="lg"
+                    borderRadius="lg"
+                  >
+                    {timeRangeOptions.items.map((option) => (
+                      <Select.Item
+                        key={option.value}
+                        item={option}
+                        _hover={{ bg: "#F8F9FA" }}
+                      >
+                        {option.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+
+          </Flex>
           <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={stats.usersByDay}>
@@ -333,16 +704,63 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </Box>
         </Box>
-      </Grid>
 
-      {/* Status Breakdown */}
-      <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-        <Heading size="md" mb={4} color="#1E3A8A">Order Status Breakdown</Heading>
-        <Separator borderColor="#E2E8F0" my={4}/>
-        <Skeleton loading={loading}>
-          <StatusBadges byStatus={stats.byStatus}/>
-        </Skeleton>
-      </Box>
+        {/* Recent Users */}
+        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+          <Heading size="md" mb={4} color="#1E3A8A">Recent Users</Heading>
+          {stats.recentUsers.length > 0 ? (
+            <VStack align="stretch" spacing={3}>
+              {stats.recentUsers.map((user) => (
+                <Box
+                  key={user.id}
+                  p={3}
+                  bg="#F8FAFC"
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor="#E2E8F0"
+                >
+                  <Flex justify="space-between" align="start" mb={2}>
+                    <Box>
+                      <Text fontSize="sm" fontWeight="bold" color="#212529">
+                        {user.fullName || user.username}
+                      </Text>
+                      <Text fontSize="xs" color="#64748B">
+                        @{user.username}
+                      </Text>
+                    </Box>
+                    <Badge 
+                      bg={user.role === 'ADMIN' ? '#EF444415' : '#3B82F615'}
+                      color={user.role === 'ADMIN' ? '#EF4444' : '#3B82F6'}
+                      px={2}
+                      py={0.5}
+                      borderRadius="md"
+                      fontSize="xs"
+                    >
+                      {user.role}
+                    </Badge>
+                  </Flex>
+                  <Flex justify="space-between" align="center">
+                    <Text fontSize="xs" color="#64748B">
+                      {user.email}
+                    </Text>
+                    <Text fontSize="xs" color="#94A3B8">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric'
+                      }) : 'N/A'}
+                    </Text>
+                  </Flex>
+                </Box>
+              ))}
+            </VStack>
+          ) : (
+            <Box textAlign="center" py={8}>
+              <Icon as={FiUsers} boxSize={10} color="#E2E8F0" mb={2} />
+              <Text color="#64748B" fontSize="sm">No users yet</Text>
+            </Box>
+          )}
+        </Box>
+      </Grid>
     </Box>
   )
 }
@@ -404,34 +822,6 @@ function QuickStatCard({ label, value, icon, color, loading }) {
         </HStack>
       </Skeleton>
     </Box>
-  )
-}
-
-function StatusBadges({ byStatus = {} }) {
-  const entries = Object.entries(byStatus)
-  if (!entries.length) return <Text color="#64748B">No orders yet</Text>
-  return (
-    <HStack wrap="wrap" spacing={2} rowGap={2}>
-      {entries.map(([k, v]) => {
-        const color = getStatusColor(k)
-        return (
-          <Badge 
-            key={k} 
-            bg={`${color}15`}
-            color={color}
-            border="1px solid"
-            borderColor={`${color}30`}
-            px={3} 
-            py={1.5} 
-            borderRadius="md"
-            fontWeight="semibold"
-            fontSize="sm"
-          >
-            {k}: {v}
-          </Badge>
-        )
-      })}
-    </HStack>
   )
 }
 

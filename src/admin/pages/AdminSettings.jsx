@@ -1,6 +1,6 @@
-import { Box, Button, Heading, HStack, Icon, Input, Text, VStack } from '@chakra-ui/react'
+import { Box, Button, Heading, Icon, Input, Text, VStack } from '@chakra-ui/react'
 import { useState } from 'react'
-import { FiSave, FiSettings } from 'react-icons/fi'
+import { FiSave } from 'react-icons/fi'
 import { toaster } from '../../components/ui/toaster'
 
 export default function AdminSettings() {
@@ -16,12 +16,7 @@ export default function AdminSettings() {
     <Box>
       {/* Header */}
       <Box mb={8}>
-        <HStack spacing={3} mb={2}>
-          <Box p={2} bg="#3B82F615" borderRadius="lg">
-            <Icon as={FiSettings} boxSize={6} color="#3B82F6" />
-          </Box>
-          <Heading size="2xl" fontWeight="black" color="#1E3A8A">Settings</Heading>
-        </HStack>
+        <Heading size="2xl" fontWeight="black" color="#1E3A8A">Settings</Heading>
         <Text color="#64748B">Manage your store configuration</Text>
       </Box>
 
