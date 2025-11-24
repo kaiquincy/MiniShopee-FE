@@ -1,18 +1,39 @@
-import { Box, Container, Flex, Text } from '@chakra-ui/react';
-import { Outlet, useLocation } from 'react-router-dom';
-import Header from './Header';
+// Layout.jsx - With ThemeProvider wrapping everything
+
+import { Box, Container, Flex, Text } from '@chakra-ui/react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { ThemeProvider } from '../context/ThemeContext'
+import Header from './Header'
 
 export default function Layout() {
-  const location = useLocation();
-  const isLandingPage = location.pathname === '/'; // index route
+  const location = useLocation()
+  const isLandingPage = location.pathname === '/'
+  
   return (
-    <Box display="flex" flexDirection="column" justifyContent="space-between" position="relative" minH="100vh" pt={isLandingPage ? 0 : 16}>
+    <ThemeProvider>
+      <LayoutContent isLandingPage={isLandingPage} />
+    </ThemeProvider>
+  )
+}
+
+function LayoutContent({ isLandingPage }) {
+  
+  return (
+    <Box 
+      display="flex" 
+      flexDirection="column" 
+      justifyContent="space-between" 
+      position="relative" 
+      minH="100vh" 
+      pt={isLandingPage ? 0 : 16}
+    >
       <Box>
         <Header />
         <Container py={0} px={0} mx={0} maxW="100vw">
           <Outlet />
         </Container>
       </Box>
+      
       {/* Footer */}
       <Box zIndex={1000} as="footer" bg="black" color="gray.300" py={10}>
         <Container maxW="7xl">
@@ -61,7 +82,6 @@ export default function Layout() {
           </Box>
         </Container>
       </Box>
-
     </Box>
   )
 }

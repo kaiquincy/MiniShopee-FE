@@ -21,6 +21,7 @@ import { placeOrder } from '../api/orders'
 // Icons
 import { FiArrowLeft, FiCreditCard, FiMapPin, FiPackage, FiPlus, FiShoppingBag, FiTag } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import { useCart } from '../context/CartContext'
 
 // ============= Helpers =============
 const currency = (n = 0) => '$' + (n || 0).toLocaleString('en-US')
@@ -28,9 +29,11 @@ const currency = (n = 0) => '$' + (n || 0).toLocaleString('en-US')
 // ============= Main =============
 export default function Checkout() {
   const nav = useNavigate()
+  const { reloadCart } = useCart()
   
   // Phương thức thanh toán
   const [method, setMethod] = useState('PAYOS')
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
 
   // Giỏ hàng
   const [cart, setCart] = useState(null)
@@ -104,19 +107,45 @@ export default function Checkout() {
       toaster.create({ type: 'warning', description: 'Your cart is empty' })
       return
     }
+
+    setIsPlacingOrder(true)
+    
     try {
+      // Send the request with the correct format matching OrderRequest DTO
       const res = await placeOrder(method)
       const result = res?.result || res
       const link = result?.paymentLink || result?.checkoutUrl
       const orderId = result?.orderId || result?.id
 
+      // If there's a payment link (external payment gateway), redirect to it
       if (link) {
         window.location.assign(link)
         return
       }
-      toaster.create({ type: 'success', description: `Order placed successfully #${orderId || ''}` })
+
+      // Order placed successfully (COD or immediate payment)
+      toaster.create({ 
+        type: 'success', 
+        title: 'Order Placed Successfully!',
+        description: `Order #${orderId || ''} has been created` 
+      })
+
+      // Reload cart to update the header badge
+      await reloadCart()
+
+      // Wait a moment for the user to see the success message
+      setTimeout(() => {
+        // Redirect to orders page
+        nav('/orders')
+      }, 1500)
+
     } catch (e) {
-      toaster.create({ type: 'error', description: 'Payment failed' })
+      setIsPlacingOrder(false)
+      toaster.create({ 
+        type: 'error', 
+        title: 'Payment Failed',
+        description: e?.message || 'Unable to process your order. Please try again.' 
+      })
       console.error(e)
     }
   }
@@ -154,6 +183,7 @@ export default function Checkout() {
             color="#495057"
             _hover={{ bg: "#F8F9FA" }}
             fontWeight="semibold"
+            disabled={isPlacingOrder}
           >
             Back to Cart
           </Button>
@@ -206,6 +236,7 @@ export default function Checkout() {
                   _hover={{ bg:'#F8F9FA', borderColor: '#495057' }} 
                   onClick={() => setAddrOpen(true)}
                   transition="all 0.2s"
+                  disabled={isPlacingOrder}
                 >
                   <FiPlus size={28} color="#495057" />
                 </Flex>
@@ -241,6 +272,7 @@ export default function Checkout() {
                     color="#495057"
                     _hover={{ bg: "white" }}
                     onClick={() => setAddrOpen(true)}
+                    disabled={isPlacingOrder}
                   >
                     Change
                   </Button>
@@ -336,6 +368,7 @@ export default function Checkout() {
                 borderColor="#DEE2E6"
                 _hover={{ borderColor: "#ADB5BD" }}
                 _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                disabled={isPlacingOrder}
               />
               <Button 
                 onClick={applyVoucher}
@@ -344,6 +377,7 @@ export default function Checkout() {
                 _hover={{ bg: "#343A40" }}
                 fontWeight="semibold"
                 px={6}
+                disabled={isPlacingOrder}
               >
                 Apply
               </Button>
@@ -437,7 +471,11 @@ export default function Checkout() {
               Payment Method
             </Heading>
 
-            <RadioGroup value={method} onValueChange={(e) => setMethod(e.value)}>
+            <RadioGroup 
+              value={method} 
+              onValueChange={(e) => setMethod(e.value)}
+              disabled={isPlacingOrder}
+            >
               <Flex direction="column" gap={3}>
                 <Box 
                   p={3} 
@@ -446,6 +484,7 @@ export default function Checkout() {
                   borderRadius="lg"
                   bg={method === 'PAYOS' ? '#F8F9FA' : 'white'}
                   transition="all 0.2s"
+                  opacity={isPlacingOrder ? 0.6 : 1}
                 >
                   <Radio value="PAYOS">
                     <Text fontWeight="semibold" color="#212529">PayOS</Text>
@@ -460,6 +499,7 @@ export default function Checkout() {
                   borderRadius="lg"
                   bg={method === 'VISA' ? '#F8F9FA' : 'white'}
                   transition="all 0.2s"
+                  opacity={isPlacingOrder ? 0.6 : 1}
                 >
                   <Radio value="VISA">
                     <Text fontWeight="semibold" color="#212529">Visa/Mastercard</Text>
@@ -474,6 +514,7 @@ export default function Checkout() {
                   borderRadius="lg"
                   bg={method === 'COD' ? '#F8F9FA' : 'white'}
                   transition="all 0.2s"
+                  opacity={isPlacingOrder ? 0.6 : 1}
                 >
                   <Radio value="COD">
                     <Text fontWeight="semibold" color="#212529">Cash on Delivery</Text>
@@ -494,6 +535,9 @@ export default function Checkout() {
             fontWeight="bold"
             onClick={doPay}
             py={6}
+            loading={isPlacingOrder}
+            loadingText="Processing..."
+            disabled={isPlacingOrder}
           >
             Place Order
           </Button>

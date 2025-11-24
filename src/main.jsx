@@ -1,13 +1,14 @@
-import './polyfills' 
 import { ChakraProvider } from '@chakra-ui/react'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
-import system from './theme.js'
-import { AuthProvider } from './context/AuthContext.jsx'
+import { ColorModeProvider } from './components/ui/color-mode.jsx'
 import { Toaster } from './components/ui/toaster.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartContext'
+import './polyfills'
+import system from './theme.js'
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -16,8 +17,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <BrowserRouter>
         <AuthProvider>
           <CartProvider>
-            <App />
-            <Toaster />
+            <ColorModeProvider>
+              <App />
+              <Toaster />
+            </ColorModeProvider>
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>

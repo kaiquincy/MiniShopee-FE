@@ -35,8 +35,10 @@ import ProductCard from '../components/ProductCard'
 import { toaster } from '../components/ui/toaster'
 import { Tooltip } from '../components/ui/Tooltip'
 import { useCart } from '../context/CartContext'
+import { useTheme } from '../context/ThemeContext'
 
 export default function ProductDetail() {
+  const { theme } = useTheme()
   const { id } = useParams()
   const navigate = useNavigate()
   const [p, setP] = useState(null)
@@ -44,7 +46,7 @@ export default function ProductDetail() {
 
   // Ratings + pageable
   const [ratings, setRatings] = useState([])
-  const [ratingPage, setRatingPage] = useState(0)               // 0-based
+  const [ratingPage, setRatingPage] = useState(0)
   const [ratingSize, setRatingSize] = useState(5)
   const [ratingSortKey, setRatingSortKey] = useState('createdAtDesc');
 
@@ -66,7 +68,7 @@ export default function ProductDetail() {
 
   // selections: { [groupName]: optionValue }
   const [sel, setSel] = useState({})
-  const [activeIdx, setActiveIdx] = useState(0) // ảnh Watching
+  const [activeIdx, setActiveIdx] = useState(0)
 
   const { isOpen, onOpen, onClose } = useDisclosure()
 
@@ -110,23 +112,18 @@ export default function ProductDetail() {
     return () => { mounted = false }
   }, [id])
 
-
-
-  // ===== similar products by category (priceBand mặc định null -> bỏ lọc giá) =====
+  // ===== similar products by category =====
   useEffect(() => {
     let alive = true
     setLoadingSimilar(true)
-    getSimilarProducts(id, { limit: 12 /*, priceBand: undefined*/ })
+    getSimilarProducts(id, { limit: 12 })
       .then(list => { if (alive) setSimilar(list || []) })
       .catch(() => { if (alive) setSimilar([]) })
       .finally(() => { if (alive) setLoadingSimilar(false) })
     return () => { alive = false }
   }, [id])
 
-
-
-
-  // ===== ratings like counts from payload (fallback 0) =====
+  // ===== ratings like counts from payload =====
   useEffect(() => {
     const nextCounts = {}
     const nextLiked = new Set()
@@ -158,7 +155,7 @@ export default function ProductDetail() {
     } finally {
       setLoadingRatings(false)
     }
-  }, [id, ratingSize, ratingSort])
+  }, [id, ratingSize, backendSort])
 
   // Reset khi đổi id/sort/size
   useEffect(() => {
@@ -169,7 +166,7 @@ export default function ProductDetail() {
     loadRatings(0, false)
   }, [id, ratingSort, ratingSize, loadRatings])
 
-  // Infinite scroll (tùy chọn)
+  // Infinite scroll
   useEffect(() => {
     const el = moreRef.current
     if (!el) return
@@ -225,7 +222,6 @@ export default function ProductDetail() {
 
   const mainImg = useMemo(() => {
     if (!p) return 'https://via.placeholder.com/800x600?text=Loading'
-    // nếu biến thể có ảnh riêng => ưu tiên
     if (p.variants && Object.keys(sel).length) {
       const v = matchedVariant(p, sel)
       if (v?.imageUrl) return imgBase + v.imageUrl
@@ -233,7 +229,6 @@ export default function ProductDetail() {
     return p.imageUrl ? (imgBase + p.imageUrl) : 'https://via.placeholder.com/800x600?text=No+Image'
   }, [p, sel])
 
-  // danh sách thumbnail (ảnh chính + ảnh biến thể có ảnh)
   const thumbs = useMemo(() => {
     if (!p) return [mainImg]
     const set = new Set()
@@ -248,7 +243,6 @@ export default function ProductDetail() {
   const avgLabel = avg.toFixed(1)
   const count = ratingSummary?.totalRatings || 0
 
-  // ===== Variant helpers =====
   const groups = (p?.variantGroups || []).slice().sort((a,b) => (a.sortOrder||0)-(b.sortOrder||0))
 
   function matchedVariant(product, selection) {
@@ -300,7 +294,7 @@ export default function ProductDetail() {
     return (
       <HStack gap={0.5}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <Icon key={i} boxSize="14px" color={i < full ? 'yellow.400' : 'gray.300'}>
+          <Icon key={i} boxSize="14px" color={i < full ? 'yellow.400' : theme.isLight ? 'gray.300' : 'gray.600'}>
             <LuStar />
           </Icon>
         ))}
@@ -308,14 +302,11 @@ export default function ProductDetail() {
     )
   }
 
-
-
-
   return (
-    <Box w="full" px={{ base: 4, sm: 6, md: 10, lg: 24 }} py={{ base: 6, md: 8 }}>
-      {/* Breadcrumb đơn giản */}
-      <HStack gap={2} color="gray.500" fontSize="sm" mb={4}>
-        <Button variant="ghost" size="xs" onClick={() => navigate(-1)}>← Trở lại</Button>
+    <Box w="full" px={{ base: 4, sm: 6, md: 10, lg: 24 }} py={{ base: 6, md: 8 }} bg={theme.pageBg} minH="100vh">
+      {/* Breadcrumb */}
+      <HStack gap={2} color={theme.textMuted} fontSize="sm" mb={4}>
+        <Button variant="ghost" size="xs" onClick={() => navigate(-1)} color={theme.textSecondary} _hover={{ bg: theme.hoverBg }}>← Back</Button>
         <Text>•</Text>
         <Text noOfLines={1}>{p?.categoryName || '...'}</Text>
         <Text>›</Text>
@@ -323,14 +314,16 @@ export default function ProductDetail() {
       </HStack>
 
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 6, md: 10 }}>
-        {/* Cột trái: gallery */}
+        {/* Gallery */}
         <VStack align="stretch" gap={4}>
           <Box
             position="relative"
             borderRadius="xl"
             boxShadow="sm"
             p={{ base: 1.5, md: 2 }}
-            bgGradient="linear(to-br, white, gray.50)"
+            bg={theme.cardBg}
+            border="1px solid"
+            borderColor={theme.border}
             role="group"
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight') nextImg()
@@ -357,16 +350,35 @@ export default function ProductDetail() {
             <HStack
               position="absolute"
               top="50%"
-              left={0}
-              right={0}
+              left={4}
+              right={4}
               px={2}
               justify="space-between"
               transform="translateY(-50%)"
+              opacity={0.75}
             >
-              <IconButton aria-label="Ảnh trước" onClick={prevImg} size="sm" variant="ghost">
+              <IconButton 
+                aria-label="Ảnh trước" 
+                onClick={prevImg} 
+                size="sm"
+                variant="ghost"
+                bg={theme.cardBg}
+                color={theme.text}
+                _hover={{ bg: theme.hoverBg }}
+                borderRadius="50%"
+              >
                 <LuChevronLeft />
               </IconButton>
-              <IconButton aria-label="Ảnh sau" onClick={nextImg} size="sm" variant="ghost">
+              <IconButton 
+                aria-label="Ảnh sau" 
+                onClick={nextImg} 
+                size="sm" 
+                variant="ghost"
+                bg={theme.cardBg}
+                color={theme.text}
+                _hover={{ bg: theme.hoverBg }}
+                borderRadius="50%"
+              >
                 <LuChevronRight />
               </IconButton>
             </HStack>
@@ -392,17 +404,18 @@ export default function ProductDetail() {
                   borderRadius="md"
                   overflow="hidden"
                   cursor="pointer"
-                  outline={active ? '2px solid var(--chakra-colors-brand-500, #3182CE)' : '1px solid var(--chakra-colors-gray-200)'}
+                  outline={active ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`}
                   transition="all .2s ease"
                   _hover={{ transform: 'translateY(-2px)' }}
                   flex="0 0 88px"
                   position="relative"
+                  bg={theme.cardBg}
                 >
                   <AspectRatio ratio={1}>
                     <Image src={src} alt={`thumb-${idx}`} objectFit="cover"/>
                   </AspectRatio>
                   {active && (
-                    <Badge position="absolute" top={1} left={1} borderRadius="full" px="2">
+                    <Badge position="absolute" top={1} left={1} borderRadius="full" px="2" colorPalette="blue">
                       Watching
                     </Badge>
                   )}
@@ -412,24 +425,26 @@ export default function ProductDetail() {
           </HStack>
         </VStack>
 
-        {/* Cột phải: panel mua hàng (sticky) */}
+        {/* Purchase Panel */}
         <Box
           position={{ base: 'static', lg: 'sticky' }}
           top={{ lg: 24 }}
           alignSelf="start"
-          bg="white"
+          bg={theme.cardBg}
           borderRadius="2xl"
           boxShadow="md"
+          border="1px solid"
+          borderColor={theme.border}
           p={{ base: 4, md: 6 }}
         >
           <VStack align="stretch" gap={5}>
             <Skeleton loading={loading}>
-              <Heading size="lg" lineHeight="1.2">{p?.name}</Heading>
+              <Heading size="lg" lineHeight="1.2" color={theme.text}>{p?.name}</Heading>
             </Skeleton>
 
-            {/* Rating + số đánh giá */}
-            <HStack color="gray.600" gap={3}>
-              <Badge borderRadius="full" px="2.5" py="0.5" fontWeight="semibold">{avgLabel}★</Badge>
+            {/* Rating */}
+            <HStack color={theme.textSecondary} gap={3}>
+              <Badge borderRadius="full" px="2.5" py="0.5" fontWeight="semibold" colorPalette="yellow">{avgLabel}★</Badge>
               {renderStars(avg)}
               <Text>({count} đánh giá)</Text>
               {(() => {
@@ -447,10 +462,10 @@ export default function ProductDetail() {
               })()}
             </HStack>
 
-            {/* Giá */}
+            {/* Price */}
             <Box>
               <HStack gap={3} align="baseline" wrap="wrap">
-                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color="brand.700">
+                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color={theme.accent}>
                   {priceFmt(Number(effectivePrice || 0))} USD
                 </Text>
                 {(() => {
@@ -458,32 +473,32 @@ export default function ProductDetail() {
                   const pct = Math.max(0, Math.round(100 - (Number(effectivePrice) / (Number(basePrice) || 1)) * 100))
                   return showStrike && (
                     <HStack gap={2}>
-                      <Text as="s" color="gray.500">{priceFmt(Number(basePrice || 0))} USD</Text>
+                      <Text as="s" color={theme.textMuted}>{priceFmt(Number(basePrice || 0))} USD</Text>
                       <Badge colorPalette="red">-{pct}%</Badge>
                     </HStack>
                   )
                 })()}
               </HStack>
               {p?.shortDescription && (
-                <Text mt={2} color="gray.700">{p.shortDescription}</Text>
+                <Text mt={2} color={theme.textSecondary}>{p.shortDescription}</Text>
               )}
             </Box>
 
-            {/* Mô tả */}
+            {/* Description */}
             {!!p?.description && (
-              <Text color="gray.700" noOfLines={{ base: 5, md: 6 }}>
+              <Text color={theme.textSecondary} noOfLines={{ base: 5, md: 6 }}>
                 {p.description}
               </Text>
             )}
 
-            {/* Select biến thể */}
+            {/* Variant Selection */}
             {!!groups.length && (
               <VStack align="stretch" gap={4}>
                 {groups.map((g) => (
                   <Box key={g.id}>
                     <HStack justify="space-between" mb={2}>
-                      <Text fontWeight="medium">{g.name}</Text>
-                      {sel[g.name] && <Text color="gray.600">Đã chọn: <b>{sel[g.name]}</b></Text>}
+                      <Text fontWeight="medium" color={theme.text}>{g.name}</Text>
+                      {sel[g.name] && <Text color={theme.textSecondary}>Đã chọn: <b>{sel[g.name]}</b></Text>}
                     </HStack>
                     <Wrap>
                       {(g.options||[]).map((op) => {
@@ -500,6 +515,10 @@ export default function ProductDetail() {
                                   : { ...prev, [g.name]: op.value }))}
                                 isDisabled={!available}
                                 borderRadius="full"
+                                bg={active ? theme.primary : 'transparent'}
+                                color={active ? 'white' : theme.text}
+                                borderColor={theme.border}
+                                _hover={{ bg: active ? theme.primaryHover : theme.hoverBg }}
                                 _disabled={{ opacity: 0.4, cursor: 'not-allowed', textDecoration: 'line-through' }}
                                 aria-pressed={active}
                                 role="radio"
@@ -516,8 +535,8 @@ export default function ProductDetail() {
               </VStack>
             )}
 
-            {/* SKU & tồn + tiện ích */}
-            <HStack color="gray.600" fontSize="sm" wrap="wrap" gap={3}>
+            {/* SKU & Stock Info */}
+            <HStack color={theme.textMuted} fontSize="sm" wrap="wrap" gap={3}>
               <Text>Mã SKU: <b>{selectedVariant?.skuCode || p?.sku || '—'}</b></Text>
               <Text>•</Text>
               <Text>Tồn: <b>{selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)}</b></Text>
@@ -533,9 +552,9 @@ export default function ProductDetail() {
               </HStack>
             </HStack>
 
-            <Separator />
+            <Separator borderColor={theme.border} />
 
-            {/* Số lượng + hành động */}
+            {/* Quantity + Actions */}
             <Stack direction={{ base: 'column', sm: 'row' }} gap={4} align="center">
               <NumberInput.Root
                 size="sm"
@@ -546,8 +565,8 @@ export default function ProductDetail() {
                 w={{ base: 'full', sm: '120px' }}
                 aria-label="Số lượng"
               >
-                <NumberInput.Control/>
-                <NumberInput.Input />
+                <NumberInput.Control bg={theme.inputBg} borderColor={theme.border} />
+                <NumberInput.Input bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
               </NumberInput.Root>
 
               <Button
@@ -555,90 +574,80 @@ export default function ProductDetail() {
                 isDisabled={!canAdd}
                 w={{ base: 'full', sm: 'auto' }}
                 size="md"
+                bg={theme.primary}
+                color="white"
+                _hover={{ bg: theme.primaryHover }}
               >
                 <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
               </Button>
 
               <Tooltip content={hasCopied ? 'Đã sao chép link' : 'Sao chép link sản phẩm'} openDelay={200}>
-                <IconButton aria-label="Share" variant="outline" onClick={onCopy}>
+                <IconButton 
+                  aria-label="Share" 
+                  variant="outline" 
+                  onClick={onCopy}
+                  borderColor={theme.border}
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }}
+                >
                   <LuCopy />
                 </IconButton>
               </Tooltip>
             </Stack>
 
-            {/* Gợi ý phím tắt nhỏ */}
-            <HStack color="gray.500" fontSize="xs">
+            {/* Keyboard shortcuts */}
+            <HStack color={theme.textMuted} fontSize="xs">
               <Text>Điều hướng ảnh:</Text>
-              <Kbd>←</Kbd><Text>/</Text><Kbd>→</Kbd>
+              <Kbd bg={theme.secondaryBg} color={theme.text}>←</Kbd>
+              <Text>/</Text>
+              <Kbd bg={theme.secondaryBg} color={theme.text}>→</Kbd>
             </HStack>
           </VStack>
         </Box>
       </SimpleGrid>
 
-      {/* Đánh giá */}
+      {/* Ratings Section */}
       <Box mt={{ base: 8, md: 12 }}>
         <HStack justify="space-between" align="center" mb={3}>
-        <HStack gap={2} align="center">
-            <Icon as={LuStar} color="yellow.400" boxSize={5} />  {/* Icon sao để thu hút */}
-            <Heading size="md" lineHeight="1.2">
-              Ratings {ratingSummary && `(${avgLabel}★)`}  {/* Tích hợp avg */}
+          <HStack gap={2} align="center">
+            <Icon as={LuStar} color="yellow.400" boxSize={5} />
+            <Heading size="md" lineHeight="1.2" color={theme.text}>
+              Ratings {ratingSummary && `(${avgLabel}★)`}
             </Heading>
           </HStack>
 
-
           <HStack gap={3}>
-            {/* <Text color="gray.600" fontSize="sm">
-              {ratings.length}/{ratingTotal} mục
-            </Text> */}
-            {/* <SelectRoot
-              value={[String(ratingSize)]}
-              onValueChange={(e) => {
-                const raw = e.value?.[0];
-                const next = parseInt(raw ?? '', 10);
-                if (!Number.isNaN(next)) setRatingSize(next);
-              }}
-            >
-              <SelectTrigger w="140px" bg="white">
-                <SelectValueText placeholder="Số dòng / trang" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem item="5">5/trang</SelectItem>
-                <SelectItem item="10">10/trang</SelectItem>
-                <SelectItem item="20">20/trang</SelectItem>
-              </SelectContent>
-            </SelectRoot> */}
-
-
             <SelectRoot
               value={[ratingSortKey]}
               onValueChange={(e) => setRatingSortKey(e.value?.[0] || 'createdAtDesc')}
               position="relative"
             >
-              <SelectTrigger w="220px" bg="white">
+              <SelectTrigger w="220px" bg={theme.cardBg} color={theme.text} borderColor={theme.border}>
                 <SelectValueText placeholder="Sắp xếp" />
               </SelectTrigger>
-              <SelectContent position="absolute" width="220px" top="120%">
-                <SelectItem cursor="pointer" item="createdAtDesc">Mới nhất</SelectItem>
-                <SelectItem cursor="pointer" item="createdAtAsc">Cũ nhất</SelectItem>
-                <SelectItem cursor="pointer" item="likeCountDesc">Hữu ích nhất</SelectItem>
-                <SelectItem cursor="pointer" item="starsDesc">Sao cao → thấp</SelectItem>
-                <SelectItem cursor="pointer" item="starsAsc">Sao thấp → cao</SelectItem>
+              <SelectContent position="absolute" width="220px" top="120%" bg={theme.cardBg} borderColor={theme.border}>
+                <SelectItem cursor="pointer" item="createdAtDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Mới nhất</SelectItem>
+                <SelectItem cursor="pointer" item="createdAtAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Cũ nhất</SelectItem>
+                <SelectItem cursor="pointer" item="likeCountDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Hữu ích nhất</SelectItem>
+                <SelectItem cursor="pointer" item="starsDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Sao cao → thấp</SelectItem>
+                <SelectItem cursor="pointer" item="starsAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Sao thấp → cao</SelectItem>
               </SelectContent>
             </SelectRoot>
-
           </HStack>
         </HStack>
-        <Separator mb={4} />
+        <Separator mb={4} borderColor={theme.border} />
 
         <VStack align="stretch" gap={3}>
           {ratings.map(r => (
             <Box
               key={r.id}
-              bg="white"
+              bg={theme.cardBg}
               p={4}
               borderRadius="lg"
               boxShadow="sm"
-              _hover={{ boxShadow: 'md' }}
+              border="1px solid"
+              borderColor={theme.border}
+              _hover={{ boxShadow: 'md', borderColor: theme.borderLight }}
             >
               <HStack justify="space-between" align="start">
                 <HStack>
@@ -649,12 +658,12 @@ export default function ProductDetail() {
 
                   <VStack align="start" gap={0}>
                     <HStack>
-                      <Badge>{r.stars}★</Badge>
-                      <Text color="gray.700" fontWeight="medium">
+                      <Badge colorPalette="yellow">{r.stars}★</Badge>
+                      <Text color={theme.text} fontWeight="medium">
                         {r.anonymous ? 'Người dùng ẩn danh' : (r.username || 'User')}
                       </Text>
                     </HStack>
-                    <Text color="gray.500" fontSize="xs">
+                    <Text color={theme.textMuted} fontSize="xs">
                       {new Date(r.createdAt).toLocaleString()}
                     </Text>
                   </VStack>
@@ -671,16 +680,16 @@ export default function ProductDetail() {
                   >
                     <LuThumbsUp />
                   </IconButton>
-                  <Text fontSize="sm" color="gray.700" minW="1.5ch" textAlign="right">
+                  <Text fontSize="sm" color={theme.textSecondary} minW="1.5ch" textAlign="right">
                     {likeCounts[r.id] ?? 0}
                   </Text>
                 </HStack>
               </HStack>
 
-              {/* Nội dung bình luận */}
-              {!!r.comment && <Text mt={2} color="gray.800">{r.comment}</Text>}
+              {/* Comment */}
+              {!!r.comment && <Text mt={2} color={theme.text}>{r.comment}</Text>}
 
-              {/* Ảnh đính kèm */}
+              {/* Images */}
               {!!r.imageUrls?.length && (
                 <Wrap mt={3} gap={2}>
                   {r.imageUrls.map((img, i) => (
@@ -689,7 +698,7 @@ export default function ProductDetail() {
                         borderRadius="md"
                         overflow="hidden"
                         border="1px solid"
-                        borderColor="gray.200"
+                        borderColor={theme.border}
                         cursor="zoom-in"
                         onClick={() => onOpen()}
                       >
@@ -704,10 +713,10 @@ export default function ProductDetail() {
             </Box>
           ))}
 
-          {loadingRatings && <Text color="gray.500">Đang tải...</Text>}
-          {(!loadingRatings && ratings.length === 0) && <Text color="gray.500">Chưa có đánh giá</Text>}
+          {loadingRatings && <Text color={theme.textMuted}>Đang tải...</Text>}
+          {(!loadingRatings && ratings.length === 0) && <Text color={theme.textMuted}>Chưa có đánh giá</Text>}
 
-          {/* Footer: nút xem thêm + sentinel cho infinite scroll */}
+          {/* Load more */}
           {ratingHasMore && (
             <VStack>
               <Button
@@ -715,6 +724,9 @@ export default function ProductDetail() {
                 isLoading={loadingRatings}
                 variant="outline"
                 size="sm"
+                borderColor={theme.border}
+                color={theme.text}
+                _hover={{ bg: theme.hoverBg }}
               >
                 Xem thêm
               </Button>
@@ -724,33 +736,31 @@ export default function ProductDetail() {
         </VStack>
       </Box>
 
-
-
-
-
-      {/* Sản phẩm tương tự */}
+      {/* Similar Products */}
       <Box mt={{ base: 10, md: 12 }}>
-      <HStack justify="space-between" align="center" mb={3}>
-        <HStack gap={2} align="center">
-          <Icon as={LuPackage} color="brand.500" boxSize={5} />  {/* Icon sản phẩm để thu hút, dùng brand color cho unify */}
-          <Heading size="md" lineHeight="1.2">
-            Similar products {similar.length > 0 && `(${similar.length})`}  {/* Tích hợp count */}
-          </Heading>
+        <HStack justify="space-between" align="center" mb={3}>
+          <HStack gap={2} align="center">
+            <Icon as={LuPackage} color={theme.accent} boxSize={5} />
+            <Heading size="md" lineHeight="1.2" color={theme.text}>
+              Similar products {similar.length > 0 && `(${similar.length})`}
+            </Heading>
+          </HStack>
+          
+          {p?.categoryIds?.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/category/${p.categoryIds[0]}`)}
+              color={theme.textSecondary}
+              _hover={{ bg: theme.hoverBg, color: theme.text }}
+            >
+              See all →
+            </Button>
+          )}
         </HStack>
-        
-        {p?.categoryIds?.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(`/category/${p.categoryIds[0]}`)}
-          >
-            See all →
-          </Button>
-        )}
-      </HStack>
 
         <Box position="relative">
-          {/* Nút cuộn trái/phải (ẩn trên mobile) */}
+          {/* Scroll buttons */}
           <IconButton
             aria-label="Prev"
             variant="ghost"
@@ -761,6 +771,9 @@ export default function ProductDetail() {
             onClick={() => { if (railRef.current) railRef.current.scrollBy({ left: -320, behavior: 'smooth' }) }}
             display={{ base: 'none', md: 'flex' }}
             zIndex={1}
+            bg={theme.cardBg}
+            color={theme.text}
+            _hover={{ bg: theme.hoverBg }}
           >
             <LuChevronLeft />
           </IconButton>
@@ -775,6 +788,9 @@ export default function ProductDetail() {
             onClick={() => { if (railRef.current) railRef.current.scrollBy({ left: 320, behavior: 'smooth' }) }}
             display={{ base: 'none', md: 'flex' }}
             zIndex={1}
+            bg={theme.cardBg}
+            color={theme.text}
+            _hover={{ bg: theme.hoverBg }}
           >
             <LuChevronRight />
           </IconButton>
@@ -787,29 +803,17 @@ export default function ProductDetail() {
             px={1}
             sx={{ scrollbarWidth: 'thin' }}
           >
-            {/* {loadingSimilar && Array.from({ length: 6 }).map((_, i) => (
-              <Box key={i} w="190px" flex="0 0 auto" bg="white" borderRadius="xl" boxShadow="sm" p="1.5">
-                <Skeleton>
-                  <AspectRatio ratio={1} borderRadius="lg" />
-                </Skeleton>
-                <VStack align="stretch" gap={1} mt="2">
-                  <Skeleton h="18px" />
-                  <Skeleton h="18px" w="70%" />
-                  <Skeleton h="16px" w="40%" />
-                </VStack>
-              </Box>
-            ))} */}
-
             {!loadingSimilar && similar.length === 0 && (
-              <Text color="gray.500" px="2">Không tìm thấy sản phẩm tương tự.</Text>
+              <Text color={theme.textMuted} px="2">Không tìm thấy sản phẩm tương tự.</Text>
             )}
 
-            <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} gap={4} mb={6}>
+            <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} gap={4} mb={6} w="full">
               {!loadingSimilar && similar.map(item => (
                 <ProductCard
                   key={item.id}
                   p={item}
                   onAdd={() => navigate(`/product/${item.id}`)}
+                  theme={theme}
                 />
               ))}
             </SimpleGrid>
@@ -817,25 +821,25 @@ export default function ProductDetail() {
         </Box>
       </Box>
 
-
-      {/* Sticky action bar (mobile) */}
+      {/* Sticky Mobile Action Bar */}
       <Box
         display={{ base: 'block', md: 'none' }}
         position="fixed"
         bottom={0}
         left={0}
         right={0}
-        bg="white"
+        bg={theme.cardBg}
         boxShadow="0 -6px 24px rgba(0,0,0,.06)"
+        borderTop="1px solid"
+        borderColor={theme.border}
         p={3}
         zIndex={1000}
       >
         <HStack justify="space-between">
           <VStack align="start" gap={0}>
-
-            <Text fontSize="md" fontWeight="bold">{priceFmt(Number(effectivePrice || 0))} USD</Text>
+            <Text fontSize="md" fontWeight="bold" color={theme.text}>{priceFmt(Number(effectivePrice || 0))} USD</Text>
             {(hasDiscount || (basePrice && basePrice > effectivePrice)) && (
-              <HStack gap={2} fontSize="xs" color="gray.500">
+              <HStack gap={2} fontSize="xs" color={theme.textMuted}>
                 <Text as="s">{priceFmt(Number(basePrice || 0))} USD</Text>
                 <Badge colorPalette="red">
                   -{Math.max(0, Math.round(100 - (Number(effectivePrice) / (Number(basePrice) || 1)) * 100))}%
@@ -843,7 +847,15 @@ export default function ProductDetail() {
               </HStack>
             )}
           </VStack>
-          <Button leftIcon={<LuShoppingCart size={20} />} size="md" onClick={handleAddToCart} isDisabled={!canAdd}>
+          <Button 
+            leftIcon={<LuShoppingCart size={20} />} 
+            size="md" 
+            onClick={handleAddToCart} 
+            isDisabled={!canAdd}
+            bg={theme.primary}
+            color="white"
+            _hover={{ bg: theme.primaryHover }}
+          >
             <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
           </Button>
         </HStack>
@@ -857,11 +869,18 @@ export default function ProductDetail() {
         placement="center"
       >
         <Portal>
-          <Dialog.Backdrop />
+          <Dialog.Backdrop bg={theme.isLight ? 'blackAlpha.600' : 'blackAlpha.800'} />
           <Dialog.Positioner>
             <Dialog.Content bg="transparent" boxShadow="none" p={0}>
               <Dialog.CloseTrigger asChild>
-                <CloseButton bg="white" _hover={{ bg: 'gray.100' }} position="absolute" top="2" right="2" />
+                <CloseButton 
+                  bg={theme.cardBg} 
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }} 
+                  position="absolute" 
+                  top="2" 
+                  right="2" 
+                />
               </Dialog.CloseTrigger>
               <Dialog.Body p={0}>
                 <AspectRatio ratio={1}>
@@ -869,7 +888,7 @@ export default function ProductDetail() {
                     src={thumbs[activeIdx] || mainImg}
                     alt={p?.name}
                     objectFit="contain"
-                    bg="black"
+                    bg={theme.isLight ? 'black' : theme.cardBg}
                   />
                 </AspectRatio>
               </Dialog.Body>

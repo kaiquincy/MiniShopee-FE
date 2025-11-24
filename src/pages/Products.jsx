@@ -1,3 +1,5 @@
+// Products.jsx - With Theme Support
+
 import {
   Badge,
   Box,
@@ -26,6 +28,7 @@ import CategorySidebar from '../components/CategorySidebar'
 import ProductCard from '../components/ProductCard'
 import { toaster } from '../components/ui/toaster'
 import { useCart } from '../context/CartContext'
+import { useTheme } from '../context/ThemeContext'
 
 const sortOptions = createListCollection({
   items: [
@@ -35,6 +38,8 @@ const sortOptions = createListCollection({
 })
 
 export default function Products() {
+  const { theme } = useTheme()
+  
   const [loading, setLoading] = useState(true)
   const [loadingPage, setLoadingPage] = useState(false)
   const [data, setData] = useState({ content: [], totalElements: 0 })
@@ -59,10 +64,7 @@ export default function Products() {
     size
   }), [q, category, sort, page, size])
 
-  const totalPages = useMemo(
-    () => data?.totalPages || 1,
-    [data?.totalPages]
-  )
+  const totalPages = useMemo(() => data?.totalPages || 1, [data?.totalPages])
 
   const abortRef = useRef(null)
   useEffect(() => {
@@ -92,10 +94,7 @@ export default function Products() {
   }, [query])
 
   useEffect(() => { setPage(0) }, [q, category, sort])
-
-  useEffect(() => {
-    setSearchInput(q)
-  }, [q])
+  useEffect(() => { setSearchInput(q) }, [q])
 
   const handleAdd = async (pid) => {
     try {
@@ -126,6 +125,7 @@ export default function Products() {
       return next
     })
   }
+
   const goNext = () => {
     setPage(p => {
       const next = Math.min(totalPages - 1, p + 1)
@@ -138,17 +138,17 @@ export default function Products() {
   const hasActiveFilters = !!q || !!category
 
   return (
-    <Box bg="#F8F9FA" minH="100vh" py={8}>
+    <Box bg={theme.pageBg} minH="100vh" py={8} transition="all 0.2s ease">
       <Container maxW="container.2xl">
         {/* Page Header */}
         <Box mb={8}>
           <HStack spacing={3} mb={3}>
-            <Icon as={FiGrid} boxSize={7} color="#495057" />
-            <Text fontSize="4xl" fontWeight="black" color="#212529">
+            <Icon as={FiGrid} boxSize={7} color={theme.textSecondary} />
+            <Text fontSize="4xl" fontWeight="black" color={theme.text}>
               Products
             </Text>
           </HStack>
-          <Text color="#6C757D" fontSize="lg">
+          <Text color={theme.textMuted} fontSize="lg">
             Browse and discover quality products
           </Text>
         </Box>
@@ -161,11 +161,18 @@ export default function Products() {
             position="sticky"
             top={4}
           >
-            <Box bg="white" borderRadius="lg" p={5} border="1px solid" borderColor="#DEE2E6">
-              <Text fontSize="sm" fontWeight="bold" color="#495057" mb={4} textTransform="uppercase" letterSpacing="wide">
+            <Box 
+              bg={theme.cardBg} 
+              borderRadius="lg" 
+              p={5} 
+              border="1px solid" 
+              borderColor={theme.border}
+              transition="all 0.2s ease"
+            >
+              <Text fontSize="sm" fontWeight="bold" color={theme.textSecondary} mb={4} textTransform="uppercase" letterSpacing="wide">
                 Categories
               </Text>
-              <CategorySidebar onChange={setCategory} activeId={category?.id} />
+              <CategorySidebar onChange={setCategory} activeId={category?.id} theme={theme} />
             </Box>
           </Box>
 
@@ -174,14 +181,14 @@ export default function Products() {
             {/* Active Filters */}
             {hasActiveFilters && (
               <HStack spacing={3} mb={4} flexWrap="wrap">
-                <Text fontWeight="semibold" color="#495057" fontSize="sm">
+                <Text fontWeight="semibold" color={theme.textSecondary} fontSize="sm">
                   {data.totalElements} {data.totalElements === 1 ? 'product' : 'products'} found
                 </Text>
 
                 {category && (
                   <Badge
-                    bg="#E7F5FF"
-                    color="#1971C2"
+                    bg={theme.isLight ? "#E7F5FF" : "#1E3A5F"}
+                    color={theme.isLight ? "#1971C2" : "#60A5FA"}
                     px={3}
                     py={1.5}
                     borderRadius="md"
@@ -197,15 +204,15 @@ export default function Products() {
                       boxSize={3}
                       cursor="pointer"
                       onClick={() => setCategory(null)}
-                      _hover={{ color: "#1864AB" }}
+                      _hover={{ opacity: 0.7 }}
                     />
                   </Badge>
                 )}
 
                 {q && (
                   <Badge
-                    bg="#FFF3BF"
-                    color="#E67700"
+                    bg={theme.isLight ? "#FFF3BF" : "#78350F"}
+                    color={theme.isLight ? "#E67700" : "#FCD34D"}
                     px={3}
                     py={1.5}
                     borderRadius="md"
@@ -221,7 +228,7 @@ export default function Products() {
                       boxSize={3}
                       cursor="pointer"
                       onClick={clearSearch}
-                      _hover={{ color: "#D96C00" }}
+                      _hover={{ opacity: 0.7 }}
                     />
                   </Badge>
                 )}
@@ -230,20 +237,21 @@ export default function Products() {
 
             {/* Toolbar */}
             <Flex
-              bg="white"
+              bg={theme.cardBg}
               borderRadius="lg"
               p={4}
               mb={6}
               border="1px solid"
-              borderColor="#DEE2E6"
+              borderColor={theme.border}
               gap={3}
               align="center"
               flexWrap={{ base: "wrap", md: "nowrap" }}
+              transition="all 0.2s ease"
             >
-              {/* Search Input with Icon */}
+              {/* Search Input */}
               <Flex flex={1} minW={{ base: "full", md: "300px" }}>
                 <InputGroup 
-                  startElement={<Icon as={FiSearch} color="#ADB5BD" />}
+                  startElement={<Icon as={FiSearch} color={theme.textPlaceholder} />}
                   endElement={q && (
                     <InputAddon placement="end">
                       <IconButton
@@ -252,24 +260,26 @@ export default function Products() {
                         aria-label="Clear search"
                         onClick={clearSearch}
                       >
-                        <Icon as={FiX} color="#6C757D" />
+                        <Icon as={FiX} color={theme.textMuted} />
                       </IconButton>
                     </InputAddon>
-                  )}>
+                  )}
+                >
                   <Input
                     placeholder="Search products by name..."
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                    bg="white"
+                    bg={theme.inputBg}
                     border="1px solid"
-                    borderColor="#DEE2E6"
-                    color="#212529"
+                    borderColor={theme.border}
+                    color={theme.text}
                     h="48px"
                     fontSize="md"
                     borderRadius="lg"
-                    _placeholder={{ color: "#ADB5BD" }}
-                    _focus={{ borderColor: "#495057", boxShadow: "0 0 0 3px rgba(73, 80, 87, 0.1)" }}
+                    _placeholder={{ color: theme.textPlaceholder }}
+                    _hover={{ borderColor: theme.borderLight }}
+                    _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 3px ${theme.isLight ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.2)'}` }}
                   />
                 </InputGroup>
               </Flex>
@@ -277,13 +287,13 @@ export default function Products() {
               {/* Search Button */}
               <Button
                 onClick={handleSearch}
-                bg="#212529"
+                bg={theme.primary}
                 color="white"
                 px={8}
                 h="48px"
                 borderRadius="lg"
                 flexShrink={0}
-                _hover={{ bg: "#343A40" }}
+                _hover={{ bg: theme.primaryHover }}
               >
                 Search
               </Button>
@@ -299,11 +309,12 @@ export default function Products() {
                 <Select.HiddenSelect />
                 <Select.Control>
                   <Select.Trigger
-                    bg="white"
-                    color="#495057"
+                    bg={theme.cardBg}
+                    color={theme.textSecondary}
                     h="48px"
                     borderRadius="lg"
-                    _hover={{ bg: "#F8F9FA" }}
+                    borderColor={theme.border}
+                    _hover={{ bg: theme.hoverBg }}
                   >
                     <Select.ValueText placeholder="Sort by" />
                   </Select.Trigger>
@@ -313,17 +324,9 @@ export default function Products() {
                 </Select.Control>
                 <Portal>
                   <Select.Positioner>
-                    <Select.Content
-                      bg="white"
-                      shadow="lg"
-                      borderRadius="lg"
-                    >
+                    <Select.Content bg={theme.cardBg} shadow="lg" borderRadius="lg" borderColor={theme.border}>
                       {sortOptions.items.map((option) => (
-                        <Select.Item 
-                          item={option} 
-                          key={option.value}
-                          _hover={{ bg: "#F8F9FA" }}
-                        >
+                        <Select.Item item={option} key={option.value} color={theme.text} _hover={{ bg: theme.hoverBg }}>
                           {option.label}
                           <Select.ItemIndicator />
                         </Select.Item>
@@ -338,8 +341,8 @@ export default function Products() {
             {isFetching && (
               <Flex py={20} justify="center" align="center">
                 <VStack spacing={4}>
-                  <Spinner size="xl" color="#495057" thickness="4px" />
-                  <Text color="#6C757D" fontWeight="medium">Loading products...</Text>
+                  <Spinner size="xl" color={theme.textSecondary} thickness="4px" />
+                  <Text color={theme.textMuted} fontWeight="medium">Loading products...</Text>
                 </VStack>
               </Flex>
             )}
@@ -349,17 +352,18 @@ export default function Products() {
               <>
                 {data.totalElements === 0 ? (
                   <Box
-                    bg="white"
+                    bg={theme.cardBg}
                     borderRadius="lg"
                     p={16}
                     textAlign="center"
                     border="1px solid"
-                    borderColor="#DEE2E6"
+                    borderColor={theme.border}
+                    transition="all 0.2s ease"
                   >
                     <Box
                       w="100px"
                       h="100px"
-                      bg="#F1F3F5"
+                      bg={theme.secondaryBg}
                       borderRadius="full"
                       display="flex"
                       alignItems="center"
@@ -367,12 +371,12 @@ export default function Products() {
                       mx="auto"
                       mb={5}
                     >
-                      <Icon as={FiPackage} boxSize={12} color="#ADB5BD" />
+                      <Icon as={FiPackage} boxSize={12} color={theme.textMuted} />
                     </Box>
-                    <Text fontSize="2xl" fontWeight="bold" color="#212529" mb={2}>
+                    <Text fontSize="2xl" fontWeight="bold" color={theme.text} mb={2}>
                       No products found
                     </Text>
-                    <Text color="#6C757D" mb={6} maxW="md" mx="auto">
+                    <Text color={theme.textMuted} mb={6} maxW="md" mx="auto">
                       {hasActiveFilters 
                         ? "We couldn't find any products matching your search or filters."
                         : "No products available at the moment."}
@@ -384,12 +388,12 @@ export default function Products() {
                           setSort([])
                           clearSearch()
                         }}
-                        bg="#212529"
+                        bg={theme.primary}
                         color="white"
                         px={8}
                         py={6}
                         borderRadius="lg"
-                        _hover={{ bg: "#343A40" }}
+                        _hover={{ bg: theme.primaryHover }}
                       >
                         Clear All Filters
                       </Button>
@@ -400,7 +404,7 @@ export default function Products() {
                     {/* Products Grid */}
                     <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} gap={4} mb={6}>
                       {data?.content?.map((p) => (
-                        <ProductCard key={p.id} p={p} onAdd={handleAdd} />
+                        <ProductCard key={p.id} p={p} onAdd={handleAdd} theme={theme} />
                       ))}
                     </SimpleGrid>
 
@@ -410,23 +414,24 @@ export default function Products() {
                         justify="center"
                         align="center"
                         gap={3}
-                        bg="white"
+                        bg={theme.cardBg}
                         p={5}
                         borderRadius="lg"
                         border="1px solid"
-                        borderColor="#DEE2E6"
+                        borderColor={theme.border}
                         flexWrap="wrap"
+                        transition="all 0.2s ease"
                       >
                         <Button
                           onClick={goPrev}
                           isDisabled={page === 0}
                           size="sm"
                           leftIcon={<FiChevronLeft />}
-                          bg="white"
+                          bg={theme.cardBg}
                           border="1px solid"
-                          borderColor="#DEE2E6"
-                          color="#495057"
-                          _hover={{ bg: "#F8F9FA" }}
+                          borderColor={theme.border}
+                          color={theme.textSecondary}
+                          _hover={{ bg: theme.hoverBg }}
                           _disabled={{ opacity: 0.4 }}
                         >
                           Previous
@@ -451,14 +456,12 @@ export default function Products() {
                                 onClick={() => setPage(pageNum)}
                                 size="sm"
                                 minW="40px"
-                                bg={page === pageNum ? "#212529" : "white"}
-                                color={page === pageNum ? "white" : "#495057"}
+                                bg={page === pageNum ? theme.primary : theme.cardBg}
+                                color={page === pageNum ? "white" : theme.textSecondary}
                                 border="1px solid"
-                                borderColor={page === pageNum ? "#212529" : "#DEE2E6"}
+                                borderColor={page === pageNum ? theme.primary : theme.border}
                                 fontWeight="semibold"
-                                _hover={{
-                                  bg: page === pageNum ? "#343A40" : "#F8F9FA"
-                                }}
+                                _hover={{ bg: page === pageNum ? theme.primaryHover : theme.hoverBg }}
                               >
                                 {pageNum + 1}
                               </Button>
@@ -471,11 +474,11 @@ export default function Products() {
                           isDisabled={page + 1 >= totalPages}
                           size="sm"
                           rightIcon={<FiChevronRight />}
-                          bg="white"
+                          bg={theme.cardBg}
                           border="1px solid"
-                          borderColor="#DEE2E6"
-                          color="#495057"
-                          _hover={{ bg: "#F8F9FA" }}
+                          borderColor={theme.border}
+                          color={theme.textSecondary}
+                          _hover={{ bg: theme.hoverBg }}
                           _disabled={{ opacity: 0.4 }}
                         >
                           Next

@@ -47,6 +47,7 @@ import {
 import { deleteAddress as apiDeleteAddress, createAddress, getAddresses, makeDefaultAddress, updateAddress } from '../api/addresses'
 import { getMyInfo, updateUserInfo } from '../api/user'
 import { toaster } from '../components/ui/toaster'
+import { useTheme } from '../context/ThemeContext'
 
 const SAMPLE_USER = {
   id: 'U-2025-0001',
@@ -77,6 +78,7 @@ const SAMPLE_ADDRESSES = [
 ]
 
 export default function UserProfilePage() {
+  const { theme } = useTheme()
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [addresses, setAddresses] = useState(SAMPLE_ADDRESSES)
   const [newAddress, setNewAddress] = useState({
@@ -549,7 +551,7 @@ export default function UserProfilePage() {
   const CARD_BRANDS_COLLECTION = createListCollection({
     items: [
       { label: 'Card', icon: LuCreditCard, color: 'currentColor', value: 'unknown' },
-      { label: 'Visa', value: 'visa', icon: SiVisa, color: '#1A1F71' },
+      { label: 'Visa', value: 'visa', icon: SiVisa, color: `${theme.isLight ? '#1A1F71' : '#FFF'}` },
       { label: 'Mastercard', value: 'mastercard', icon: SiMastercard, color: '#EB001B' },
       { label: 'JCB', value: 'jcb', icon: SiJcb, color: '#1F4E79' },
     ],
@@ -641,18 +643,27 @@ export default function UserProfilePage() {
       {/* Header */}
       <Flex align="center" justify="space-between" mb={8} gap={4}>
         <Box>
-          <Heading size="2xl" fontWeight="black" color="#212529" mb={2}>
+          <Heading size="2xl" fontWeight="black" color={theme.text} mb={2}>
             My Profile
           </Heading>
-          <Text color="#6C757D" fontSize="lg">
+          <Text color={theme.textMuted} fontSize="lg">
             Manage your personal information, addresses & security
           </Text>
         </Box>
         <Badge 
-          bg={membershipColor === 'yellow' ? '#F59E0B15' : '#8B5CF615'}
-          color={membershipColor === 'yellow' ? '#F59E0B' : '#8B5CF6'}
+          bg={membershipColor === 'yellow' 
+            ? (theme.isLight ? '#F59E0B15' : '#78350F') 
+            : (theme.isLight ? '#8B5CF615' : '#4C1D95')
+          }
+          color={membershipColor === 'yellow' 
+            ? (theme.isLight ? '#F59E0B' : '#FCD34D') 
+            : (theme.isLight ? '#8B5CF6' : '#C4B5FD')
+          }
           border="1px solid"
-          borderColor={membershipColor === 'yellow' ? '#F59E0B30' : '#8B5CF630'}
+          borderColor={membershipColor === 'yellow' 
+            ? (theme.isLight ? '#F59E0B30' : '#78350F80') 
+            : (theme.isLight ? '#8B5CF630' : '#4C1D9580')
+          }
           px={4} 
           py={2}
           borderRadius="full"
@@ -671,10 +682,10 @@ export default function UserProfilePage() {
           mb={6}
           justifyContent="start"
           border="1px solid"
-          borderColor="#DEE2E6"
+          borderColor={theme.border}
           rounded="xl"
           p="4px"
-          bg="#F8F9FA"
+          bg={theme.secondaryBg}
           wrap="wrap"
           gap="4px"
         >
@@ -683,8 +694,8 @@ export default function UserProfilePage() {
             px={5} 
             py={3} 
             rounded="lg" 
-            color="#495057"
-            _selected={{ bg: 'white', boxShadow: 'sm', color: '#212529', fontWeight: 'semibold' }}
+            color={theme.textSecondary}
+            _selected={{ bg: theme.cardBg, boxShadow: 'sm', color: theme.text, fontWeight: 'semibold' }}
           >
             <Flex align="center" gap={2}>
               <LuUser /> 
@@ -696,8 +707,8 @@ export default function UserProfilePage() {
             px={5} 
             py={3} 
             rounded="lg"
-            color="#495057"
-            _selected={{ bg: 'white', boxShadow: 'sm', color: '#212529', fontWeight: 'semibold' }}
+            color={theme.textSecondary}
+            _selected={{ bg: theme.cardBg, boxShadow: 'sm', color: theme.text, fontWeight: 'semibold' }}
           >
             <Flex align="center" gap={2}>
               <LuLock /> 
@@ -709,8 +720,8 @@ export default function UserProfilePage() {
             px={5} 
             py={3} 
             rounded="lg"
-            color="#495057"
-            _selected={{ bg: 'white', boxShadow: 'sm', color: '#212529', fontWeight: 'semibold' }}
+            color={theme.textSecondary}
+            _selected={{ bg: theme.cardBg, boxShadow: 'sm', color: theme.text, fontWeight: 'semibold' }}
           >
             <Flex align="center" gap={2}>
               <LuMapPin /> 
@@ -722,8 +733,8 @@ export default function UserProfilePage() {
             px={5} 
             py={3} 
             rounded="lg"
-            color="#495057"
-            _selected={{ bg: 'white', boxShadow: 'sm', color: '#212529', fontWeight: 'semibold' }}
+            color={theme.textSecondary}
+            _selected={{ bg: theme.cardBg, boxShadow: 'sm', color: theme.text, fontWeight: 'semibold' }}
           >
             <Flex align="center" gap={2}>
               <LuCreditCard /> 
@@ -745,9 +756,9 @@ export default function UserProfilePage() {
                       shadow="xl"
                       style={{
                         border: '8px solid transparent',
-                        background:
-                          'linear-gradient(white, white) padding-box,' +
-                          'linear-gradient(135deg, #a78bfa, #60a5fa, #34d399) border-box',
+                        background: theme.isLight
+                          ? 'linear-gradient(white, white) padding-box, linear-gradient(135deg, #a78bfa, #60a5fa, #34d399) border-box'
+                          : 'linear-gradient(#1E293B, #1E293B) padding-box, linear-gradient(135deg, #a78bfa, #60a5fa, #34d399) border-box',
                       }}
                     >
                       <Avatar.Fallback name={formData.fullName || 'U'} />
@@ -771,9 +782,9 @@ export default function UserProfilePage() {
                       onClick={openAvatarPicker} 
                       size="lg" 
                       rounded="full" 
-                      bg="#212529"
+                      bg={theme.primary}
                       color="white"
-                      _hover={{ bg: "#343A40" }}
+                      _hover={{ bg: theme.primaryHover }}
                     >
                       <LuCamera />
                     </IconButton>
@@ -784,9 +795,9 @@ export default function UserProfilePage() {
                 <Flex mt={4} gap={3} wrap="wrap">
                   {!isEditing ? (
                     <Button  
-                      bg="#212529"
+                      bg={theme.primary}
                       color="white"
-                      _hover={{ bg: "#343A40" }}
+                      _hover={{ bg: theme.primaryHover }}
                       onClick={(e) => {
                         e.preventDefault()
                         setTimeout(() => setIsEditing(true), 0)
@@ -800,17 +811,17 @@ export default function UserProfilePage() {
                         type="submit" 
                         loading={saving} 
                         loadingText="Saving..."
-                        bg="#212529"
+                        bg={theme.primary}
                         color="white"
-                        _hover={{ bg: "#343A40" }}
+                        _hover={{ bg: theme.primaryHover }}
                       >
                         <LuSave /> Save
                       </Button>
                       <Button 
                         variant="outline"
-                        borderColor="#DEE2E6"
-                        color="#495057"
-                        _hover={{ bg: "#F8F9FA" }}
+                        borderColor={theme.border}
+                        color={theme.textSecondary}
+                        _hover={{ bg: theme.hoverBg }}
                         onClick={onCancelEdit}
                       >
                         <LuX /> Cancel
@@ -825,19 +836,19 @@ export default function UserProfilePage() {
                   p={6} 
                   rounded="xl" 
                   border="1px solid" 
-                  borderColor="#DEE2E6" 
-                  bg="white" 
+                  borderColor={theme.border}
+                  bg={theme.cardBg}
                   shadow="sm"
                 >
                   <Stack gap={5}>
                     <Flex align="center" justify="space-between">
-                      <Heading size="lg" color="#212529">Personal Information</Heading>
-                      <Text color="#6C757D" fontSize="sm">ID: <b>{SAMPLE_USER.id}</b></Text>
+                      <Heading size="lg" color={theme.text}>Personal Information</Heading>
+                      <Text color={theme.textMuted} fontSize="sm">ID: <b>{SAMPLE_USER.id}</b></Text>
                     </Flex>
 
                     <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={5}>
                       <Field.Root name="fullName" required>
-                        <Field.Label color="#495057">
+                        <Field.Label color={theme.textSecondary}>
                           <Flex align="center" gap={2}><LuUser /> Full Name</Flex>
                         </Field.Label>
                         <Input 
@@ -845,14 +856,16 @@ export default function UserProfilePage() {
                           placeholder="John Doe" 
                           defaultValue={formData.fullName} 
                           readOnly={!isEditing}
-                          borderColor="#DEE2E6"
-                          _hover={{ borderColor: "#ADB5BD" }}
-                          _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                          bg={theme.inputBg}
+                          color={theme.text}
+                          borderColor={theme.border}
+                          _hover={{ borderColor: theme.borderLight }}
+                          _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                         />
                       </Field.Root>
 
                       <Field.Root name="username" required>
-                        <Field.Label color="#495057">
+                        <Field.Label color={theme.textSecondary}>
                           <Flex align="center" gap={2}><LuHash /> Username</Flex>
                         </Field.Label>
                         <Input 
@@ -860,14 +873,15 @@ export default function UserProfilePage() {
                           placeholder="username" 
                           defaultValue={formData.username} 
                           disabled
-                          bg="#F8F9FA"
-                          borderColor="#DEE2E6"
+                          bg={theme.secondaryBg}
+                          color={theme.text}
+                          borderColor={theme.border}
                         />
                         <input type="hidden" name="username" value={formData.username} />
                       </Field.Root>
 
                       <Field.Root name="email">
-                        <Field.Label color="#495057">
+                        <Field.Label color={theme.textSecondary}>
                           <Flex align="center" gap={2}><LuMail /> Email</Flex>
                         </Field.Label>
                         <Input 
@@ -876,14 +890,16 @@ export default function UserProfilePage() {
                           placeholder="email@domain.com" 
                           defaultValue={formData.email} 
                           readOnly={!isEditing}
-                          borderColor="#DEE2E6"
-                          _hover={{ borderColor: "#ADB5BD" }}
-                          _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                          bg={theme.inputBg}
+                          color={theme.text}
+                          borderColor={theme.border}
+                          _hover={{ borderColor: theme.borderLight }}
+                          _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                         />
                       </Field.Root>
 
                       <Field.Root name="phone">
-                        <Field.Label color="#495057">
+                        <Field.Label color={theme.textSecondary}>
                           <Flex align="center" gap={2}><LuPhone /> Phone Number</Flex>
                         </Field.Label>
                         <Input 
@@ -891,64 +907,70 @@ export default function UserProfilePage() {
                           placeholder="090xxxxxxx" 
                           defaultValue={formData.phone} 
                           readOnly={!isEditing}
-                          borderColor="#DEE2E6"
-                          _hover={{ borderColor: "#ADB5BD" }}
-                          _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                          bg={theme.inputBg}
+                          color={theme.text}
+                          borderColor={theme.border}
+                          _hover={{ borderColor: theme.borderLight }}
+                          _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                         />
                       </Field.Root>
                     </Grid>
 
                     <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={5}>
                       <Field.Root name="gender">
-                        <Field.Label color="#495057">Gender</Field.Label>
+                        <Field.Label color={theme.textSecondary}>Gender</Field.Label>
                         <RadioGroup.Root value={formData.gender} readOnly={!isEditing}>
                           <HStack gap="6" wrap="wrap">
                             <RadioGroup.Item value="male">
                               <RadioGroup.ItemHiddenInput name="gender" />
                               <RadioGroup.ItemIndicator />
-                              <RadioGroup.ItemText>Male</RadioGroup.ItemText>
+                              <RadioGroup.ItemText color={theme.text}>Male</RadioGroup.ItemText>
                             </RadioGroup.Item>
                             <RadioGroup.Item value="female">
                               <RadioGroup.ItemHiddenInput name="gender" />
                               <RadioGroup.ItemIndicator />
-                              <RadioGroup.ItemText>Female</RadioGroup.ItemText>
+                              <RadioGroup.ItemText color={theme.text}>Female</RadioGroup.ItemText>
                             </RadioGroup.Item>
                             <RadioGroup.Item value="other">
                               <RadioGroup.ItemHiddenInput name="gender" />
                               <RadioGroup.ItemIndicator />
-                              <RadioGroup.ItemText>Other</RadioGroup.ItemText>
+                              <RadioGroup.ItemText color={theme.text}>Other</RadioGroup.ItemText>
                             </RadioGroup.Item>
                           </HStack>
                         </RadioGroup.Root>
                       </Field.Root>
 
                       <Field.Root name="dob">
-                        <Field.Label color="#495057">Date of Birth</Field.Label>
+                        <Field.Label color={theme.textSecondary}>Date of Birth</Field.Label>
                         <Input 
                           type="date" 
                           name="dob" 
                           defaultValue={formData.dob || ''} 
                           readOnly={!isEditing}
-                          borderColor="#DEE2E6"
-                          _hover={{ borderColor: "#ADB5BD" }}
-                          _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                          bg={theme.inputBg}
+                          color={theme.text}
+                          borderColor={theme.border}
+                          _hover={{ borderColor: theme.borderLight }}
+                          _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                         />
                       </Field.Root>
                     </Grid>
 
-                    <Separator borderColor="#E9ECEF" />
+                    <Separator borderColor={theme.border} />
 
                     <Field.Root name="bio">
-                      <Field.Label color="#495057">Bio</Field.Label>
+                      <Field.Label color={theme.textSecondary}>Bio</Field.Label>
                       <Textarea 
                         name="bio" 
                         placeholder="A bit about yourself…" 
                         rows={4} 
                         defaultValue={formData.bio} 
                         readOnly={!isEditing}
-                        borderColor="#DEE2E6"
-                        _hover={{ borderColor: "#ADB5BD" }}
-                        _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                        bg={theme.inputBg}
+                        color={theme.text}
+                        borderColor={theme.border}
+                        _hover={{ borderColor: theme.borderLight }}
+                        _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                       />
                     </Field.Root>
                   </Stack>
@@ -964,48 +986,54 @@ export default function UserProfilePage() {
             p={6} 
             rounded="xl" 
             border="1px solid" 
-            borderColor="#DEE2E6" 
-            bg="white" 
+            borderColor={theme.border}
+            bg={theme.cardBg}
             shadow="sm"
           >
-            <Heading size="lg" mb={4} color="#212529">Change Password</Heading>
-            <Text color="#6C757D" mb={6}>
+            <Heading size="lg" mb={4} color={theme.text}>Change Password</Heading>
+            <Text color={theme.textMuted} mb={6}>
               New password minimum 8 characters, with uppercase/lowercase, numbers or special characters.
             </Text>
 
             <form onSubmit={handlePasswordSubmit}>
               <Grid templateColumns={{ base: '1fr', md: '1fr 1fr 1fr' }} gap={5}>
                 <Field.Root name="current" required>
-                  <Field.Label color="#495057">Current Password</Field.Label>
+                  <Field.Label color={theme.textSecondary}>Current Password</Field.Label>
                   <Input 
                     type="password" 
                     name="current" 
                     placeholder="••••••••"
-                    borderColor="#DEE2E6"
-                    _hover={{ borderColor: "#ADB5BD" }}
-                    _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                    bg={theme.inputBg}
+                    color={theme.text}
+                    borderColor={theme.border}
+                    _hover={{ borderColor: theme.borderLight }}
+                    _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                   />
                 </Field.Root>
                 <Field.Root name="next" required>
-                  <Field.Label color="#495057">New Password</Field.Label>
+                  <Field.Label color={theme.textSecondary}>New Password</Field.Label>
                   <Input 
                     type="password" 
                     name="next" 
                     placeholder="••••••••"
-                    borderColor="#DEE2E6"
-                    _hover={{ borderColor: "#ADB5BD" }}
-                    _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                    bg={theme.inputBg}
+                    color={theme.text}
+                    borderColor={theme.border}
+                    _hover={{ borderColor: theme.borderLight }}
+                    _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                   />
                 </Field.Root>
                 <Field.Root name="confirm" required>
-                  <Field.Label color="#495057">Confirm Password</Field.Label>
+                  <Field.Label color={theme.textSecondary}>Confirm Password</Field.Label>
                   <Input 
                     type="password" 
                     name="confirm" 
                     placeholder="••••••••"
-                    borderColor="#DEE2E6"
-                    _hover={{ borderColor: "#ADB5BD" }}
-                    _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                    bg={theme.inputBg}
+                    color={theme.text}
+                    borderColor={theme.border}
+                    _hover={{ borderColor: theme.borderLight }}
+                    _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                   />
                 </Field.Root>
               </Grid>
@@ -1013,18 +1041,18 @@ export default function UserProfilePage() {
               <Flex mt={6} gap={3}>
                 <Button 
                   type="submit"
-                  bg="#212529"
+                  bg={theme.primary}
                   color="white"
-                  _hover={{ bg: "#343A40" }}
+                  _hover={{ bg: theme.primaryHover }}
                 >
                   Update Password
                 </Button>
                 <Button 
                   type="reset" 
                   variant="outline"
-                  borderColor="#DEE2E6"
-                  color="#495057"
-                  _hover={{ bg: "#F8F9FA" }}
+                  borderColor={theme.border}
+                  color={theme.textSecondary}
+                  _hover={{ bg: theme.hoverBg }}
                 >
                   Clear
                 </Button>
@@ -1036,15 +1064,15 @@ export default function UserProfilePage() {
         {/* Tab: Addresses */}
         <Tabs.Content value="addresses">
           <Flex align="center" justify="space-between" mb={4}>
-            <Heading size="lg" color="#212529">Address Book</Heading>
+            <Heading size="lg" color={theme.text}>Address Book</Heading>
 
             <Dialog.Root open={isAddOpen} onOpenChange={(e) => setIsAddOpen(e.open)}>
               <Dialog.Trigger asChild>
                 <Button 
                   onClick={() => setIsAddOpen(true)}
-                  bg="#212529"
+                  bg={theme.primary}
                   color="white"
-                  _hover={{ bg: "#343A40" }}
+                  _hover={{ bg: theme.primaryHover }}
                 >
                   <LuPlus /> Add Address
                 </Button>
@@ -1052,29 +1080,29 @@ export default function UserProfilePage() {
 
               <Dialog.Backdrop />
               <Dialog.Positioner>
-                <Dialog.Content maxW="720px" rounded="xl">
+                <Dialog.Content maxW="720px" rounded="xl" bg={theme.cardBg} borderColor={theme.border}>
                   <Dialog.CloseTrigger />
                   <Dialog.Header>
-                    <Dialog.Title>Add New Address</Dialog.Title>
+                    <Dialog.Title color={theme.text}>Add New Address</Dialog.Title>
                   </Dialog.Header>
 
                   <form onSubmit={handleCreateAddressSubmit}>
                     <Dialog.Body>
                       <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={4}>
                         <Field.Root name="label">
-                          <Field.Label color="#495057">Label</Field.Label>
+                          <Field.Label color={theme.textSecondary}>Label</Field.Label>
                           <Select.Root defaultValue={['home']} collection={LABEL_OPTIONS_COLLECTION} size="sm">
                             <Select.HiddenSelect name="label" />
                             <Select.Control>
-                              <Select.Trigger>
+                              <Select.Trigger bg={theme.inputBg} borderColor={theme.border} color={theme.text}>
                                 <SelectTrigger />
                               </Select.Trigger>
                               <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
                             </Select.Control>
                             <Select.Positioner>
-                              <Select.Content>
+                              <Select.Content bg={theme.cardBg} borderColor={theme.border}>
                                 {LABEL_OPTIONS_COLLECTION.items.map((item) => (
-                                  <Select.Item key={item.value} item={item}>
+                                  <Select.Item key={item.value} item={item} color={theme.text} _hover={{ bg: theme.hoverBg }}>
                                     <Flex align="center" gap="2">
                                       {item.icon ? <item.icon /> : null}
                                       {item.label}
@@ -1088,45 +1116,45 @@ export default function UserProfilePage() {
                         </Field.Root>
 
                         <Field.Root name="fullName">
-                          <Field.Label color="#495057">Recipient</Field.Label>
-                          <Input name="fullName" placeholder="Full name" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>Recipient</Field.Label>
+                          <Input name="fullName" placeholder="Full name" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="phone">
-                          <Field.Label color="#495057">Phone Number</Field.Label>
-                          <Input name="phone" inputMode="tel" placeholder="090xxxxxxx" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>Phone Number</Field.Label>
+                          <Input name="phone" inputMode="tel" placeholder="090xxxxxxx" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="country">
-                          <Field.Label color="#495057">Country</Field.Label>
-                          <Input name="country" defaultValue="Vietnam" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>Country</Field.Label>
+                          <Input name="country" defaultValue="Vietnam" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="line1" gridColumn={{ md: 'span 2' }}>
-                          <Field.Label color="#495057">Address</Field.Label>
-                          <Input name="line1" placeholder="Street address" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>Address</Field.Label>
+                          <Input name="line1" placeholder="Street address" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="ward">
-                          <Field.Label color="#495057">Ward</Field.Label>
-                          <Input name="ward" placeholder="Ward name" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>Ward</Field.Label>
+                          <Input name="ward" placeholder="Ward name" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="district">
-                          <Field.Label color="#495057">District</Field.Label>
-                          <Input name="district" placeholder="District name" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>District</Field.Label>
+                          <Input name="district" placeholder="District name" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Field.Root name="city">
-                          <Field.Label color="#495057">City</Field.Label>
-                          <Input name="city" placeholder="City" borderColor="#DEE2E6" />
+                          <Field.Label color={theme.textSecondary}>City</Field.Label>
+                          <Input name="city" placeholder="City" bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
                         </Field.Root>
 
                         <Box>
                           <CheckboxCard.Root defaultChecked={addresses.length === 0} mt={5}>
                             <CheckboxCard.HiddenInput name="isDefault" />
                             <CheckboxCard.Control>
-                              <CheckboxCard.Label>Set as default address</CheckboxCard.Label>
+                              <CheckboxCard.Label color={theme.text}>Set as default address</CheckboxCard.Label>
                               <CheckboxCard.Indicator />
                             </CheckboxCard.Control>
                           </CheckboxCard.Root>
@@ -1140,16 +1168,17 @@ export default function UserProfilePage() {
                           type="button" 
                           variant="outline" 
                           onClick={() => setIsAddOpen(false)}
-                          borderColor="#DEE2E6"
-                          color="#495057"
+                          borderColor={theme.border}
+                          color={theme.textSecondary}
+                          _hover={{ bg: theme.hoverBg }}
                         >
                           Cancel
                         </Button>
                         <Button 
                           type="submit"
-                          bg="#212529"
+                          bg={theme.primary}
                           color="white"
-                          _hover={{ bg: "#343A40" }}
+                          _hover={{ bg: theme.primaryHover }}
                         >
                           Save Address
                         </Button>
@@ -1171,10 +1200,10 @@ export default function UserProfilePage() {
                 <Card.Root
                   key={addr.id}
                   border="1px solid"
-                  borderColor="#DEE2E6"
+                  borderColor={theme.border}
                   rounded="xl"
                   shadow="sm"
-                  bg="white"
+                  bg={theme.cardBg}
                 >
                   <Card.Body p={6}>
                     <Flex align="center" justify="space-between" mb={3} gap={3} wrap="wrap">
@@ -1187,9 +1216,9 @@ export default function UserProfilePage() {
                             py="0.5"
                             rounded="full"
                             border="1px solid"
-                            borderColor="#DEE2E6"
+                            borderColor={theme.border}
                             fontSize="sm"
-                            color="#495057"
+                            color={theme.textSecondary}
                           >
                             <LabelIcon />
                             <Text>{meta.label}</Text>
@@ -1197,7 +1226,7 @@ export default function UserProfilePage() {
                           {addr.isDefault && <DefBadge />}
                         </Flex>
                       ) : (
-                        <Heading size="md" color="#212529">Edit Address</Heading>
+                        <Heading size="md" color={theme.text}>Edit Address</Heading>
                       )}
 
                       <Flex gap={1}>
@@ -1207,7 +1236,8 @@ export default function UserProfilePage() {
                               aria-label="Set default"
                               size="sm"
                               variant="ghost"
-                              color="#495057"
+                              color={theme.textSecondary}
+                              _hover={{ bg: theme.hoverBg }}
                               onClick={() => setDefaultAddress(addr.id)}
                               title="Set as default"
                             >
@@ -1222,7 +1252,8 @@ export default function UserProfilePage() {
                               aria-label="Edit"
                               size="sm"
                               variant="ghost"
-                              color="#495057"
+                              color={theme.textSecondary}
+                              _hover={{ bg: theme.hoverBg }}
                               onClick={() => startEditAddress(addr.id)}
                               title="Edit"
                             >
@@ -1233,6 +1264,7 @@ export default function UserProfilePage() {
                               size="sm"
                               variant="ghost"
                               color="#DC3545"
+                              _hover={{ bg: theme.isLight ? "#FEF2F2" : "#7F1D1D" }}
                               onClick={() => deleteAddress(addr.id)}
                               title="Delete address"
                             >
@@ -1245,8 +1277,9 @@ export default function UserProfilePage() {
                             variant="outline"
                             leftIcon={<LuX />}
                             onClick={() => cancelEditAddress(addr.id)}
-                            borderColor="#DEE2E6"
-                            color="#495057"
+                            borderColor={theme.border}
+                            color={theme.textSecondary}
+                            _hover={{ bg: theme.hoverBg }}
                           >
                             Cancel
                           </Button>
@@ -1257,11 +1290,11 @@ export default function UserProfilePage() {
                     {!isEditingCard ? (
                       <Box>
                         <Flex align="center" gap={2} wrap="wrap" mb={1}>
-                          <Text fontWeight="semibold" color="#212529">
+                          <Text fontWeight="semibold" color={theme.text}>
                             {(addr.fullName || '—')}{addr.phone ? ` • ${addr.phone}` : ''}
                           </Text>
                         </Flex>
-                        <Text color="#6C757D">{formatAddress(addr) || '—'}</Text>
+                        <Text color={theme.textMuted}>{formatAddress(addr) || '—'}</Text>
                       </Box>
                     ) : (
                       <form onSubmit={(e) => handleEditAddressSubmit(e, addr.id)}>
@@ -1271,9 +1304,9 @@ export default function UserProfilePage() {
                             type="submit" 
                             size="sm" 
                             leftIcon={<LuSave />}
-                            bg="#212529"
+                            bg={theme.primary}
                             color="white"
-                            _hover={{ bg: "#343A40" }}
+                            _hover={{ bg: theme.primaryHover }}
                           >
                             Save
                           </Button>
@@ -1283,8 +1316,9 @@ export default function UserProfilePage() {
                             variant="outline"
                             leftIcon={<LuX />}
                             onClick={() => cancelEditAddress(addr.id)}
-                            borderColor="#DEE2E6"
-                            color="#495057"
+                            borderColor={theme.border}
+                            color={theme.textSecondary}
+                            _hover={{ bg: theme.hoverBg }}
                           >
                             Cancel
                           </Button>
@@ -1301,12 +1335,12 @@ export default function UserProfilePage() {
         {/* Tab: Payments - Similar styling updates */}
         <Tabs.Content value="payments">
           <Flex align="center" justify="space-between" mb={4}>
-            <Heading size="lg" color="#212529">Payment Methods</Heading>
+            <Heading size="lg" color={theme.text}>Payment Methods</Heading>
             <Button 
               onClick={() => setIsAddCardOpen(true)}
-              bg="#212529"
+              bg={theme.primary}
               color="white"
-              _hover={{ bg: "#343A40" }}
+              _hover={{ bg: theme.primaryHover }}
             >
               <LuPlus /> Link Card
             </Button>
@@ -1321,10 +1355,10 @@ export default function UserProfilePage() {
                 <Card.Root 
                   key={card.id} 
                   border="1px solid" 
-                  borderColor="#DEE2E6" 
+                  borderColor={theme.border}
                   rounded="xl" 
                   shadow="sm"
-                  bg="white"
+                  bg={theme.cardBg}
                 >
                   <Card.Body p={6}>
                     <Flex align="center" justify="space-between" mb={3} gap={3} wrap="wrap">
@@ -1337,17 +1371,17 @@ export default function UserProfilePage() {
                             py="0.5" 
                             rounded="full" 
                             border="1px solid" 
-                            borderColor="#DEE2E6" 
+                            borderColor={theme.border}
                             fontSize="sm"
                           >
                             {React.createElement(viewMeta.icon, { style:{ color: viewMeta.color } })}
-                            <Text>{viewMeta.label}</Text>
+                            <Text color={theme.text}>{viewMeta.label}</Text>
                           </Flex>
-                          <Text fontWeight="semibold" color="#212529">{maskCard(card.number)}</Text>
+                          <Text fontWeight="semibold" color={theme.text}>{maskCard(card.number)}</Text>
                           {card.isDefault && <DefBadge />}
                         </Flex>
                       ) : (
-                        <Heading size="md" color="#212529">Edit Card</Heading>
+                        <Heading size="md" color={theme.text}>Edit Card</Heading>
                       )}
 
                       <Flex gap={1}>
@@ -1357,7 +1391,8 @@ export default function UserProfilePage() {
                               aria-label="Set default" 
                               size="sm" 
                               variant="ghost" 
-                              color="#495057"
+                              color={theme.textSecondary}
+                              _hover={{ bg: theme.hoverBg }}
                               onClick={() => setDefaultCard(card.id)}
                             >
                               <LuStar style={{ opacity: card.isDefault ? 1 : 0.45, ...(card.isDefault?{ fill:'currentColor' }:{}) }} />
@@ -1366,7 +1401,8 @@ export default function UserProfilePage() {
                               aria-label="Edit" 
                               size="sm" 
                               variant="ghost" 
-                              color="#495057"
+                              color={theme.textSecondary}
+                              _hover={{ bg: theme.hoverBg }}
                               onClick={() => startEditCard(card.id)}
                             >
                               <LuPencil />
@@ -1376,6 +1412,7 @@ export default function UserProfilePage() {
                               size="sm" 
                               variant="ghost" 
                               color="#DC3545"
+                              _hover={{ bg: theme.isLight ? "#FEF2F2" : "#7F1D1D" }}
                               onClick={() => deleteCard(card.id)}
                             >
                               <LuTrash2 />
@@ -1386,9 +1423,9 @@ export default function UserProfilePage() {
                             <Button 
                               size="sm" 
                               onClick={() => saveCard(card.id)}
-                              bg="#212529"
+                              bg={theme.primary}
                               color="white"
-                              _hover={{ bg: "#343A40" }}
+                              _hover={{ bg: theme.primaryHover }}
                             >
                               Save
                             </Button>
@@ -1396,8 +1433,9 @@ export default function UserProfilePage() {
                               size="sm" 
                               variant="outline" 
                               onClick={() => cancelEditCard(card.id)}
-                              borderColor="#DEE2E6"
-                              color="#495057"
+                              borderColor={theme.border}
+                              color={theme.textSecondary}
+                              _hover={{ bg: theme.hoverBg }}
                             >
                               Cancel
                             </Button>
@@ -1407,7 +1445,7 @@ export default function UserProfilePage() {
                     </Flex>
 
                     {!isEditing ? (
-                      <Text color="#6C757D">{card.holder || '—'} • {formatExpiry(card.expMonth, card.expYear)}</Text>
+                      <Text color={theme.textMuted}>{card.holder || '—'} • {formatExpiry(card.expMonth, card.expYear)}</Text>
                     ) : (
                       <Box>
                         {/* Card edit form fields */}

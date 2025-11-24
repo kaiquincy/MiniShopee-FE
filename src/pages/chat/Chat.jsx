@@ -1,20 +1,20 @@
-import { Badge, Box, Flex, HStack, Icon, Text, VStack, Button, Stack, useDisclosure, useBreakpointValue, Drawer} from '@chakra-ui/react'
-import { FiMessageCircle, FiMessageSquare, FiMenu } from 'react-icons/fi'
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
-import { useLocation } from 'react-router-dom'
-import { myRooms, openRoom, history } from '../../api/chat'
+import { Box, Flex, Icon, Text, useBreakpointValue, VStack } from '@chakra-ui/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { FiMessageCircle, FiMessageSquare } from 'react-icons/fi'
+import { history, myRooms, openRoom } from '../../api/chat'
 import { useAuth } from '../../context/AuthContext'
-import { useChatSocket } from './hooks/useChatSocket'
-import { useAutoScroll } from './hooks/useAutoScroll'
+import { useTheme } from '../../context/ThemeContext'
+import ChatHeader from './components/ChatArea/ChatHeader'
+import Composer from './components/ChatArea/Composer'
+import MessagesList from './components/ChatArea/MessagesList'
+import MobileChatNavigator from './components/Mobile/MobileChatNavigator'
 import NewRoomInput from './components/Sidebar/NewRoomInput'
 import RoomList from './components/Sidebar/RoomList'
-import ChatHeader from './components/ChatArea/ChatHeader'
-import MessagesList from './components/ChatArea/MessagesList'
-import Composer from './components/ChatArea/Composer'
-import MobileChatNavigator from './components/Mobile/MobileChatNavigator' // <-- thêm
-
+import { useAutoScroll } from './hooks/useAutoScroll'
+import { useChatSocket } from './hooks/useChatSocket'
 
 export default function Chat() {
+  const { theme } = useTheme()
   const isMobile = useBreakpointValue({ base: true, md: false })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [rooms, setRooms] = useState([])
@@ -22,26 +22,28 @@ export default function Chat() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const { token, user } = useAuth()
-  const location = useLocation()
   const apiUrl = import.meta.env.VITE_API_URL
-  const isLightTheme = location.pathname === '/chat'
   const endRef = useAutoScroll([messages])
 
-  const theme = useMemo(() => ({
-    bg: isLightTheme ? 'white' : 'gray.900',
-    secondaryBg: isLightTheme ? '#F8FAFC' : 'gray.900',
-    border: isLightTheme ? '#E2E8F0' : 'whiteAlpha.200',
-    text: isLightTheme ? '#212529' : 'white',
-    secondaryText: isLightTheme ? '#6c757d' : 'whiteAlpha.600',
-    mutedText: isLightTheme ? '#94A3B8' : 'whiteAlpha.500',
-    inputBg: isLightTheme ? 'white' : 'gray.800',
-    hoverBg: isLightTheme ? '#F1F5F9' : 'gray.800',
-    activeBg: isLightTheme ? '#EFF6FF' : 'gray.800',
-    messageBg: isLightTheme ? '#F1F5F9' : 'gray.800',
+  // Chat-specific theme colors based on current theme
+  const chatTheme = useMemo(() => ({
+    ...theme,
+    messageBg: theme.isLight ? '#F5F5F5' : '#1E293B',
     myMessageBg: '#3B82F6',
-  }), [isLightTheme])
+    myMessageText: '#FFFFFF',
+    activeBg: theme.isLight ? '#F0F0F0' : '#334155',
+  }), [theme])
 
   useEffect(() => { myRooms().then(setRooms) }, [])
+
+  // Sort rooms by most recent message/activity
+  const sortedRooms = useMemo(() => {
+    return [...rooms].sort((a, b) => {
+      const dateA = new Date(a.lastMsg?.createdAt || 0)
+      const dateB = new Date(b.lastMsg?.createdAt || 0)
+      return dateB - dateA // Most recent first
+    })
+  }, [rooms])
 
   const open = useCallback(async (r) => {
     setActive(r)
@@ -56,7 +58,15 @@ export default function Chat() {
     apiUrl,
     token,
     roomId: active?.roomId,
-    onMessage: (incoming) => setMessages(prev => [...prev, incoming]),
+    onMessage: (incoming) => {
+      setMessages(prev => [...prev, incoming])
+      // Update room's lastMessageAt when receiving a message
+      setRooms(prev => prev.map(r => 
+        r.roomId === active?.roomId 
+          ? { ...r, lastMessageAt: incoming.createdAt || new Date().toISOString() }
+          : r
+      ))
+    },
   })
 
   const sendText = () => {
@@ -72,9 +82,15 @@ export default function Chat() {
     }])
     send({ type: 'TEXT', content: input })
     setInput('')
+    
+    // Move the active room to top by updating its timestamp
+    setRooms(prev => prev.map(r => 
+      r.roomId === active.roomId 
+        ? { ...r, lastMessageAt: new Date().toISOString() }
+        : r
+    ))
   }
 
-  // Bạn có thể thay bằng upload REST -> gửi URL qua STOMP
   const sendImage = async (file) => {
     if (!active || !file) return
     const reader = new FileReader()
@@ -85,95 +101,150 @@ export default function Chat() {
   }
 
   const createNewRoom = async (value) => {
-    // nếu value là số userId
     const r = await openRoom(Number(value))
     setRooms(prev => [r, ...prev])
     open(r)
   }
 
   return (
-    <Box color={theme.text} px={isLightTheme && !isMobile ? 16 : 0} my={8}>
-      {!isMobile && (
-        <Flex justify="space-between" align="center" mb={8}>
-            <Box>
-                <HStack>
-                    {isMobile && (
-                        <Button
-                            aria-label="Open conversations"
-                            onClick={() => setDrawerOpen(true)}
-                            variant="ghost"
-                            >
-                            <FiMenu size="24" />
-                        </Button>
-                    )}
-                    <Icon as={FiMessageCircle} boxSize={7} color={isLightTheme ? "#495057" : "white"} />
-                    <Text fontSize={{ base: "2xl", md: "4xl" }} fontWeight="black" my={2} color={isLightTheme ? '#212529' : 'white'}>
-                        Messages
-                    </Text>
-                </HStack>
-            <Text color={theme.secondaryText} fontSize="lg">Chat with customers and sellers</Text>
-            </Box>
-            <Badge
-            bg={isLightTheme ? '#3B82F615' : 'brand.500'}
-            color={isLightTheme ? '#212529' : 'white'}
-            border={isLightTheme ? '1px solid' : 'none'}
-            borderColor={isLightTheme ? '#3B82F630' : 'transparent'}
-            px={3} py={2} borderRadius="full" fontSize="sm" fontWeight="semibold"
-            >
-            {rooms.length} Conversations
-            </Badge>
-        </Flex>
-      )}
-
-      {/* MOBILE: Navigator kiểu Messenger */}
-      {isMobile ? (
-        <MobileChatNavigator
-          rooms={rooms}
-          active={active}
-          onOpenRoom={open}
-          onBackToList={backToList}
-          theme={theme}
-          apiUrl={apiUrl}
-          meUsername={user?.username}
-          createNewRoom={createNewRoom}
-          messages={messages}
-          endRef={endRef}
-          input={input}
-          setInput={setInput}
-          sendText={sendText}
-          sendImage={sendImage}
-        />
-      ) : (
-        // DESKTOP:
-        <HStack align="stretch" spacing={6} h="calc(100vh - 210px)">
+    <Box bg={theme.pageBg} minH="100vh">
+      <Box maxW="1400px" mx="auto" px={{ base: 0, md: 6 }} py={{ base: 0, md: 6 }}>
+        
+        {/* Mobile Layout */}
+        {isMobile ? (
+          <MobileChatNavigator
+            rooms={rooms}
+            active={active}
+            onOpenRoom={open}
+            onBackToList={backToList}
+            theme={chatTheme}
+            apiUrl={apiUrl}
+            meUsername={user?.username}
+            createNewRoom={createNewRoom}
+            messages={messages}
+            endRef={endRef}
+            input={input}
+            setInput={setInput}
+            sendText={sendText}
+            sendImage={sendImage}
+          />
+        ) : (
+          /* Desktop Layout */
+          <Flex 
+            h="calc(100vh - 100px)" 
+            gap={0} 
+            border="1px solid" 
+            borderColor={theme.border} 
+            borderRadius="xl" 
+            overflow="hidden" 
+            bg={theme.cardBg}
+          >
+            
             {/* Sidebar */}
-            <VStack align="stretch" w="320px" bg={theme.secondaryBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
-                <Box p={4} borderBottom="1px solid" borderColor={theme.border}>
-                    <NewRoomInput onCreate={createNewRoom} theme={theme} />
-                </Box>
-                <RoomList rooms={rooms} active={active} onOpen={open} theme={theme} meUsername={user?.username} apiUrl={apiUrl} />
-            </VStack>
+            <Box 
+              w="360px" 
+              borderRight="1px solid" 
+              borderColor={theme.border} 
+              display="flex" 
+              flexDirection="column"
+              bg={theme.cardBg}
+            >
+              
+              {/* Sidebar Header */}
+              <Box px={5} py={4} borderBottom="1px solid" borderColor={theme.border}>
+                <Flex justify="space-between" align="center" mb={4}>
+                  <Text fontSize="xl" fontWeight="bold" color={theme.text}>
+                    Messages
+                  </Text>
+                </Flex>
+                <NewRoomInput onCreate={createNewRoom} theme={chatTheme} />
+              </Box>
+              
+              {/* Room List */}
+              <Box flex={1} overflowY="auto">
+                {sortedRooms.length > 0 ? (
+                  <RoomList 
+                    rooms={sortedRooms} 
+                    active={active} 
+                    onOpen={open} 
+                    theme={chatTheme} 
+                    meUsername={user?.username} 
+                    apiUrl={apiUrl} 
+                  />
+                ) : (
+                  <Flex direction="column" align="center" justify="center" h="full" p={8}>
+                    <Box 
+                      w="48px" 
+                      h="48px" 
+                      borderRadius="full" 
+                      bg={theme.secondaryBg}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      mb={3}
+                    >
+                      <Icon as={FiMessageCircle} boxSize={5} color={theme.textMuted} />
+                    </Box>
+                    <Text fontSize="sm" color={theme.textSecondary} textAlign="center">
+                      No conversations yet
+                    </Text>
+                  </Flex>
+                )}
+              </Box>
+            </Box>
 
             {/* Chat Area */}
-            <VStack align="stretch" flex={1} bg={theme.bg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden" gap={0}>
-            {active ? (
+            <Box flex={1} display="flex" flexDirection="column" bg={theme.secondaryBg}>
+              {active ? (
                 <>
-                <ChatHeader active={active} theme={theme} apiUrl={apiUrl} />
-                <MessagesList messages={messages} meUsername={user?.username} theme={theme} endRef={endRef} />
-                <Composer theme={theme} input={input} setInput={setInput} onSendText={sendText} onSendImage={sendImage} />
+                  <ChatHeader active={active} theme={chatTheme} apiUrl={apiUrl} />
+                  <Box flex={1} overflowY="auto">
+                    <MessagesList 
+                      messages={messages} 
+                      meUsername={user?.username} 
+                      theme={chatTheme} 
+                      endRef={endRef} 
+                    />
+                  </Box>
+                  <Composer 
+                    theme={chatTheme} 
+                    input={input} 
+                    setInput={setInput} 
+                    onSendText={sendText} 
+                    onSendImage={sendImage} 
+                  />
                 </>
-            ) : (
+              ) : (
                 <Flex align="center" justify="center" h="full">
-                <Box textAlign="center">
-                    <Icon as={FiMessageSquare} boxSize={16} color={theme.mutedText} mb={4} />
-                    <Text fontSize="lg" fontWeight="bold" mb={2} color={theme.text}>Select a conversation</Text>
-                    <Text color={theme.secondaryText} fontSize="sm">Choose a room from the list or start a new conversation</Text>
-                </Box>
+                  <VStack spacing={4}>
+                    <Box
+                      w="80px"
+                      h="80px"
+                      borderRadius="full"
+                      bg={theme.cardBg}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      border="1px solid"
+                      borderColor={theme.border}
+                    >
+                      <Icon as={FiMessageSquare} boxSize={8} color={theme.textMuted} />
+                    </Box>
+                    <VStack spacing={1}>
+                      <Text fontSize="md" fontWeight="semibold" color={theme.text}>
+                        Select a conversation
+                      </Text>
+                      <Text color={theme.textSecondary} fontSize="sm" textAlign="center" maxW="260px">
+                        Pick a chat from the sidebar to start messaging
+                      </Text>
+                    </VStack>
+                  </VStack>
                 </Flex>
-            )}
-            </VStack>
-        </HStack>
+              )}
+            </Box>
+          </Flex>
         )}
+      </Box>
     </Box>
   )
 }

@@ -477,7 +477,7 @@ export default function LandingCarousel() {
 
                                             <Menu.Item
                                                 value="info"
-                                                onClick={() => nav('/account')}
+                                                onClick={() => nav('/profile')}
                                                 display="flex" alignItems="center" gap="3" px="3" py="2"
                                                 _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
                                                 color="whiteAlpha.600"

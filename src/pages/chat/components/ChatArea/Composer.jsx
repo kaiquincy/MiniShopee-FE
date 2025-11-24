@@ -1,6 +1,6 @@
-import { Box, HStack, IconButton, Input, Icon } from '@chakra-ui/react'
-import { FiImage, FiSend } from 'react-icons/fi'
+import { Box, HStack, Icon, IconButton, Input } from '@chakra-ui/react'
 import { useRef } from 'react'
+import { FiImage, FiSend } from 'react-icons/fi'
 
 export default function Composer({ theme, input, setInput, onSendText, onSendImage }) {
   const fileInputRef = useRef(null)
@@ -23,9 +23,9 @@ export default function Composer({ theme, input, setInput, onSendText, onSendIma
           borderColor={theme.border}
           _hover={{ bg: theme.hoverBg }}
         >
-          <Icon as={FiImage} boxSize={5} color={theme.mutedText} />
+          <Icon as={FiImage} boxSize={5} color={theme.text} />
         </IconButton>
-        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onImageSelected} />
+        <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onImageSelected}/>
 
         <Input
           value={input}

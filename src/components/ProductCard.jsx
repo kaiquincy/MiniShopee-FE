@@ -1,8 +1,9 @@
 import { Badge, Box, Button, HStack, Icon, Image, Text, VStack } from '@chakra-ui/react'
 import { FiShoppingCart, FiStar } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-export default function ProductCard({ p, onAdd }) {
+export default function ProductCard({ p, theme }) {
+  const navigate = useNavigate()
   const discountPercent = p.discountPrice ? Math.round(100 - (p.discountPrice / p.price) * 100) : 0
   const rating = (p.averageStars ?? p.ratingAvg ?? 0).toFixed(1)
   const ratingCount = p.totalRatings ?? p.ratingCount ?? 0
@@ -10,16 +11,16 @@ export default function ProductCard({ p, onAdd }) {
 
   return (
     <Box
-      bg="white"
+      bg={theme.cardBg}
       borderRadius="lg"
       overflow="hidden"
       border="1px solid"
-      borderColor="#DEE2E6"
+      borderColor={theme.border}
       transition="all 0.3s"
       _hover={{
         transform: 'translateY(-4px)',
         shadow: 'lg',
-        
+        borderColor: theme.borderLight,
       }}
       display="flex"
       flexDirection="column"
@@ -63,7 +64,7 @@ export default function ProductCard({ p, onAdd }) {
             position="absolute"
             bottom={3}
             left={3}
-            bg="rgba(255, 255, 255, 0.95)"
+            bg={theme.isLight ? "rgba(255, 255, 255, 0.95)" : "rgba(30, 41, 59, 0.95)"}
             backdropFilter="blur(8px)"
             px={2}
             py={1}
@@ -71,10 +72,10 @@ export default function ProductCard({ p, onAdd }) {
             spacing={1}
           >
             <Icon as={FiStar} color="#F59E0B" boxSize={3} fill="#F59E0B" />
-            <Text fontSize="xs" fontWeight="bold" color="#212529">
+            <Text fontSize="xs" fontWeight="bold" color={theme.text}>
               {rating}
             </Text>
-            <Text fontSize="xs" color="#6C757D">
+            <Text fontSize="xs" color={theme.textMuted}>
               ({ratingCount})
             </Text>
           </HStack>
@@ -88,11 +89,11 @@ export default function ProductCard({ p, onAdd }) {
           <Text
             fontWeight="semibold"
             fontSize="md"
-            color="#212529"
+            color={theme.text}
             noOfLines={3}
             lineHeight="1.4"
             minH="4.2em"
-            _hover={{ color: "#495057" }}
+            _hover={{ color: theme.textSecondary }}
             title={p.name}
           >
             {p.name}
@@ -103,31 +104,34 @@ export default function ProductCard({ p, onAdd }) {
         <VStack align="stretch" spacing={3} mt="auto">
           {/* Price Section */}
           <HStack spacing={2} align="baseline">
-            <Text fontSize="xl" fontWeight="black" color="#212529" whiteSpace="nowrap">
+            <Text fontSize="xl" fontWeight="black" color={theme.text} whiteSpace="nowrap">
               ${finalPrice?.toLocaleString()}
             </Text>
             {p.discountPrice && (
-              <Text fontSize="sm" color="#ADB5BD" textDecoration="line-through" whiteSpace="nowrap">
+              <Text fontSize="sm" color={theme.textMuted} textDecoration="line-through" whiteSpace="nowrap">
                 ${p.price?.toLocaleString()}
               </Text>
             )}
           </HStack>
 
-          {/* Add to Cart Button */}
           <Button
-            onClick={() => onAdd(p.id)}
-            bg="#212529"
+            onClick={() => navigate(`/product/${p.id}`)}
+            bg={theme.primary}
             color="white"
             size="sm"
             w="full"
             leftIcon={<Icon as={FiShoppingCart} />}
-            _hover={{ bg: "white", border: "2px solid #212529", color: "#212529" }}
+            _hover={{ 
+              bg: theme.isLight ? "white" : theme.cardBg, 
+              border: "2px solid", 
+              borderColor: theme.primary, 
+              color: theme.text 
+            }}
           >
-            Add to Cart
+            View product
           </Button>
         </VStack>
       </VStack>
-
     </Box>
   )
 }
