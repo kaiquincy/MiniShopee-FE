@@ -12,10 +12,10 @@ import {
   Text,
   VStack
 } from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiShoppingBag } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
-import { listOrders } from '../api/orders'
+import { getOrderCounts, listOrders } from '../api/orders'
 import { addRating } from '../api/ratings'
 import RatingDialog from '../components/RatingDialog'
 import { useTheme } from '../context/ThemeContext'
@@ -38,42 +38,47 @@ export default function Orders() {
   const [totalPages, setTotalPages] = useState(0)
   const pageSize = 10
 
+  const [allOrdersCounts, setAllOrdersCounts] = useState({
+    processing: 0,
+    shipping: 0,
+    completed: 0,
+    cancelled: 0,
+    pending: 0,
+    total: 0,
+  })
+
+  // Load order counts (for badges)
+  useEffect(() => {
+    (async () => {
+      try {
+        const counts = await getOrderCounts()
+        setAllOrdersCounts(counts)
+      } catch (err) {
+        console.error('Failed to load order counts:', err)
+      }
+    })()
+  }, [])
+
+  // Load paginated orders
   useEffect(() => {
     (async () => {
       setLoading(true)
       try {
-        // If backend supports pagination, use: await listOrders({ page, size: pageSize, status: value !== 'all' ? value : undefined })
-        const data = await listOrders()
+        const data = await listOrders({ 
+          page, 
+          size: pageSize, 
+          status: value !== 'all' ? value : undefined 
+        })
         
-        // If backend returns paginated data:
-        // setOrders(Array.isArray(data.content) ? data.content : [])
-        // setTotalPages(data.totalPages || 0)
-        
-        // If backend returns simple array (current):
-        setOrders(Array.isArray(data) ? data : [])
-        setTotalPages(Math.ceil((Array.isArray(data) ? data.length : 0) / pageSize))
+        setOrders(Array.isArray(data.content) ? data.content : [])
+        setTotalPages(data.totalPages || 0)
       } finally {
         setLoading(false)
       }
     })()
   }, [page, value])
 
-  const counts = useMemo(() => ({
-    processing: orders.filter(o => up(o.status) === 'processing').length,
-    shipping:   orders.filter(o => up(o.status) === 'shipping').length,
-    completed:  orders.filter(o => up(o.status) === 'completed').length,
-    cancelled:  orders.filter(o => up(o.status) === 'cancelled').length,
-  }), [orders])
-
-  const filtered = useMemo(() => {
-    let base = value === 'all' ? orders : orders.filter(o => up(o.status) === value)
-    base = [...base].reverse()
-    
-    // Client-side pagination (if backend doesn't support it)
-    const start = page * pageSize
-    const end = start + pageSize
-    return base.slice(start, end)
-  }, [orders, value, page, pageSize])
+  const counts = allOrdersCounts
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
@@ -96,7 +101,7 @@ export default function Orders() {
 
       {/* Filter tabs */}
       <Tabs.Root value={value} onValueChange={(e) => { setValue(e.value); setPage(0); }} variant="plain">
-        <Tabs.List overflowX="auto" rounded="l3" p="1" borderColor={theme.border} display="flex" gap={1}>
+        <Tabs.List overflowX="auto" rounded="l3" p="1" borderColor={theme.border}>
           <Tabs.Trigger value="all" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>All</Tabs.Trigger>
           <Tabs.Trigger value="processing" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>
             Processing <Badge ml="2" colorPalette="yellow">{counts.processing}</Badge>
@@ -114,11 +119,71 @@ export default function Orders() {
         </Tabs.List>
       </Tabs.Root>
 
+      {/* Pagination
+      {!loading && totalPages > 1 && (
+        <HStack justify="center" mt={6} spacing={2}>
+          <Button
+            size="sm"
+            onClick={() => handlePageChange(page - 1)}
+            isDisabled={page === 0}
+            leftIcon={<FiChevronLeft />}
+            bg={theme.cardBg}
+            color={theme.textSecondary}
+            borderColor={theme.border}
+            _hover={{ bg: theme.hoverBg }}
+          >
+            Previous
+          </Button>
+
+          <HStack spacing={2}>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum
+              if (totalPages <= 5) {
+                pageNum = i
+              } else if (page < 3) {
+                pageNum = i
+              } else if (page > totalPages - 4) {
+                pageNum = totalPages - 5 + i
+              } else {
+                pageNum = page - 2 + i
+              }
+
+              return (
+                <Button
+                  key={pageNum}
+                  size="sm"
+                  onClick={() => handlePageChange(pageNum)}
+                  bg={page === pageNum ? theme.primary : theme.cardBg}
+                  color={page === pageNum ? "white" : theme.textSecondary}
+                  borderColor={page === pageNum ? theme.primary : theme.border}
+                  _hover={{ bg: page === pageNum ? theme.primaryHover : theme.hoverBg }}
+                >
+                  {pageNum + 1}
+                </Button>
+              )
+            })}
+          </HStack>
+
+          <Button
+            size="sm"
+            onClick={() => handlePageChange(page + 1)}
+            isDisabled={page >= totalPages - 1}
+            rightIcon={<FiChevronRight />}
+            bg={theme.cardBg}
+            color={theme.textSecondary}
+            borderColor={theme.border}
+            _hover={{ bg: theme.hoverBg }}
+          >
+            Next
+          </Button>
+        </HStack>
+      )} */}
+
       {/* Orders list */}
       <VStack align="stretch" spacing={4} mt={4}>
         {loading && <OrderSkeletonList theme={theme} />}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && orders.length === 0 && (
           <Box
             bg={theme.cardBg}
             border="1px solid"
@@ -133,7 +198,7 @@ export default function Orders() {
           </Box>
         )}
 
-        {!loading && filtered.map(o => (
+        {!loading && orders.map(o => (
           <OrderCard key={o.id} order={o} theme={theme} />
         ))}
       </VStack>

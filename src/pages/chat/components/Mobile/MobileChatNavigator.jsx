@@ -1,21 +1,45 @@
 // components/Mobile/MobileChatNavigator.jsx
 "use client"
 
-import { Box, HStack, IconButton, Text, VStack, Icon } from "@chakra-ui/react"
-import { motion, AnimatePresence } from "framer-motion"
+import { Box, HStack, Icon, IconButton, Text, VStack } from "@chakra-ui/react"
+import { AnimatePresence, motion } from "framer-motion"
+import { useMemo, useRef } from "react"
 import { FiArrowLeft, FiMessageSquare } from "react-icons/fi"
+import ChatHeader from "../ChatArea/ChatHeader"
+import Composer from "../ChatArea/Composer"
+import MessagesList from "../ChatArea/MessagesList"
 import NewRoomInput from "../Sidebar/NewRoomInput"
 import RoomList from "../Sidebar/RoomList"
-import ChatHeader from "../ChatArea/ChatHeader"
-import MessagesList from "../ChatArea/MessagesList"
-import Composer from "../ChatArea/Composer"
-import { useMemo, useRef } from "react"
 
 // slide variants
 const variants = {
-  enter: (direction) => ({ x: direction > 0 ? "100%" : "-100%", opacity: 0, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }),
-  center: { x: 0, opacity: 1, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  exit: (direction) => ({ x: direction < 0 ? "100%" : "-100%", opacity: 0, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }),
+  enter: (direction) => ({ 
+    x: direction > 0 ? "100%" : "-100%", 
+    opacity: 0, 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0 
+  }),
+  center: { 
+    x: 0, 
+    opacity: 1, 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0 
+  },
+  exit: (direction) => ({ 
+    x: direction < 0 ? "100%" : "-100%", 
+    opacity: 0, 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0 
+  }),
 }
 
 export default function MobileChatNavigator({
@@ -27,15 +51,17 @@ export default function MobileChatNavigator({
   // view = list (0) → chat (1)
   const viewIndex = active ? 1 : 0
   const viewportH = typeof window !== "undefined" ? "100dvh" : "100vh"
+  
   const containerSx = useMemo(() => ({
-    position: "relative",
-    height: `calc(${viewportH} - 140px)`,
+    position: "fixed",
+    top: "64px", // Adjust based on your header height
+    left: 0,
+    right: 0,
+    bottom: 0,
     overflow: "hidden",
-    border: "1px solid",
-    borderColor: theme.border,
-    borderRadius: "lg",
-    bg: theme.bg
-  }), [viewportH, theme])
+    bg: theme.bg,
+    zIndex: 10,
+  }), [theme])
 
   const dragThreshold = 80
   const dragOriginRef = useRef(0)
@@ -59,7 +85,7 @@ export default function MobileChatNavigator({
             flexDir="column"
             h="full"
           >
-            <Box p={4} borderBottom="1px solid" borderColor={theme.border}>
+            <Box p={4} borderBottom="1px solid" borderColor={theme.border} flexShrink={0}>
               <NewRoomInput onCreate={createNewRoom} theme={theme} />
             </Box>
             <VStack align="stretch" spacing={0} overflowY="auto" flex={1}>
@@ -72,7 +98,7 @@ export default function MobileChatNavigator({
                 <RoomList
                   rooms={rooms}
                   active={null}
-                  onOpen={onOpenRoom}   // chọn room -> sang chat
+                  onOpen={onOpenRoom}
                   theme={theme}
                   meUsername={meUsername}
                   apiUrl={apiUrl}
@@ -96,6 +122,7 @@ export default function MobileChatNavigator({
             display="flex"
             flexDir="column"
             h="full"
+            bg={theme.bg}
             // swipe to go back
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
@@ -105,34 +132,55 @@ export default function MobileChatNavigator({
               if (moved > dragThreshold) onBackToList()
             }}
           >
-            {/* Header with back button */}
-            <Box p={3} borderBottom="1px solid" borderColor={theme.border}>
+            {/* Header with back button - FIXED */}
+            <Box 
+              p={3} 
+              borderBottom="1px solid" 
+              borderColor={theme.border}
+              bg={theme.cardBg}
+              flexShrink={0}
+            >
               <HStack spacing={3}>
                 <IconButton
                   aria-label="Back"
                   size="sm"
                   variant="ghost"
                   onClick={onBackToList}
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }}
                 >
-                    <Icon as={FiArrowLeft} boxSize={5} />
+                  <Icon as={FiArrowLeft} boxSize={5} />
                 </IconButton>                
                 <ChatHeader active={active} theme={theme} apiUrl={apiUrl} />
               </HStack>
             </Box>
 
-            {/* Messages */}
-            <Box flex={1} minH={0} bg="transparent" display="flex" flexDir="column">
-              <MessagesList messages={messages} meUsername={meUsername} theme={theme} endRef={endRef} />
+            {/* Messages - SCROLLABLE */}
+            <Box 
+              flex={1} 
+              overflowY="auto"
+              overflowX="hidden"
+              bg={theme.secondaryBg}
+              position="relative"
+            >
+              <MessagesList 
+                messages={messages} 
+                meUsername={meUsername} 
+                theme={theme} 
+                endRef={endRef} 
+              />
             </Box>
 
-            {/* Composer */}
-            <Composer
-              theme={theme}
-              input={input}
-              setInput={setInput}
-              onSendText={sendText}
-              onSendImage={sendImage}
-            />
+            {/* Composer - FIXED AT BOTTOM */}
+            <Box flexShrink={0}>
+              <Composer
+                theme={theme}
+                input={input}
+                setInput={setInput}
+                onSendText={sendText}
+                onSendImage={sendImage}
+              />
+            </Box>
           </Box>
         )}
       </AnimatePresence>

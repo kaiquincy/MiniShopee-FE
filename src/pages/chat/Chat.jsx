@@ -28,7 +28,7 @@ export default function Chat() {
   // Chat-specific theme colors based on current theme
   const chatTheme = useMemo(() => ({
     ...theme,
-    messageBg: theme.isLight ? '#F5F5F5' : '#1E293B',
+    messageBg: theme.isLight ? '#D8D8D8' : '#0E192B',
     myMessageBg: '#3B82F6',
     myMessageText: '#FFFFFF',
     activeBg: theme.isLight ? '#F0F0F0' : '#334155',
