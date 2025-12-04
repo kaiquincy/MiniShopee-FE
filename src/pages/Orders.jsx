@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiShoppingBag } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getOrderCounts, listOrders } from '../api/orders'
 import { addRating } from '../api/ratings'
 import RatingDialog from '../components/RatingDialog'
@@ -37,6 +37,7 @@ export default function Orders() {
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const pageSize = 10
+  const navigate = useNavigate()
 
   const [allOrdersCounts, setAllOrdersCounts] = useState({
     processing: 0,
@@ -101,83 +102,23 @@ export default function Orders() {
 
       {/* Filter tabs */}
       <Tabs.Root value={value} onValueChange={(e) => { setValue(e.value); setPage(0); }} variant="plain">
-        <Tabs.List overflowX="auto" rounded="l3" p="1" borderColor={theme.border}>
-          <Tabs.Trigger value="all" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>All</Tabs.Trigger>
-          <Tabs.Trigger value="processing" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>
+        <Tabs.List overflowX="auto" bg={theme.secondaryBg} rounded="l3" p="1" borderColor={theme.border}>
+          <Tabs.Trigger value="all" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>All</Tabs.Trigger>
+          <Tabs.Trigger value="processing" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
             Processing <Badge ml="2" colorPalette="yellow">{counts.processing}</Badge>
           </Tabs.Trigger>
-          <Tabs.Trigger value="shipping" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>
+          <Tabs.Trigger value="shipping" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
             Shipping <Badge ml="2" colorPalette="blue">{counts.shipping}</Badge>
           </Tabs.Trigger>
-          <Tabs.Trigger value="completed" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>
+          <Tabs.Trigger value="completed" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
             Completed <Badge ml="2" colorPalette="green">{counts.completed}</Badge>
           </Tabs.Trigger>
-          <Tabs.Trigger value="cancelled" color={theme.textSecondary} transition="all ease-in-out 0.2s" _hover={{ bg: theme.cardBg, transform: "scale(1.02)" }} _selected={{ bg: theme.cardBg, color: theme.text, transform: "scale(1.02)" }}>
+          <Tabs.Trigger value="cancelled" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
             Cancelled <Badge ml="2" colorPalette="red">{counts.cancelled}</Badge>
           </Tabs.Trigger>
           <Tabs.Indicator rounded="l2" />
         </Tabs.List>
       </Tabs.Root>
-
-      {/* Pagination
-      {!loading && totalPages > 1 && (
-        <HStack justify="center" mt={6} spacing={2}>
-          <Button
-            size="sm"
-            onClick={() => handlePageChange(page - 1)}
-            isDisabled={page === 0}
-            leftIcon={<FiChevronLeft />}
-            bg={theme.cardBg}
-            color={theme.textSecondary}
-            borderColor={theme.border}
-            _hover={{ bg: theme.hoverBg }}
-          >
-            Previous
-          </Button>
-
-          <HStack spacing={2}>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum
-              if (totalPages <= 5) {
-                pageNum = i
-              } else if (page < 3) {
-                pageNum = i
-              } else if (page > totalPages - 4) {
-                pageNum = totalPages - 5 + i
-              } else {
-                pageNum = page - 2 + i
-              }
-
-              return (
-                <Button
-                  key={pageNum}
-                  size="sm"
-                  onClick={() => handlePageChange(pageNum)}
-                  bg={page === pageNum ? theme.primary : theme.cardBg}
-                  color={page === pageNum ? "white" : theme.textSecondary}
-                  borderColor={page === pageNum ? theme.primary : theme.border}
-                  _hover={{ bg: page === pageNum ? theme.primaryHover : theme.hoverBg }}
-                >
-                  {pageNum + 1}
-                </Button>
-              )
-            })}
-          </HStack>
-
-          <Button
-            size="sm"
-            onClick={() => handlePageChange(page + 1)}
-            isDisabled={page >= totalPages - 1}
-            rightIcon={<FiChevronRight />}
-            bg={theme.cardBg}
-            color={theme.textSecondary}
-            borderColor={theme.border}
-            _hover={{ bg: theme.hoverBg }}
-          >
-            Next
-          </Button>
-        </HStack>
-      )} */}
 
       {/* Orders list */}
       <VStack align="stretch" spacing={4} mt={4}>
@@ -276,6 +217,10 @@ function OrderCard({ order: o, theme }) {
   const more = Math.max(0, items.length - preview.length)
   const itemsCount = items.reduce((s, it) => s + (it.quantity || 0), 0)
 
+  // Check if all items are already rated
+  const allItemsRated = items.length > 0 && items.every(item => item.hasRating === true)
+  const unratedItems = items.filter(item => !item.hasRating)
+
   return (
     <Box
       bg={theme.cardBg}
@@ -339,7 +284,7 @@ function OrderCard({ order: o, theme }) {
 
           {preview.map(it => (
             <HStack key={it.id || it.productId} justify="space-between">
-              <VStack align="start" flex={1} spacing={1} ml={3}>
+              <VStack align="start" flex={1} spacing={1} ml={3} onClick={() => navigate(`/product/${it.id}`)} transition="all ease-in-out 0.2s" _hover={{ cursor: 'pointer', fontWeight: 'semibold' }}>
                 <Text noOfLines={1} flex={1} color={theme.text}>{it.productName}</Text>
                 {it.optionValues && (
                   <HStack spacing={2} flexWrap="wrap">
@@ -377,29 +322,41 @@ function OrderCard({ order: o, theme }) {
             Buy Again
           </Button>
         )}
-        {status === 'completed' ? (
+        {status === 'completed' && !allItemsRated && unratedItems.length > 0 ? (
           <RatingDialog
             order={o}
-            items={items} 
+            items={unratedItems}
             onSubmit={async ({ orderId, orderItemId, productId, variantId, stars, comment, files }) => {
-              const fd = new FormData()
-              const ratingData = {
-                orderItemId,
-                stars,
-                comment: comment || ''
+              try {
+                const fd = new FormData()
+                const ratingData = {
+                  orderItemId,
+                  stars,
+                  comment: comment || ''
+                }
+                fd.append('payload', JSON.stringify(ratingData))
+                files.forEach(f => fd.append('images', f))
+                await addRating(fd)
+                
+                window.location.reload()
+              } catch (error) {
+                console.error('Rating error:', error)
               }
-              fd.append('payload', JSON.stringify(ratingData))
-              files.forEach(f => fd.append('images', f))
-              await addRating(fd)
             }}
           >
-            <Button size="sm" variant="outline" borderColor={theme.border} color={theme.text} _hover={{ bg: theme.hoverBg }}>Rating</Button>
+            <Button size="sm" variant="outline" borderColor={theme.border} color={theme.text} _hover={{ bg: theme.hoverBg }}>
+              Rating
+            </Button>
           </RatingDialog>
-        ) : (
+        ) : status === 'completed' && allItemsRated ? (
+          <Button size="sm" variant="outline" borderColor={theme.border} color={theme.textMuted} isDisabled>
+            Rated
+          </Button>
+        ) : status !== 'completed' ? (
           <Button as={Link} to={`/orders/${o.id}`} size="sm" variant="outline" borderColor={theme.border} color={theme.text} _hover={{ bg: theme.hoverBg }}>
             Contact Seller
           </Button>
-        )}
+        ) : null}
       </HStack>
     </Box>
   )

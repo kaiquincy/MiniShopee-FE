@@ -27,6 +27,7 @@ import api from './client'
 
 
 export async function addRating(payload){
+  console.log(payload)
   const { data } = await api.post('/api/ratings', payload)
   return data?.result
 }
