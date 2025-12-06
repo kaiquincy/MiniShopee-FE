@@ -22,6 +22,7 @@ import { placeOrder } from '../api/orders'
 import { FiArrowLeft, FiCreditCard, FiMapPin, FiPackage, FiPlus, FiShoppingBag, FiTag } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { useTheme } from '../context/ThemeContext'
 
 // ============= Helpers =============
 const currency = (n = 0) => '$' + (n || 0).toLocaleString('en-US')
@@ -30,6 +31,7 @@ const currency = (n = 0) => '$' + (n || 0).toLocaleString('en-US')
 export default function Checkout() {
   const nav = useNavigate()
   const { reloadCart } = useCart()
+  const { theme } = useTheme()
   
   // Phương thức thanh toán
   const [method, setMethod] = useState('PAYOS')
@@ -162,14 +164,14 @@ export default function Checkout() {
   }
 
   return (
-    <Box maxW="1400px" mx="auto" px={6} py={8}>
+    <Box maxW="1400px" mx="auto" px={6} py={8} bg={theme.pageBg} minH="100vh">
       {/* Header */}
       <Box mb={8}>
         <Flex justify="space-between" align="center" mb={3}>
           <Flex align="center" gap={3}>
-            <Icon as={FiShoppingBag} boxSize={7} color="#495057" />
+            <Icon as={FiShoppingBag} boxSize={7} color={theme.textSecondary} />
             <Box>
-              <Heading size="4xl" fontWeight="black" color="#212529">
+              <Heading size="4xl" fontWeight="black" color={theme.text}>
                 Checkout
               </Heading>
             </Box>
@@ -179,16 +181,16 @@ export default function Checkout() {
             variant="outline"
             leftIcon={<FiArrowLeft />}
             onClick={() => nav('/cart')}
-            borderColor="#DEE2E6"
-            color="#495057"
-            _hover={{ bg: "#F8F9FA" }}
+            borderColor={theme.border}
+            color={theme.textSecondary}
+            _hover={{ bg: theme.hoverBg }}
             fontWeight="semibold"
             disabled={isPlacingOrder}
           >
             Back to Cart
           </Button>
         </Flex>
-        <Text color="#6C757D" fontSize="lg">
+        <Text color={theme.textMuted} fontSize="lg">
           Review your order details and complete your purchase
         </Text>
       </Box>
@@ -198,17 +200,17 @@ export default function Checkout() {
         <Box>
           {/* Address */}
           <Box 
-            bg="white" 
+            bg={theme.cardBg}
             border="1px solid" 
-            borderColor="#DEE2E6"
+            borderColor={theme.border}
             borderRadius="xl" 
             p={6} 
             mb={4}
             shadow="sm"
           >
             <Flex align="center" gap={2} mb={4}>
-              <Icon as={FiMapPin} boxSize={5} color="#495057" />
-              <Heading size="md" color="#212529" fontWeight="bold">
+              <Icon as={FiMapPin} boxSize={5} color={theme.textSecondary} />
+              <Heading size="md" color={theme.text} fontWeight="bold">
                 Shipping Address
               </Heading>
             </Flex>
@@ -221,7 +223,7 @@ export default function Checkout() {
                 py={8} 
                 gap={3}
                 borderRadius="lg"
-                bg="#F8F9FA"
+                bg={theme.secondaryBg}
               >
                 <Flex 
                   as="button" 
@@ -231,34 +233,34 @@ export default function Checkout() {
                   h="64px" 
                   borderRadius="full" 
                   border="2px dashed" 
-                  borderColor="#ADB5BD"
-                  bg="white"
-                  _hover={{ bg:'#F8F9FA', borderColor: '#495057' }} 
+                  borderColor={theme.borderLight}
+                  bg={theme.cardBg}
+                  _hover={{ bg: theme.hoverBg, borderColor: theme.textSecondary }} 
                   onClick={() => setAddrOpen(true)}
                   transition="all 0.2s"
                   disabled={isPlacingOrder}
                 >
-                  <FiPlus size={28} color="#495057" />
+                  <FiPlus size={28} color={theme.textSecondary} />
                 </Flex>
-                <Text color="#495057" fontWeight="semibold">Add your shipping address</Text>
+                <Text color={theme.textSecondary} fontWeight="semibold">Add your shipping address</Text>
               </Flex>
             ) : (
               <Box 
                 p={4} 
-                bg="#F8F9FA" 
+                bg={theme.secondaryBg}
                 borderRadius="lg"
                 border="1px solid"
-                borderColor="#E9ECEF"
+                borderColor={theme.border}
               >
                 <Flex justify="space-between" align="start" gap={3}>
                   <Box flex={1}>
-                    <Text fontWeight="bold" color="#212529" mb={1}>
+                    <Text fontWeight="bold" color={theme.text} mb={1}>
                       {address.fullName}
                     </Text>
-                    <Text color="#6C757D" fontSize="sm" mb={1}>
+                    <Text color={theme.textMuted} fontSize="sm" mb={1}>
                       {address.phone}
                     </Text>
-                    <Text color="#495057" fontSize="sm">
+                    <Text color={theme.textSecondary} fontSize="sm">
                       {address.line1}
                       {address.ward ? `, ${address.ward}` : ''}
                       {address.district ? `, ${address.district}` : ''}
@@ -268,9 +270,9 @@ export default function Checkout() {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    borderColor="#DEE2E6"
-                    color="#495057"
-                    _hover={{ bg: "white" }}
+                    borderColor={theme.border}
+                    color={theme.textSecondary}
+                    _hover={{ bg: theme.hoverBg }}
                     onClick={() => setAddrOpen(true)}
                     disabled={isPlacingOrder}
                   >
@@ -283,25 +285,25 @@ export default function Checkout() {
 
           {/* Order details */}
           <Box 
-            bg="white" 
+            bg={theme.cardBg}
             border="1px solid" 
-            borderColor="#DEE2E6"
+            borderColor={theme.border}
             borderRadius="xl" 
             p={6} 
             mb={4}
             shadow="sm"
           >
             <Flex align="center" gap={2} mb={4}>
-              <Icon as={FiPackage} boxSize={5} color="#495057" />
-              <Heading size="md" color="#212529" fontWeight="bold">
+              <Icon as={FiPackage} boxSize={5} color={theme.textSecondary} />
+              <Heading size="md" color={theme.text} fontWeight="bold">
                 Order Items
               </Heading>
               {cart?.items?.length > 0 && (
                 <Badge 
-                  bg="#F8F9FA"
-                  color="#495057"
+                  bg={theme.secondaryBg}
+                  color={theme.textSecondary}
                   border="1px solid"
-                  borderColor="#DEE2E6"
+                  borderColor={theme.border}
                   px={2}
                   py={0.5}
                   borderRadius="md"
@@ -316,7 +318,7 @@ export default function Checkout() {
 
             {!cart?.items?.length ? (
               <Box py={6} textAlign="center">
-                <Text color="#ADB5BD" fontSize="sm">Your cart is empty</Text>
+                <Text color={theme.textPlaceholder} fontSize="sm">Your cart is empty</Text>
               </Box>
             ) : (
               <Box>
@@ -324,19 +326,19 @@ export default function Checkout() {
                   <Box key={it.id}>
                     <Flex py={4} align="center" gap={3}>
                       <Box flex={1}>
-                        <Text fontWeight="semibold" color="#212529" noOfLines={1}>
+                        <Text fontWeight="semibold" color={theme.text} noOfLines={1}>
                           {it.productName}
                         </Text>
-                        <Text color="#6C757D" fontSize="sm">
+                        <Text color={theme.textMuted} fontSize="sm">
                           Qty: {it.quantity}
                         </Text>
                       </Box>
-                      <Text fontWeight="bold" color="#212529">
+                      <Text fontWeight="bold" color={theme.text}>
                         {currency(it.totalPrice)}
                       </Text>
                     </Flex>
                     {idx < cart.items.length - 1 && (
-                      <Box h="1px" bg="#E9ECEF" />
+                      <Box h="1px" bg={theme.border} />
                     )}
                   </Box>
                 ))}
@@ -346,16 +348,16 @@ export default function Checkout() {
 
           {/* Voucher */}
           <Box 
-            bg="white" 
+            bg={theme.cardBg}
             border="1px solid" 
-            borderColor="#DEE2E6"
+            borderColor={theme.border}
             borderRadius="xl" 
             p={6}
             shadow="sm"
           >
             <Flex align="center" gap={2} mb={4}>
-              <Icon as={FiTag} boxSize={5} color="#495057" />
-              <Heading size="md" color="#212529" fontWeight="bold">
+              <Icon as={FiTag} boxSize={5} color={theme.textSecondary} />
+              <Heading size="md" color={theme.text} fontWeight="bold">
                 Discount Code
               </Heading>
             </Flex>
@@ -365,16 +367,19 @@ export default function Checkout() {
                 placeholder="Enter code (e.g., SALE10)" 
                 value={voucher} 
                 onChange={e => setVoucher(e.target.value)}
-                borderColor="#DEE2E6"
-                _hover={{ borderColor: "#ADB5BD" }}
-                _focus={{ borderColor: "#495057", boxShadow: "0 0 0 1px #495057" }}
+                bg={theme.inputBg}
+                color={theme.text}
+                borderColor={theme.border}
+                _placeholder={{ color: theme.textPlaceholder }}
+                _hover={{ borderColor: theme.borderLight }}
+                _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
                 disabled={isPlacingOrder}
               />
               <Button 
                 onClick={applyVoucher}
-                bg="#212529"
+                bg={theme.primary}
                 color="white"
-                _hover={{ bg: "#343A40" }}
+                _hover={{ bg: theme.primaryHover }}
                 fontWeight="semibold"
                 px={6}
                 disabled={isPlacingOrder}
@@ -387,13 +392,13 @@ export default function Checkout() {
               <Flex 
                 mt={3} 
                 p={3} 
-                bg="#D1E7DD" 
+                bg={theme.isLight ? "#D1E7DD" : "#0F5132"}
                 borderRadius="lg"
                 align="center"
                 gap={2}
               >
-                <Icon as={FiTag} color="#0F5132" />
-                <Text color="#0F5132" fontSize="sm" fontWeight="medium">
+                <Icon as={FiTag} color={theme.isLight ? "#0F5132" : "#D1E7DD"} />
+                <Text color={theme.isLight ? "#0F5132" : "#D1E7DD"} fontSize="sm" fontWeight="medium">
                   Applied <strong>{voucherApplied.code}</strong>: -{currency(voucherApplied.discount)}
                 </Text>
               </Flex>
@@ -405,52 +410,52 @@ export default function Checkout() {
         <Box>
           {/* Payment Summary */}
           <Box 
-            bg="white" 
+            bg={theme.cardBg}
             border="1px solid" 
-            borderColor="#DEE2E6"
+            borderColor={theme.border}
             borderRadius="xl" 
             p={6} 
             mb={4}
             shadow="sm"
           >
             <Flex align="center" gap={2} mb={4}>
-              <Icon as={FiCreditCard} boxSize={5} color="#495057" />
-              <Heading size="md" color="#212529" fontWeight="bold">
+              <Icon as={FiCreditCard} boxSize={5} color={theme.textSecondary} />
+              <Heading size="md" color={theme.text} fontWeight="bold">
                 Payment Summary
               </Heading>
             </Flex>
 
             <Box>
               <Flex justify="space-between" py={2}>
-                <Text color="#6C757D">Subtotal</Text>
-                <Text fontWeight="semibold" color="#212529">
+                <Text color={theme.textMuted}>Subtotal</Text>
+                <Text fontWeight="semibold" color={theme.text}>
                   {currency(subtotal)}
                 </Text>
               </Flex>
 
               <Flex justify="space-between" py={2}>
-                <Text color="#6C757D">Shipping</Text>
-                <Text fontWeight="semibold" color={shippingFee === 0 ? "#198754" : "#212529"}>
+                <Text color={theme.textMuted}>Shipping</Text>
+                <Text fontWeight="semibold" color={shippingFee === 0 ? theme.success : theme.text}>
                   {shippingFee === 0 ? 'Free' : currency(shippingFee)}
                 </Text>
               </Flex>
 
               {discount > 0 && (
                 <Flex justify="space-between" py={2}>
-                  <Text color="#6C757D">Discount</Text>
-                  <Text fontWeight="semibold" color="#198754">
+                  <Text color={theme.textMuted}>Discount</Text>
+                  <Text fontWeight="semibold" color={theme.success}>
                     -{currency(discount)}
                   </Text>
                 </Flex>
               )}
 
-              <Separator borderColor="#E9ECEF" my={3} />
+              <Separator borderColor={theme.border} my={3} />
 
               <Flex justify="space-between" align="center" py={2}>
-                <Text fontSize="lg" fontWeight="bold" color="#212529">
+                <Text fontSize="lg" fontWeight="bold" color={theme.text}>
                   Total
                 </Text>
-                <Text fontSize="2xl" fontWeight="black" color="#212529">
+                <Text fontSize="2xl" fontWeight="black" color={theme.text}>
                   {currency(grandTotal)}
                 </Text>
               </Flex>
@@ -459,15 +464,15 @@ export default function Checkout() {
 
           {/* Payment Method */}
           <Box 
-            bg="white" 
+            bg={theme.cardBg}
             border="1px solid" 
-            borderColor="#DEE2E6"
+            borderColor={theme.border}
             borderRadius="xl" 
             p={6} 
             mb={4}
             shadow="sm"
           >
-            <Heading size="md" color="#212529" fontWeight="bold" mb={4}>
+            <Heading size="md" color={theme.text} fontWeight="bold" mb={4}>
               Payment Method
             </Heading>
 
@@ -477,50 +482,47 @@ export default function Checkout() {
               disabled={isPlacingOrder}
             >
               <Flex direction="column" gap={3}>
-                <Box 
+                <Radio
+                  value="PAYOS" 
                   p={3} 
                   border="1px solid"
-                  borderColor={method === 'PAYOS' ? '#212529' : '#DEE2E6'}
+                  borderColor={method === 'PAYOS' ? theme.accent : theme.border}
                   borderRadius="lg"
-                  bg={method === 'PAYOS' ? '#F8F9FA' : 'white'}
+                  bg={method === 'PAYOS' ? theme.secondaryBg : theme.cardBg}
                   transition="all 0.2s"
                   opacity={isPlacingOrder ? 0.6 : 1}
                 >
-                  <Radio value="PAYOS">
-                    <Text fontWeight="semibold" color="#212529">PayOS</Text>
-                    <Text fontSize="xs" color="#6C757D">Vietnamese payment gateway</Text>
-                  </Radio>
-                </Box>
+                  <Text fontWeight="semibold" color={theme.text}>PayOS</Text>
+                  <Text fontSize="xs" color={theme.textMuted}>Vietnamese payment gateway</Text>
+                </Radio>
 
-                <Box 
+                <Radio 
+                  value="VISA"
                   p={3} 
                   border="1px solid"
-                  borderColor={method === 'VISA' ? '#212529' : '#DEE2E6'}
+                  borderColor={method === 'VISA' ? theme.accent : theme.border}
                   borderRadius="lg"
-                  bg={method === 'VISA' ? '#F8F9FA' : 'white'}
+                  bg={method === 'VISA' ? theme.secondaryBg : theme.cardBg}
                   transition="all 0.2s"
                   opacity={isPlacingOrder ? 0.6 : 1}
                 >
-                  <Radio value="VISA">
-                    <Text fontWeight="semibold" color="#212529">Visa/Mastercard</Text>
-                    <Text fontSize="xs" color="#6C757D">Debit or Credit card</Text>
-                  </Radio>
-                </Box>
+                  <Text fontWeight="semibold" color={theme.text}>Visa/Mastercard</Text>
+                  <Text fontSize="xs" color={theme.textMuted}>Debit or Credit card</Text>
+                </Radio>
 
-                <Box 
+                <Radio 
+                  value="COD"
                   p={3} 
                   border="1px solid"
-                  borderColor={method === 'COD' ? '#212529' : '#DEE2E6'}
+                  borderColor={method === 'COD' ? theme.accent : theme.border}
                   borderRadius="lg"
-                  bg={method === 'COD' ? '#F8F9FA' : 'white'}
+                  bg={method === 'COD' ? theme.secondaryBg : theme.cardBg}
                   transition="all 0.2s"
                   opacity={isPlacingOrder ? 0.6 : 1}
                 >
-                  <Radio value="COD">
-                    <Text fontWeight="semibold" color="#212529">Cash on Delivery</Text>
-                    <Text fontSize="xs" color="#6C757D">Pay when you receive</Text>
-                  </Radio>
-                </Box>
+                  <Text fontWeight="semibold" color={theme.text}>Cash on Delivery</Text>
+                  <Text fontSize="xs" color={theme.textMuted}>Pay when you receive</Text>
+                </Radio>
               </Flex>
             </RadioGroup>
           </Box>
@@ -529,9 +531,9 @@ export default function Checkout() {
           <Button 
             w="full" 
             size="lg"
-            bg="#212529"
+            bg={theme.primary}
             color="white"
-            _hover={{ bg: "#343A40" }}
+            _hover={{ bg: theme.primaryHover }}
             fontWeight="bold"
             onClick={doPay}
             py={6}
