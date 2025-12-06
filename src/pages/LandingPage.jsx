@@ -39,38 +39,42 @@ export default function LandingPage() {
     return (
         <Box bg="black" color="white">
             {/* ================= HERO CAROUSEL ================= */}
-            <LandingCarousel />
+            <Box mb={{ base: 0, md: 0 }}>
+                <LandingCarousel />
+            </Box>
 
             {/* ================= FEATURED CATEGORIES ================= */}
-            <Box py={20} bg="gray.950" position="relative">
+            <Box py={{ base: 12, md: 16, lg: 20 }} bg="gray.950" position="relative">
                 {/* Decorative gradient */}
                 <Box
                     position="absolute"
                     top="0"
                     left="50%"
                     transform="translateX(-50%)"
-                    w="600px"
-                    h="600px"
+                    w={{ base: "300px", md: "600px" }}
+                    h={{ base: "300px", md: "600px" }}
                     bg="#2563EB"
                     opacity={0.05}
                     filter="blur(100px)"
                     pointerEvents="none"
+                    display={{ base: "none", md: "block" }}
                 />
 
-                <Container maxW="container.2xl" position="relative">
+                <Container maxW="container.2xl" position="relative" px={{ base: 4, md: 6 }}>
                     {/* Section Header */}
                     <Flex 
                         justify="space-between" 
-                        align="center" 
-                        mb={12}
+                        align={{ base: "start", md: "center" }} 
+                        mb={{ base: 8, md: 12 }}
                         flexWrap="wrap"
                         gap={4}
+                        direction={{ base: "column", md: "row" }}
                     >
                         <Box>
                             <HStack mb={2}>
-                                <Box w="40px" h="2px" bg="brand.500" />
+                                <Box w={{ base: "30px", md: "40px" }} h="2px" bg="brand.500" />
                                 <Text 
-                                    fontSize="sm" 
+                                    fontSize={{ base: "xs", md: "sm" }}
                                     fontWeight="bold" 
                                     color="brand.500"
                                     textTransform="uppercase"
@@ -80,7 +84,7 @@ export default function LandingPage() {
                                 </Text>
                             </HStack>
                             <Text
-                                fontSize={{ base: "3xl", md: "4xl" }}
+                                fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                                 fontWeight="black"
                             >
                                 Shop by Category
@@ -90,11 +94,12 @@ export default function LandingPage() {
                             variant="outline"
                             borderColor="white"
                             color="white"
-                            size="lg"
+                            size={{ base: "md", md: "lg" }}
                             borderRadius="none"
                             rightIcon={<FiArrowRight />}
                             _hover={{ bg: "whiteAlpha.100" }}
                             onClick={() => nav('/products')}
+                            w={{ base: "full", md: "auto" }}
                         >
                             View All
                         </Button>
@@ -102,20 +107,25 @@ export default function LandingPage() {
 
                     {/* Categories Grid */}
                     <Grid
-                        templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
-                        gap={6}
+                        templateColumns={{ 
+                            base: "repeat(2, 1fr)", 
+                            md: "repeat(3, 1fr)", 
+                            lg: "repeat(4, 1fr)" 
+                        }}
+                        gap={{ base: 3, md: 4, lg: 6 }}
                     >
                         {categories.map((item, idx) => (
                             <Box
                                 key={idx}
                                 position="relative"
-                                h="240px"
+                                h={{ base: "160px", md: "200px", lg: "240px" }}
                                 overflow="hidden"
                                 cursor="pointer"
                                 onClick={() => nav('/products')}
                                 transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
+                                role="group"
                                 _hover={{
-                                    transform: "translateY(-8px)"
+                                    transform: { base: "scale(0.98)", md: "translateY(-8px)" }
                                 }}
                             >
                                 {/* Background Image */}
@@ -146,7 +156,7 @@ export default function LandingPage() {
                                     bottom="0"
                                     left="0"
                                     right="0"
-                                    h="4px"
+                                    h={{ base: "3px", md: "4px" }}
                                     bg={item.color}
                                     transition="all 0.3s"
                                 />
@@ -159,19 +169,21 @@ export default function LandingPage() {
                                     h="100%"
                                     position="relative"
                                     zIndex={1}
+                                    px={2}
                                 >
                                     <Text
-                                        fontSize="2xl"
+                                        fontSize={{ base: "lg", md: "xl", lg: "2xl" }}
                                         fontWeight="black"
                                         color="white"
-                                        mb={2}
+                                        mb={{ base: 1, md: 2 }}
                                         textTransform="uppercase"
                                         letterSpacing="wider"
+                                        textAlign="center"
                                     >
                                         {item.label}
                                     </Text>
                                     <Text 
-                                        fontSize="sm" 
+                                        fontSize={{ base: "xs", md: "sm" }}
                                         color="whiteAlpha.700"
                                         opacity={0}
                                         transform="translateY(10px)"
@@ -180,6 +192,7 @@ export default function LandingPage() {
                                             opacity: 1,
                                             transform: "translateY(0)"
                                         }}
+                                        display={{ base: "none", md: "block" }}
                                     >
                                         Explore Collection →
                                     </Text>
@@ -191,28 +204,36 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= DAILY DEALS ================= */}
-            <Box bg="black" py={20} position="relative">
+            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} position="relative">
                 {/* Decorative gradient */}
                 <Box
                     position="absolute"
                     bottom="0"
                     right="10%"
-                    w="500px"
-                    h="500px"
+                    w={{ base: "300px", md: "500px" }}
+                    h={{ base: "300px", md: "500px" }}
                     bg="#EA580C"
                     opacity={0.08}
                     filter="blur(100px)"
                     pointerEvents="none"
+                    display={{ base: "none", md: "block" }}
                 />
 
-                <Container maxW="container.2xl" position="relative">
+                <Container maxW="container.2xl" position="relative" px={{ base: 4, md: 6 }}>
                     {/* Section Header */}
-                    <Flex justify="space-between" align="center" mb={12} flexWrap="wrap" gap={4}>
+                    <Flex 
+                        justify="space-between" 
+                        align={{ base: "start", md: "center" }} 
+                        mb={{ base: 8, md: 12 }} 
+                        flexWrap="wrap" 
+                        gap={4}
+                        direction={{ base: "column", md: "row" }}
+                    >
                         <Box>
                             <HStack mb={2}>
                                 <FiTrendingUp size={20} color="#EA580C" />
                                 <Text 
-                                    fontSize="sm" 
+                                    fontSize={{ base: "xs", md: "sm" }}
                                     fontWeight="bold" 
                                     color="#EA580C"
                                     textTransform="uppercase"
@@ -222,17 +243,17 @@ export default function LandingPage() {
                                 </Text>
                             </HStack>
                             <Text
-                                fontSize={{ base: "3xl", md: "4xl" }}
+                                fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
                                 fontWeight="black"
                             >
                                 Today's Best Picks
                             </Text>
-                            <Text color="whiteAlpha.600" mt={2}>
+                            <Text color="whiteAlpha.600" mt={2} fontSize={{ base: "sm", md: "md" }}>
                                 Limited time offers • Up to 60% off
                             </Text>
                         </Box>
                         <Text
-                            fontSize="6xl"
+                            fontSize={{ base: "4xl", lg: "6xl" }}
                             fontWeight="black"
                             color="whiteAlpha.100"
                             display={{ base: "none", lg: "block" }}
@@ -243,8 +264,12 @@ export default function LandingPage() {
 
                     {/* Products Grid */}
                     <Grid
-                        templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
-                        gap={6}
+                        templateColumns={{ 
+                            base: "repeat(2, 1fr)", 
+                            md: "repeat(3, 1fr)", 
+                            lg: "repeat(4, 1fr)" 
+                        }}
+                        gap={{ base: 3, md: 4, lg: 6 }}
                     >
                         {[1, 2, 3, 4].map((item) => (
                             <Box
@@ -257,24 +282,24 @@ export default function LandingPage() {
                                 cursor="pointer"
                                 _hover={{
                                     borderColor: "#EA580C",
-                                    transform: "translateY(-4px)"
+                                    transform: { base: "scale(0.98)", md: "translateY(-4px)" }
                                 }}
                                 onClick={() => nav('/products')}
                             >
                                 {/* Product Image */}
                                 <Box
-                                    h="200px"
+                                    h={{ base: "140px", md: "180px", lg: "200px" }}
                                     bg="gray.800"
                                     position="relative"
                                     overflow="hidden"
                                 >
                                     <Box
                                         position="absolute"
-                                        top={3}
-                                        right={3}
+                                        top={2}
+                                        right={2}
                                         bg="#EA580C"
                                         color="white"
-                                        px={3}
+                                        px={{ base: 2, md: 3 }}
                                         py={1}
                                         fontSize="xs"
                                         fontWeight="bold"
@@ -284,11 +309,12 @@ export default function LandingPage() {
                                 </Box>
 
                                 {/* Product Info */}
-                                <Box p={4}>
+                                <Box p={{ base: 3, md: 4 }}>
                                     <Text 
                                         fontWeight="bold" 
                                         mb={2}
-                                        fontSize="lg"
+                                        fontSize={{ base: "sm", md: "md", lg: "lg" }}
+                                        noOfLines={2}
                                     >
                                         Premium Product {item}
                                     </Text>
@@ -296,12 +322,12 @@ export default function LandingPage() {
                                         <Text
                                             fontWeight="black"
                                             color="#EA580C"
-                                            fontSize="2xl"
+                                            fontSize={{ base: "lg", md: "xl", lg: "2xl" }}
                                         >
                                             $99
                                         </Text>
                                         <Text
-                                            fontSize="sm"
+                                            fontSize={{ base: "xs", md: "sm" }}
                                             color="whiteAlpha.500"
                                             textDecoration="line-through"
                                         >
@@ -312,7 +338,7 @@ export default function LandingPage() {
                                         w="full"
                                         bg="white"
                                         color="black"
-                                        size="sm"
+                                        size={{ base: "xs", md: "sm" }}
                                         borderRadius="none"
                                         fontWeight="bold"
                                         _hover={{ bg: "#EA580C", color: "white" }}
@@ -327,60 +353,81 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= FEATURES BANNER ================= */}
-            <Box bg="gray.950" py={16}>
-                <Container maxW="container.2xl">
+            <Box bg="gray.950" py={{ base: 10, md: 12, lg: 16 }}>
+                <Container maxW="container.2xl" px={{ base: 4, md: 6 }}>
                     <Grid
                         templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
-                        gap={8}
+                        gap={{ base: 4, md: 6, lg: 8 }}
                     >
-                        <HStack spacing={4} p={6} bg="whiteAlpha.50" borderLeft="3px solid" borderColor="#2563EB">
+                        <HStack 
+                            spacing={{ base: 3, md: 4 }} 
+                            p={{ base: 4, md: 6 }} 
+                            bg="whiteAlpha.50" 
+                            borderLeft="3px solid" 
+                            borderColor="#2563EB"
+                        >
                             <Box
-                                w="50px"
-                                h="50px"
+                                w={{ base: "40px", md: "50px" }}
+                                h={{ base: "40px", md: "50px" }}
                                 bg="#2563EB33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
+                                flexShrink={0}
                             >
                                 <FiPackage size={24} color="#2563EB" />
                             </Box>
                             <Box>
-                                <Text fontWeight="bold" mb={1}>Free Shipping</Text>
-                                <Text fontSize="sm" color="whiteAlpha.600">Orders over $50</Text>
+                                <Text fontWeight="bold" mb={1} fontSize={{ base: "sm", md: "md" }}>Free Shipping</Text>
+                                <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.600">Orders over $50</Text>
                             </Box>
                         </HStack>
 
-                        <HStack spacing={4} p={6} bg="whiteAlpha.50" borderLeft="3px solid" borderColor="#16A34A">
+                        <HStack 
+                            spacing={{ base: 3, md: 4 }} 
+                            p={{ base: 4, md: 6 }} 
+                            bg="whiteAlpha.50" 
+                            borderLeft="3px solid" 
+                            borderColor="#16A34A"
+                        >
                             <Box
-                                w="50px"
-                                h="50px"
+                                w={{ base: "40px", md: "50px" }}
+                                h={{ base: "40px", md: "50px" }}
                                 bg="#16A34A33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
+                                flexShrink={0}
                             >
                                 <FiShield size={24} color="#16A34A" />
                             </Box>
                             <Box>
-                                <Text fontWeight="bold" mb={1}>Secure Payment</Text>
-                                <Text fontSize="sm" color="whiteAlpha.600">100% protected</Text>
+                                <Text fontWeight="bold" mb={1} fontSize={{ base: "sm", md: "md" }}>Secure Payment</Text>
+                                <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.600">100% protected</Text>
                             </Box>
                         </HStack>
 
-                        <HStack spacing={4} p={6} bg="whiteAlpha.50" borderLeft="3px solid" borderColor="#9333EA">
+                        <HStack 
+                            spacing={{ base: 3, md: 4 }} 
+                            p={{ base: 4, md: 6 }} 
+                            bg="whiteAlpha.50" 
+                            borderLeft="3px solid" 
+                            borderColor="#9333EA"
+                        >
                             <Box
-                                w="50px"
-                                h="50px"
+                                w={{ base: "40px", md: "50px" }}
+                                h={{ base: "40px", md: "50px" }}
                                 bg="#9333EA33"
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
+                                flexShrink={0}
                             >
                                 <FiTrendingUp size={24} color="#9333EA" />
                             </Box>
                             <Box>
-                                <Text fontWeight="bold" mb={1}>Best Prices</Text>
-                                <Text fontSize="sm" color="whiteAlpha.600">Guaranteed lowest</Text>
+                                <Text fontWeight="bold" mb={1} fontSize={{ base: "sm", md: "md" }}>Best Prices</Text>
+                                <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.600">Guaranteed lowest</Text>
                             </Box>
                         </HStack>
                     </Grid>
@@ -388,27 +435,14 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= NEWSLETTER ================= */}
-            <Box bg="black" py={20} position="relative" overflow="hidden">
-                {/* Large background text */}
-                <Box
-                    position="absolute"
-                    top="50%"
-                    left="50%"
-                    transform="translate(-50%, -50%)"
-                    fontSize={{ base: "8xl", md: "12xl" }}
-                    fontWeight="black"
-                    whiteSpace="nowrap"
-                    pointerEvents="none"
-                >
-                </Box>
-
-                <Container maxW="container.lg" position="relative" textAlign="center">
-                    <VStack spacing={6}>
+            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} position="relative" overflow="hidden">
+                <Container maxW="container.lg" position="relative" textAlign="center" px={{ base: 4, md: 6 }}>
+                    <VStack spacing={{ base: 4, md: 6 }}>
                         <Box>
                             <HStack justify="center" mb={3}>
-                                <Box w="40px" h="2px" bg="brand.500" />
+                                <Box w={{ base: "30px", md: "40px" }} h="2px" bg="brand.500" />
                                 <Text 
-                                    fontSize="sm" 
+                                    fontSize={{ base: "xs", md: "sm" }}
                                     fontWeight="bold" 
                                     color="brand.500"
                                     textTransform="uppercase"
@@ -416,12 +450,22 @@ export default function LandingPage() {
                                 >
                                     Newsletter
                                 </Text>
-                                <Box w="40px" h="2px" bg="brand.500" />
+                                <Box w={{ base: "30px", md: "40px" }} h="2px" bg="brand.500" />
                             </HStack>
-                            <Text fontSize={{ base: "3xl", md: "5xl" }} fontWeight="black" mb={4}>
+                            <Text 
+                                fontSize={{ base: "2xl", md: "3xl", lg: "5xl" }} 
+                                fontWeight="black" 
+                                mb={4}
+                            >
                                 Stay in the Loop
                             </Text>
-                            <Text color="whiteAlpha.600" fontSize="lg" maxW="2xl" mx="auto">
+                            <Text 
+                                color="whiteAlpha.600" 
+                                fontSize={{ base: "sm", md: "md", lg: "lg" }}
+                                maxW="2xl" 
+                                mx="auto"
+                                px={{ base: 4, md: 0 }}
+                            >
                                 Get exclusive deals, new arrivals, and insider updates delivered straight to your inbox.
                             </Text>
                         </Box>
@@ -432,9 +476,10 @@ export default function LandingPage() {
                             bg="gray.900"
                             border="1px solid"
                             borderColor="whiteAlpha.200"
-                            p={2}
+                            p={{ base: 1.5, md: 2 }}
                             align="center"
                             gap={2}
+                            direction={{ base: "column", sm: "row" }}
                         >
                             <Input
                                 placeholder="Enter your email address"
@@ -443,14 +488,17 @@ export default function LandingPage() {
                                 _placeholder={{ color: "whiteAlpha.500" }}
                                 _focus={{ outline: "none" }}
                                 flex={1}
+                                size={{ base: "md", md: "lg" }}
                             />
                             <Button
                                 bg="brand.500"
                                 color="white"
-                                px={8}
+                                px={{ base: 6, md: 8 }}
                                 borderRadius="none"
                                 fontWeight="bold"
                                 _hover={{ bg: "brand.600" }}
+                                w={{ base: "full", sm: "auto" }}
+                                size={{ base: "md", md: "lg" }}
                             >
                                 Subscribe
                             </Button>

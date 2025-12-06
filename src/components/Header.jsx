@@ -1,8 +1,8 @@
-// Header.jsx - With Theme Toggle
+// Header.jsx - Responsive with Theme Toggle
 
-import { Badge, Box, Button, Text as ChakraText, Flex, Heading, HStack, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack } from '@chakra-ui/react'
+import { Badge, Box, Button, Text as ChakraText, Drawer, Flex, Heading, HStack, Icon, IconButton, Input, InputGroup, Menu, Portal, Separator, VStack } from '@chakra-ui/react'
 import React, { useEffect, useRef, useState } from 'react'
-import { FiBell, FiLogOut, FiMessageSquare, FiMoon, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiSun, FiTag, FiUser } from 'react-icons/fi'
+import { FiBell, FiLogOut, FiMenu, FiMessageSquare, FiMoon, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiSun, FiTag, FiUser, FiX } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { markRead, myNotifications, unreadCount } from '../api/notifications'
 import { customOrderUpdateTypes } from '../constants/notificationTypes'
@@ -15,6 +15,10 @@ export default function Header() {
   const { token, logout, user } = useAuth()
   const { cartCount } = useCart()
   const { theme, isLight, toggleTheme } = useTheme()
+
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
 
   // ---- hover menu (có delay) ----
   const [menuOpen, setMenuOpen] = useState(false)
@@ -115,14 +119,17 @@ export default function Header() {
       transition="all 0.2s ease"
     >
       <Box maxW="7xl" mx="auto" py={3} px={4}>
-        <Flex align="center" gap={4} justify="space-between">
-          <Heading size="2xl" fontWeight="black">
+        <Flex align="center" gap={{ base: 2, md: 4 }} justify="space-between">
+          {/* Logo */}
+          <Heading size={{ base: "xl", md: "2xl" }} fontWeight="black" flexShrink={0}>
             <Link to="/">mini<ChakraText as="span" color='brand.500'>Shopee</ChakraText></Link>
           </Heading>
 
+          {/* Desktop Search */}
           <InputGroup
             maxW="600px"
             flex={1}
+            display={{ base: "none", md: "flex" }}
             startElement={<Icon as={FiSearch} aria-hidden="true" color={theme.textPlaceholder} boxSize="5" />}
           >
             <Input
@@ -139,7 +146,22 @@ export default function Header() {
             />
           </InputGroup>
 
-          <Flex align="center" gap={3}>
+          {/* Actions */}
+          <Flex align="center" gap={{ base: 1, sm: 2, md: 3 }}>
+            {/* Mobile Search Toggle */}
+            <IconButton
+              aria-label="Search"
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              variant="ghost"
+              size="sm"
+              borderRadius="full"
+              color={headerColor}
+              _hover={{ bg: theme.hoverBg }}
+              display={{ base: "flex", md: "none" }}
+            >
+              <Icon as={mobileSearchOpen ? FiX : FiSearch} size={18} />
+            </IconButton>
+
             {/* Theme Toggle */}
             <IconButton
               aria-label="Toggle theme"
@@ -149,23 +171,26 @@ export default function Header() {
               borderRadius="full"
               color={headerColor}
               _hover={{ bg: theme.hoverBg }}
+              display={{ base: "none", sm: "flex" }}
             >
               <Icon as={isLight ? FiMoon : FiSun} size={18} />
             </IconButton>
 
-            {/* Chat */}
+            {/* Chat - Hidden on small mobile */}
             <IconButton
               aria-label="Chat"
               color={headerColor}
               variant="ghost"
+              size="sm"
               _hover={{ bg: theme.hoverBg }}
-              fontSize="20px"
+              fontSize="18px"
               onClick={() => nav('/chat')}
+              display={{ base: "none", sm: "flex" }}
             >
               <Icon as={FiMessageSquare} />
             </IconButton>
 
-            {/* Notifications */}
+            {/* Notifications - Desktop */}
             <Menu.Root
               open={notifMenuOpen}
               onOpenChange={(e) => setNotifMenuOpen(e.open)}
@@ -174,13 +199,14 @@ export default function Header() {
               positioning={{ placement: 'bottom-end' }}
             >
               <Menu.Trigger asChild onPointerEnter={notifEnter} onPointerLeave={notifLeave}>
-                <Box position="relative">
+                <Box position="relative" display={{ base: "none", lg: "block" }}>
                   <IconButton
                     aria-label="Notifications"
                     color={headerColor}
                     variant="ghost"
+                    size="sm"
                     _hover={{ bg: theme.hoverBg }}
-                    fontSize="20px"
+                    fontSize="18px"
                     onClick={() => nav('/notifications')}
                   >
                     <Icon as={FiBell} />
@@ -322,8 +348,9 @@ export default function Header() {
                 aria-label="Cart"
                 color={headerColor}
                 variant="ghost"
+                size="sm"
                 _hover={{ bg: theme.hoverBg }}
-                fontSize="20px"
+                fontSize="18px"
                 onClick={() => nav('/cart')}
               >
                 <Icon as={FiShoppingCart} />
@@ -335,7 +362,7 @@ export default function Header() {
               )}
             </Box>
 
-            {/* User Menu */}
+            {/* User Menu - Desktop */}
             {token ? (
               <Menu.Root
                 open={menuOpen}
@@ -349,8 +376,10 @@ export default function Header() {
                     aria-label="User"
                     color={headerColor}
                     variant="ghost"
+                    size="sm"
                     _hover={{ bg: theme.hoverBg }}
-                    fontSize="20px"
+                    fontSize="18px"
+                    display={{ base: "none", md: "flex" }}
                   >
                     <Icon as={FiUser} />
                   </IconButton>
@@ -399,13 +428,254 @@ export default function Header() {
                 </Portal>
               </Menu.Root>
             ) : (
-              <IconButton aria-label="Login" variant="ghost" color={headerColor} _hover={{ bg: theme.hoverBg }} fontSize="20px" onClick={() => nav('/login')}>
+              <IconButton 
+                aria-label="Login" 
+                variant="ghost" 
+                color={headerColor} 
+                size="sm"
+                _hover={{ bg: theme.hoverBg }} 
+                fontSize="18px" 
+                onClick={() => nav('/login')}
+                display={{ base: "none", md: "flex" }}
+              >
                 <Icon as={FiUser} />
               </IconButton>
             )}
+
+            {/* Mobile Menu Toggle */}
+            <IconButton
+              aria-label="Menu"
+              onClick={() => setMobileMenuOpen(true)}
+              variant="ghost"
+              size="sm"
+              color={headerColor}
+              _hover={{ bg: theme.hoverBg }}
+              display={{ base: "flex", md: "none" }}
+            >
+              <Icon as={FiMenu} size={20} />
+            </IconButton>
           </Flex>
         </Flex>
+
+        {/* Mobile Search Bar */}
+        {mobileSearchOpen && (
+          <Box mt={3} display={{ base: "block", md: "none" }}>
+            <InputGroup
+              startElement={<Icon as={FiSearch} aria-hidden="true" color={theme.textPlaceholder} boxSize="5" />}
+            >
+              <Input
+                placeholder="Search for product, category…"
+                bg={theme.inputBg}
+                color={theme.text}
+                borderColor={theme.border}
+                _placeholder={{ color: theme.textPlaceholder }}
+                _hover={{ borderColor: theme.borderLight }}
+                _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
+                transition="all ease-in-out 0.2s"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    nav(`/?q=${encodeURIComponent(e.target.value || '')}`)
+                    setMobileSearchOpen(false)
+                  }
+                }}
+                autoFocus
+              />
+            </InputGroup>
+          </Box>
+        )}
       </Box>
+
+      {/* Mobile Drawer Menu */}
+      <Drawer.Root 
+        open={mobileMenuOpen} 
+        onOpenChange={(e) => setMobileMenuOpen(e.open)}
+        placement="right"
+      >
+        <Drawer.Backdrop />
+        <Drawer.Positioner>
+          <Drawer.Content bg={theme.cardBg}>
+            <Drawer.Header borderBottom="1px solid" borderColor={theme.border}>
+              <Flex justify="space-between" align="center">
+                <Heading size="md" color={theme.text}>Menu</Heading>
+                <IconButton
+                  aria-label="Close"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMobileMenuOpen(false)}
+                  color={theme.text}
+                >
+                  <Icon as={FiX} />
+                </IconButton>
+              </Flex>
+            </Drawer.Header>
+
+            <Drawer.Body py={4}>
+              <VStack spacing={2} align="stretch">
+                {/* Theme Toggle */}
+                <Button
+                  variant="ghost"
+                  justifyContent="start"
+                  leftIcon={<Icon as={isLight ? FiMoon : FiSun} />}
+                  onClick={() => {
+                    toggleTheme()
+                    setMobileMenuOpen(false)
+                  }}
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }}
+                >
+                  {isLight ? 'Dark Mode' : 'Light Mode'}
+                </Button>
+
+                {/* Chat */}
+                <Button
+                  variant="ghost"
+                  justifyContent="start"
+                  leftIcon={<Icon as={FiMessageSquare} />}
+                  onClick={() => {
+                    nav('/chat')
+                    setMobileMenuOpen(false)
+                  }}
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }}
+                  display={{ base: "flex", sm: "none" }}
+                >
+                  Chat
+                </Button>
+
+                {/* Notifications */}
+                <Button
+                  variant="ghost"
+                  justifyContent="start"
+                  leftIcon={<Icon as={FiBell} />}
+                  onClick={() => {
+                    nav('/notifications')
+                    setMobileMenuOpen(false)
+                  }}
+                  color={theme.text}
+                  _hover={{ bg: theme.hoverBg }}
+                  position="relative"
+                >
+                  Notifications
+                  {unread > 0 && (
+                    <Badge
+                      position="absolute"
+                      top="2"
+                      left="8"
+                      borderRadius="full"
+                      px="0.5em"
+                      fontSize="0.6em"
+                      fontWeight={900}
+                      colorPalette="red"
+                    >
+                      {unread}
+                    </Badge>
+                  )}
+                </Button>
+
+                <Separator my={2} borderColor={theme.border} />
+
+                {token ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      justifyContent="start"
+                      leftIcon={<Icon as={FiUser} />}
+                      onClick={() => {
+                        nav('/profile')
+                        setMobileMenuOpen(false)
+                      }}
+                      color={theme.text}
+                      _hover={{ bg: theme.hoverBg }}
+                    >
+                      My Info
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      justifyContent="start"
+                      leftIcon={<Icon as={FiShoppingBag} />}
+                      onClick={() => {
+                        nav('/orders')
+                        setMobileMenuOpen(false)
+                      }}
+                      color={theme.text}
+                      _hover={{ bg: theme.hoverBg }}
+                    >
+                      My Orders
+                    </Button>
+
+                    {user?.role?.includes('ROLE_ADMIN') && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          justifyContent="start"
+                          leftIcon={<Icon as={FiPackage} />}
+                          onClick={() => {
+                            nav('/seller')
+                            setMobileMenuOpen(false)
+                          }}
+                          color={theme.text}
+                          _hover={{ bg: theme.hoverBg }}
+                        >
+                          Seller Center
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          justifyContent="start"
+                          leftIcon={
+                            <Box display="flex" alignItems="center" justifyContent="center" w={5} h={5} bg="#3B82F6" borderRadius="lg">
+                              <Icon as={FiShield} boxSize={3} color="white" />
+                            </Box>
+                          }
+                          onClick={() => {
+                            nav('/admin')
+                            setMobileMenuOpen(false)
+                          }}
+                          color={theme.text}
+                          _hover={{ bg: theme.hoverBg }}
+                        >
+                          Admin Center
+                        </Button>
+                      </>
+                    )}
+
+                    <Separator my={2} borderColor={theme.border} />
+
+                    <Button
+                      variant="ghost"
+                      justifyContent="start"
+                      leftIcon={<Icon as={FiLogOut} />}
+                      onClick={() => {
+                        logout()
+                        setMobileMenuOpen(false)
+                      }}
+                      color="red.600"
+                      _hover={{ bg: 'red.50' }}
+                    >
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    justifyContent="start"
+                    leftIcon={<Icon as={FiUser} />}
+                    onClick={() => {
+                      nav('/login')
+                      setMobileMenuOpen(false)
+                    }}
+                    color={theme.text}
+                    _hover={{ bg: theme.hoverBg }}
+                  >
+                    Login
+                  </Button>
+                )}
+              </VStack>
+            </Drawer.Body>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Drawer.Root>
     </Box>
   )
 }
