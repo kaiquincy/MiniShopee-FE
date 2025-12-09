@@ -37,7 +37,7 @@ export default function LandingPage() {
     ];
 
     return (
-        <Box bg="black" color="white">
+        <Box bg="black" color="white" className="landing-scroll-container">
             {/* ================= HERO CAROUSEL ================= */}
             <Box mb={{ base: 0, md: 0 }}>
                 <LandingCarousel />

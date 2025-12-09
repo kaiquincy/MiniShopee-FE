@@ -1,4 +1,4 @@
-// Products.jsx - With Theme Support
+// Products.jsx - Enhanced with Decorative Patterns
 
 import {
   Badge,
@@ -21,7 +21,7 @@ import {
   VStack
 } from '@chakra-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FiChevronLeft, FiChevronRight, FiGrid, FiPackage, FiSearch, FiX } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiGrid, FiPackage, FiSearch, FiStar, FiX } from 'react-icons/fi'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchProducts } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
@@ -138,41 +138,127 @@ export default function Products() {
   const hasActiveFilters = !!q || !!category
 
   return (
-    <Box bg={theme.pageBg} minH="100vh" py={8} transition="all 0.2s ease">
-      <Container maxW="container.2xl">
-        {/* Page Header */}
+    <Box bg={theme.pageBg} minH="100vh" py={8} transition="all 0.2s ease" position="relative" overflow="hidden">
+      {/* Decorative Background Patterns */}
+      <Box
+        position="absolute"
+        top="0"
+        left="0"
+        right="0"
+        bottom="0"
+        pointerEvents="none"
+        style={{
+          background: theme.isLight
+            ? 'radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.18) 0%, transparent 55%), radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.16) 0%, transparent 55%)'
+            : 'radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.28) 0%, transparent 55%), radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.24) 0%, transparent 55%)',
+          backgroundSize: '100% 100%',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+
+      {/* Top-right glow */}
+      <Box
+        position="absolute"
+        top="10%"
+        right="8%"
+        w="250px"
+        h="250px"
+        borderRadius="full"
+        bg={theme.isLight ? 'rgba(59,130,246,0.45)' : 'rgba(59,130,246,0.65)'}
+        filter="blur(70px)"
+        pointerEvents="none"
+        zIndex={0}
+        animation="float 10s ease-in-out infinite"
+      />
+
+      {/* Bottom-left glow */}
+      <Box
+        position="absolute"
+        bottom="15%"
+        left="5%"
+        w="220px"
+        h="220px"
+        borderRadius="full"
+        bg={theme.isLight ? 'rgba(139,92,246,0.4)' : 'rgba(139,92,246,0.6)'}
+        filter="blur(60px)"
+        pointerEvents="none"
+        zIndex={0}
+        animation="float 12s ease-in-out infinite reverse"
+      />
+
+      <Container maxW="container.2xl" position="relative" zIndex={1}>
         <Box mb={8}>
-          <HStack spacing={3} mb={3}>
-            <Icon as={FiGrid} boxSize={7} color={theme.textSecondary} />
-            <Text fontSize="4xl" fontWeight="black" color={theme.text}>
-              Products
-            </Text>
-          </HStack>
-          <Text color={theme.textMuted} fontSize="lg">
-            Browse and discover quality products
-          </Text>
+          <Flex justify="space-between" align="start" mb={4} flexWrap="wrap" gap={4}>
+            <Box>
+              <HStack spacing={3} mb={3}>
+                <Box
+                  w="48px"
+                  h="48px"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderRadius="xl"
+                  background={theme.isLight 
+                    ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                    : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                  }
+                  boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
+                >
+                  <Icon as={FiGrid} boxSize={6} color="white" />
+                </Box>
+                <Text fontSize="4xl" fontWeight="black" color={theme.text}>
+                  Products
+                </Text>
+              </HStack>
+              <Text color={theme.textMuted} fontSize="lg">
+                Browse and discover quality products
+              </Text>
+            </Box>
+          </Flex>
         </Box>
 
         <Flex gap={6} align="start">
-          {/* Sidebar */}
+          {/* Enhanced Sidebar */}
           <Box
-            w="260px"
+            w="280px"
             display={{ base: 'none', lg: 'block' }}
             position="sticky"
             top={4}
           >
             <Box 
               bg={theme.cardBg} 
-              borderRadius="lg" 
+              borderRadius="xl" 
               p={5} 
               border="1px solid" 
               borderColor={theme.border}
               transition="all 0.2s ease"
+              boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
+              position="relative"
+              overflow="hidden"
             >
-              <Text fontSize="sm" fontWeight="bold" color={theme.textSecondary} mb={4} textTransform="uppercase" letterSpacing="wide">
-                Categories
-              </Text>
-              <CategorySidebar onChange={setCategory} activeId={category?.id} theme={theme} />
+              {/* Subtle gradient overlay */}
+              <Box
+                position="absolute"
+                top="0"
+                left="0"
+                right="0"
+                h="100px"
+                background={theme.isLight
+                  ? 'linear-gradient(180deg, rgba(59, 130, 246, 0.04) 0%, transparent 100%)'
+                  : 'linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%)'
+                }
+                pointerEvents="none"
+              />
+              
+              <HStack spacing={2} mb={4} position="relative">
+                <Icon as={FiStar} color={theme.accent} boxSize={4} />
+                <Text fontSize="sm" fontWeight="bold" color={theme.text} textTransform="uppercase" letterSpacing="wide">
+                  Categories
+                </Text>
+              </HStack>
+              <Box position="relative">
+                <CategorySidebar onChange={setCategory} activeId={category?.id} theme={theme} />
+              </Box>
             </Box>
           </Box>
 
@@ -187,7 +273,10 @@ export default function Products() {
 
                 {category && (
                   <Badge
-                    bg={theme.isLight ? "#E7F5FF" : "#1E3A5F"}
+                    background={theme.isLight 
+                      ? 'linear-gradient(135deg, #E7F5FF 0%, #D0EBFF 100%)' 
+                      : 'linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)'
+                    }
                     color={theme.isLight ? "#1971C2" : "#60A5FA"}
                     px={3}
                     py={1.5}
@@ -197,6 +286,8 @@ export default function Products() {
                     alignItems="center"
                     gap={2}
                     fontWeight="semibold"
+                    border="1px solid"
+                    borderColor={theme.isLight ? "#A5D8FF" : "#1E40AF"}
                   >
                     {category.name}
                     <Icon
@@ -211,7 +302,10 @@ export default function Products() {
 
                 {q && (
                   <Badge
-                    bg={theme.isLight ? "#FFF3BF" : "#78350F"}
+                    background={theme.isLight 
+                      ? 'linear-gradient(135deg, #FFF3BF 0%, #FFE066 100%)' 
+                      : 'linear-gradient(135deg, #78350F 0%, #92400E 100%)'
+                    }
                     color={theme.isLight ? "#E67700" : "#FCD34D"}
                     px={3}
                     py={1.5}
@@ -221,6 +315,8 @@ export default function Products() {
                     alignItems="center"
                     gap={2}
                     fontWeight="semibold"
+                    border="1px solid"
+                    borderColor={theme.isLight ? "#FFD43B" : "#92400E"}
                   >
                     Search: {q}
                     <Icon
@@ -235,10 +331,10 @@ export default function Products() {
               </HStack>
             )}
 
-            {/* Toolbar */}
+            {/* Enhanced Toolbar */}
             <Flex
               bg={theme.cardBg}
-              borderRadius="lg"
+              borderRadius="xl"
               p={4}
               mb={6}
               border="1px solid"
@@ -247,13 +343,14 @@ export default function Products() {
               align="center"
               flexWrap={{ base: "wrap", md: "nowrap" }}
               transition="all 0.2s ease"
+              boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
             >
               {/* Search Input */}
               <Flex flex={1} minW={{ base: "full", md: "300px" }}>
                 <InputGroup 
                   startElement={<Icon as={FiSearch} color={theme.textPlaceholder} />}
                   endElement={q && (
-                    <InputAddon placement="end">
+                    <InputAddon placement="end" bg="transparent" border="none">
                       <IconButton
                         size="xs"
                         variant="ghost"
@@ -287,13 +384,21 @@ export default function Products() {
               {/* Search Button */}
               <Button
                 onClick={handleSearch}
-                bg={theme.primary}
+                background={theme.isLight 
+                  ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                  : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                }
                 color="white"
                 px={8}
                 h="48px"
                 borderRadius="lg"
                 flexShrink={0}
-                _hover={{ bg: theme.primaryHover }}
+                boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
+                _hover={{ 
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
+                }}
+                transition="all 0.2s ease"
               >
                 Search
               </Button>
@@ -341,7 +446,16 @@ export default function Products() {
             {isFetching && (
               <Flex py={20} justify="center" align="center">
                 <VStack spacing={4}>
-                  <Spinner size="xl" color={theme.textSecondary} thickness="4px" />
+                  <Box position="relative">
+                    <Spinner size="xl" color={theme.accent} thickness="4px" />
+                    <Box
+                      position="absolute"
+                      inset="-10px"
+                      borderRadius="full"
+                      background={theme.isLight ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.2)'}
+                      animation="pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+                    />
+                  </Box>
                   <Text color={theme.textMuted} fontWeight="medium">Loading products...</Text>
                 </VStack>
               </Flex>
@@ -353,16 +467,17 @@ export default function Products() {
                 {data.totalElements === 0 ? (
                   <Box
                     bg={theme.cardBg}
-                    borderRadius="lg"
+                    borderRadius="xl"
                     p={16}
                     textAlign="center"
                     border="1px solid"
                     borderColor={theme.border}
                     transition="all 0.2s ease"
+                    boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
                   >
                     <Box
-                      w="100px"
-                      h="100px"
+                      w="120px"
+                      h="120px"
                       bg={theme.secondaryBg}
                       borderRadius="full"
                       display="flex"
@@ -370,7 +485,17 @@ export default function Products() {
                       justifyContent="center"
                       mx="auto"
                       mb={5}
+                      border="3px dashed"
+                      borderColor={theme.border}
+                      position="relative"
                     >
+                      <Box
+                        position="absolute"
+                        inset="-10px"
+                        borderRadius="full"
+                        background={theme.isLight ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.15)'}
+                        animation="pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+                      />
                       <Icon as={FiPackage} boxSize={12} color={theme.textMuted} />
                     </Box>
                     <Text fontSize="2xl" fontWeight="bold" color={theme.text} mb={2}>
@@ -388,12 +513,20 @@ export default function Products() {
                           setSort([])
                           clearSearch()
                         }}
-                        bg={theme.primary}
+                        background={theme.isLight 
+                          ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                          : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                        }
                         color="white"
                         px={8}
                         py={6}
                         borderRadius="lg"
-                        _hover={{ bg: theme.primaryHover }}
+                        boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
+                        _hover={{ 
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
+                        }}
+                        transition="all 0.2s ease"
                       >
                         Clear All Filters
                       </Button>
@@ -416,11 +549,12 @@ export default function Products() {
                         gap={3}
                         bg={theme.cardBg}
                         p={5}
-                        borderRadius="lg"
+                        borderRadius="xl"
                         border="1px solid"
                         borderColor={theme.border}
                         flexWrap="wrap"
                         transition="all 0.2s ease"
+                        boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
                       >
                         <Button
                           onClick={goPrev}
@@ -456,12 +590,22 @@ export default function Products() {
                                 onClick={() => setPage(pageNum)}
                                 size="sm"
                                 minW="40px"
-                                bg={page === pageNum ? theme.primary : theme.cardBg}
+                                background={page === pageNum 
+                                  ? theme.isLight 
+                                    ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                                    : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                                  : theme.cardBg
+                                }
                                 color={page === pageNum ? "white" : theme.textSecondary}
                                 border="1px solid"
-                                borderColor={page === pageNum ? theme.primary : theme.border}
+                                borderColor={page === pageNum ? 'transparent' : theme.border}
                                 fontWeight="semibold"
-                                _hover={{ bg: page === pageNum ? theme.primaryHover : theme.hoverBg }}
+                                boxShadow={page === pageNum ? '0 2px 8px rgba(59, 130, 246, 0.3)' : 'none'}
+                                _hover={{ 
+                                  bg: page === pageNum ? undefined : theme.hoverBg,
+                                  transform: 'translateY(-2px)'
+                                }}
+                                transition="all 0.2s ease"
                               >
                                 {pageNum + 1}
                               </Button>
@@ -492,6 +636,31 @@ export default function Products() {
           </Box>
         </Flex>
       </Container>
+
+      {/* Animations */}
+      <style>
+        {`
+          @keyframes float {
+            0%, 100% {
+              transform: translate(0, 0);
+            }
+            50% {
+              transform: translate(30px, -30px);
+            }
+          }
+          
+          @keyframes pulseRing {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.3;
+            }
+            50% {
+              transform: scale(1.15);
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
     </Box>
   )
 }
