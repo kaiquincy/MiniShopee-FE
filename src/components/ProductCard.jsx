@@ -31,7 +31,6 @@ export default function ProductCard({ p, theme }) {
       {/* Image Section */}
       <Box position="relative" overflow="hidden">
         <Link to={`/product/${p.id}`}>
-          {console.log(p.id, import.meta.env.VITE_API_URL + "/uploads/" + p.imageUrl)}
           <Image
             src={imageUrl}
             alt={p.name}

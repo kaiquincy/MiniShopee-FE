@@ -221,12 +221,12 @@ export default function ProductDetail() {
   if (!p && !loading) return null
 
   const mainImg = useMemo(() => {
-    if (!p) return 'https://via.placeholder.com/800x600?text=Loading'
+    if (!p) return 'https://dummyimage.com/800x600/228be6/ffffff.jpg&text=Loading'
     if (p.variants && Object.keys(sel).length) {
       const v = matchedVariant(p, sel)
       if (v?.imageUrl) return imgBase + v.imageUrl
     }
-    return p.imageUrl ? (imgBase + p.imageUrl) : 'https://via.placeholder.com/800x600?text=No+Image'
+    return p.imageUrl ? (imgBase + p.imageUrl) : 'https://dummyimage.com/800x600/228be6/ffffff.jpg&text=No+Image'
   }, [p, sel])
 
   const thumbs = useMemo(() => {
@@ -313,7 +313,7 @@ export default function ProductDetail() {
         <Text noOfLines={1}>{p?.name || '...'}</Text>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 6, md: 10 }}>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 6, md: 10 }} position="relative" mb={40}>
         {/* Gallery */}
         <VStack align="stretch" gap={4}>
           <Box
@@ -358,7 +358,7 @@ export default function ProductDetail() {
               opacity={0.75}
             >
               <IconButton 
-                aria-label="Ảnh trước" 
+                aria-label="Previous image" 
                 onClick={prevImg} 
                 size="sm"
                 variant="ghost"
@@ -370,7 +370,7 @@ export default function ProductDetail() {
                 <LuChevronLeft />
               </IconButton>
               <IconButton 
-                aria-label="Ảnh sau" 
+                aria-label="Next image" 
                 onClick={nextImg} 
                 size="sm" 
                 variant="ghost"
@@ -394,6 +394,8 @@ export default function ProductDetail() {
               scrollbarWidth: 'thin',
               WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
             }}
+            position="absolute"
+            bottom={{ base: "-10%", md: "-8%" , lg:"-20%" }}
           >
             {thumbs.map((src, idx) => {
               const active = idx === activeIdx
@@ -428,6 +430,7 @@ export default function ProductDetail() {
         {/* Purchase Panel */}
         <Box
           position={{ base: 'static', lg: 'sticky' }}
+          minH="100%"
           top={{ lg: 24 }}
           alignSelf="start"
           bg={theme.cardBg}
@@ -446,16 +449,16 @@ export default function ProductDetail() {
             <HStack color={theme.textSecondary} gap={3}>
               <Badge borderRadius="full" px="2.5" py="0.5" fontWeight="semibold" colorPalette="yellow">{avgLabel}★</Badge>
               {renderStars(avg)}
-              <Text>({count} đánh giá)</Text>
+              <Text>({count} ratings)</Text>
               {(() => {
                 const stockShown = selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)
                 return (
                   <>
                     {stockShown <= 5 && stockShown > 0 && (
-                      <Badge colorPalette="orange" borderRadius="full">Sắp hết</Badge>
+                      <Badge colorPalette="orange" borderRadius="full">Low In Stock</Badge>
                     )}
                     {stockShown === 0 && (
-                      <Badge colorPalette="red" borderRadius="full">Hết hàng</Badge>
+                      <Badge colorPalette="red" borderRadius="full">Sold Out</Badge>
                     )}
                   </>
                 )
@@ -498,7 +501,7 @@ export default function ProductDetail() {
                   <Box key={g.id}>
                     <HStack justify="space-between" mb={2}>
                       <Text fontWeight="medium" color={theme.text}>{g.name}</Text>
-                      {sel[g.name] && <Text color={theme.textSecondary}>Đã chọn: <b>{sel[g.name]}</b></Text>}
+                      {sel[g.name] && <Text color={theme.textSecondary}>Selected: <b>{sel[g.name]}</b></Text>}
                     </HStack>
                     <Wrap>
                       {(g.options||[]).map((op) => {
@@ -506,7 +509,7 @@ export default function ProductDetail() {
                         const available = isOptionAvailable(g.name, op.value)
                         return (
                           <WrapItem key={op.id}>
-                            <Tooltip content={!available ? 'Hết hàng ở cấu hình này' : undefined} openDelay={250}>
+                            <Tooltip content={!available ? 'Out Of Stock' : undefined} openDelay={250}>
                               <Button
                                 size="sm"
                                 variant={active ? 'solid' : 'outline'}
@@ -537,18 +540,18 @@ export default function ProductDetail() {
 
             {/* SKU & Stock Info */}
             <HStack color={theme.textMuted} fontSize="sm" wrap="wrap" gap={3}>
-              <Text>Mã SKU: <b>{selectedVariant?.skuCode || p?.sku || '—'}</b></Text>
+              <Text>SKU: <b>{selectedVariant?.skuCode || p?.sku || '—'}</b></Text>
               <Text>•</Text>
-              <Text>Tồn: <b>{selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)}</b></Text>
+              <Text>In Stock: <b>{selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)}</b></Text>
               <Text>•</Text>
               <HStack>
                 <LuCircleCheck />
-                <Text>Đổi trả 7 ngày</Text>
+                <Text>7-day returns</Text>
               </HStack>
               <Text>•</Text>
               <HStack>
                 <LuTruck />
-                <Text>Giao hàng nhanh</Text>
+                <Text>Fast Delivery</Text>
               </HStack>
             </HStack>
 
@@ -597,7 +600,7 @@ export default function ProductDetail() {
 
             {/* Keyboard shortcuts */}
             <HStack color={theme.textMuted} fontSize="xs">
-              <Text>Điều hướng ảnh:</Text>
+              <Text>Image navigation:</Text>
               <Kbd bg={theme.secondaryBg} color={theme.text}>←</Kbd>
               <Text>/</Text>
               <Kbd bg={theme.secondaryBg} color={theme.text}>→</Kbd>
@@ -623,14 +626,14 @@ export default function ProductDetail() {
               position="relative"
             >
               <SelectTrigger w="220px" bg={theme.cardBg} color={theme.text} borderColor={theme.border}>
-                <SelectValueText placeholder="Sắp xếp" />
+                <SelectValueText placeholder="Sort" />
               </SelectTrigger>
               <SelectContent position="absolute" width="220px" top="120%" bg={theme.cardBg} borderColor={theme.border}>
-                <SelectItem cursor="pointer" item="createdAtDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Mới nhất</SelectItem>
-                <SelectItem cursor="pointer" item="createdAtAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Cũ nhất</SelectItem>
-                <SelectItem cursor="pointer" item="likeCountDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Hữu ích nhất</SelectItem>
-                <SelectItem cursor="pointer" item="starsDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Sao cao → thấp</SelectItem>
-                <SelectItem cursor="pointer" item="starsAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Sao thấp → cao</SelectItem>
+                <SelectItem cursor="pointer" item="createdAtDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Newest</SelectItem>
+                <SelectItem cursor="pointer" item="createdAtAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Oldest</SelectItem>
+                <SelectItem cursor="pointer" item="likeCountDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Most Likes</SelectItem>
+                <SelectItem cursor="pointer" item="starsDesc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Ratings High → Low</SelectItem>
+                <SelectItem cursor="pointer" item="starsAsc" color={theme.text} _hover={{ bg: theme.hoverBg }}>Ratings Low → High</SelectItem>
               </SelectContent>
             </SelectRoot>
           </HStack>
@@ -660,7 +663,7 @@ export default function ProductDetail() {
                     <HStack>
                       <Badge colorPalette="yellow">{r.stars}★</Badge>
                       <Text color={theme.text} fontWeight="medium">
-                        {r.anonymous ? 'Người dùng ẩn danh' : (r.username || 'User')}
+                        {r.anonymous ? 'AnonymouseUser' : (r.username || 'User')}
                       </Text>
                     </HStack>
                     <Text color={theme.textMuted} fontSize="xs">
@@ -671,7 +674,7 @@ export default function ProductDetail() {
 
                 <HStack gap={1}>
                   <IconButton
-                    aria-label={likedIds.has(r.id) ? 'Bỏ thích' : 'Thích'}
+                    aria-label={likedIds.has(r.id) ? 'Unlike' : 'Like'}
                     size="xs"
                     variant={likedIds.has(r.id) ? 'solid' : 'outline'}
                     colorPalette={likedIds.has(r.id) ? 'blue' : 'gray'}
@@ -713,8 +716,8 @@ export default function ProductDetail() {
             </Box>
           ))}
 
-          {loadingRatings && <Text color={theme.textMuted}>Đang tải...</Text>}
-          {(!loadingRatings && ratings.length === 0) && <Text color={theme.textMuted}>Chưa có đánh giá</Text>}
+          {loadingRatings && <Text color={theme.textMuted}>Loading...</Text>}
+          {(!loadingRatings && ratings.length === 0) && <Text color={theme.textMuted}>No reviews yet</Text>}
 
           {/* Load more */}
           {ratingHasMore && (
@@ -804,7 +807,7 @@ export default function ProductDetail() {
             sx={{ scrollbarWidth: 'thin' }}
           >
             {!loadingSimilar && similar.length === 0 && (
-              <Text color={theme.textMuted} px="2">Không tìm thấy sản phẩm tương tự.</Text>
+              <Text color={theme.textMuted} px="2">No similar products found.</Text>
             )}
 
             <SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} gap={4} mb={6} w="full">
@@ -856,7 +859,7 @@ export default function ProductDetail() {
             color="white"
             _hover={{ bg: theme.primaryHover }}
           >
-            <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
+            <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Out of stock'}
           </Button>
         </HStack>
       </Box>

@@ -28,8 +28,6 @@ export default function MessageBubble({ m, isMe, theme }) {
     }
   }
 
-  console.log(m)
-
   return (
     <Box
       maxW="70%"

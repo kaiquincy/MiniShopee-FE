@@ -40,15 +40,15 @@ function LayoutContent({ isLandingPage }) {
           <Flex
             direction={{ base: "column", md: "row" }}
             justify="space-between"
-            align={{ base: "center", md: "flex-start" }}
+            align="center"
             gap={8}
           >
             {/* Logo + tagline */}
             <Box textAlign={{ base: "center", md: "left" }}>
-              <Text fontSize="lg" fontWeight="bold" color="white">
-                mini-Shopee
+              <Text fontSize="2xl" fontWeight="bold" color="white">
+                mini<Text as="span" color="brand.500">Shopee</Text>
               </Text>
-              <Text fontSize="sm" color="gray.400">
+              <Text fontSize="md" color="gray.400">
                 Shop smart. Live better.
               </Text>
             </Box>
@@ -77,7 +77,7 @@ function LayoutContent({ isLandingPage }) {
           {/* Divider */}
           <Box borderTop="1px solid" borderColor="gray.700" mt={8} pt={6} textAlign="center">
             <Text fontSize="sm" color="gray.500">
-              © {new Date().getFullYear()} mini-Shopee • Built with ♥
+              © {new Date().getFullYear()} <Text as="span" fontWeight="bold">miniShopee</Text> • Built with ♥
             </Text>
           </Box>
         </Container>

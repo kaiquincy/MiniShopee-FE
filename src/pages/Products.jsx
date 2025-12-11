@@ -1,4 +1,4 @@
-// Products.jsx - Enhanced with Decorative Patterns
+// Products.jsx - Enhanced with Decorative Patterns and Balanced Layout
 
 import {
   Badge,
@@ -21,7 +21,7 @@ import {
   VStack
 } from '@chakra-ui/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FiChevronLeft, FiChevronRight, FiGrid, FiPackage, FiSearch, FiStar, FiX } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiGrid, FiPackage, FiSearch, FiShoppingBag, FiStar, FiX, FiZap } from 'react-icons/fi'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchProducts } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
@@ -138,7 +138,7 @@ export default function Products() {
   const hasActiveFilters = !!q || !!category
 
   return (
-    <Box bg={theme.pageBg} minH="100vh" py={8} transition="all 0.2s ease" position="relative" overflow="hidden">
+    <Box bg={theme.pageBg} minH="100vh" py={8} px={10} transition="all 0.2s ease" position="relative" overflow="hidden">
       {/* Decorative Background Patterns */}
       <Box
         position="absolute"
@@ -187,9 +187,11 @@ export default function Products() {
       />
 
       <Container maxW="container.2xl" position="relative" zIndex={1}>
+        {/* Enhanced Header with Right-Side Visual Element */}
         <Box mb={8}>
-          <Flex justify="space-between" align="start" mb={4} flexWrap="wrap" gap={4}>
-            <Box>
+          <Flex justify="space-between" align="center" mb={4} gap={6}>
+            {/* Left: Title and Description */}
+            <Box flex={1}>
               <HStack spacing={3} mb={3}>
                 <Box
                   w="48px"
@@ -210,11 +212,152 @@ export default function Products() {
                   Products
                 </Text>
               </HStack>
-              <Text color={theme.textMuted} fontSize="lg">
-                Browse and discover quality products
+              <Text color={theme.textMuted} fontSize="lg" maxW="500px">
+                Browse and discover quality products from our curated collection
               </Text>
             </Box>
+
+            {/* Right: Decorative Element */}
+            <Flex gap={4} align="center" transform="scale(1.25) translateY(10%) translateX(-50%)" display={{ base: 'none', lg: 'flex' }}>
+              {/* Decorative Icon Circle */}
+              <Box
+                position="relative"
+                w="140px"
+                h="140px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                {/* Outer rotating ring */}
+                <Box
+                  position="absolute"
+                  inset="0"
+                  borderRadius="full"
+                  border="3px dashed"
+                  borderColor={theme.isLight ? 'blue.200' : 'blue.700'}
+                  animation="rotate 20s linear infinite"
+                />
+                
+                {/* Middle circle */}
+                <Box
+                  position="absolute"
+                  w="100px"
+                  h="100px"
+                  borderRadius="full"
+                  background={theme.isLight
+                    ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)'
+                    : 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)'
+                  }
+                  border="2px solid"
+                  borderColor={theme.border}
+                  animation="pulse 3s ease-in-out infinite"
+                />
+
+                {/* Center icon */}
+                <Box
+                  position="relative"
+                  w="60px"
+                  h="60px"
+                  borderRadius="full"
+                  background={theme.isLight 
+                    ? 'linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)'
+                    : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)'
+                  }
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  boxShadow="0 8px 16px rgba(59, 130, 246, 0.4)"
+                  animation="float 4s ease-in-out infinite"
+                >
+                  <Icon as={FiZap} boxSize={7} color="white" />
+                </Box>
+
+                {/* Floating mini icons */}
+                <Box
+                  position="absolute"
+                  top="10%"
+                  right="10%"
+                  w="24px"
+                  h="24px"
+                  borderRadius="full"
+                  bg={theme.isLight ? 'blue.100' : 'blue.800'}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  animation="floatUpDown 3s ease-in-out infinite"
+                >
+                  <Icon as={FiStar} boxSize={3} color={theme.accent} />
+                </Box>
+
+                <Box
+                  position="absolute"
+                  bottom="15%"
+                  left="5%"
+                  w="20px"
+                  h="20px"
+                  borderRadius="full"
+                  bg={theme.isLight ? 'purple.100' : 'purple.800'}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  animation="floatUpDown 3s ease-in-out infinite 1s"
+                >
+                  <Icon as={FiShoppingBag} boxSize={3} color="purple.500" />
+                </Box>
+              </Box>
+            </Flex>
           </Flex>
+
+          {/* Feature Badges Below Header */}
+          <HStack spacing={3} flexWrap="wrap" display={{ base: 'none', md: 'flex' }}>
+            <Badge
+              bg={theme.isLight ? 'green.50' : 'green.900'}
+              color={theme.isLight ? 'green.700' : 'green.300'}
+              px={3}
+              py={1.5}
+              borderRadius="full"
+              fontSize="xs"
+              fontWeight="semibold"
+              display="flex"
+              alignItems="center"
+              gap={2}
+            >
+              <Box w="6px" h="6px" borderRadius="full" bg="green.500" />
+              Free Shipping Available
+            </Badge>
+            
+            <Badge
+              bg={theme.isLight ? 'blue.50' : 'blue.900'}
+              color={theme.isLight ? 'blue.700' : 'blue.300'}
+              px={3}
+              py={1.5}
+              borderRadius="full"
+              fontSize="xs"
+              fontWeight="semibold"
+              display="flex"
+              alignItems="center"
+              gap={2}
+            >
+              <Icon as={FiZap} boxSize={3} />
+              Fast Delivery
+            </Badge>
+
+            <Badge
+              bg={theme.isLight ? 'purple.50' : 'purple.900'}
+              color={theme.isLight ? 'purple.700' : 'purple.300'}
+              px={3}
+              py={1.5}
+              borderRadius="full"
+              fontSize="xs"
+              fontWeight="semibold"
+              display="flex"
+              alignItems="center"
+              gap={2}
+            >
+              <Icon as={FiStar} boxSize={3} />
+              Top Quality
+            </Badge>
+          </HStack>
         </Box>
 
         <Flex gap={6} align="start">
@@ -341,6 +484,7 @@ export default function Products() {
               borderColor={theme.border}
               gap={3}
               align="center"
+              justifyContent={{ base: "flex-end", md: "" }}
               flexWrap={{ base: "wrap", md: "nowrap" }}
               transition="all 0.2s ease"
               boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
@@ -380,35 +524,13 @@ export default function Products() {
                   />
                 </InputGroup>
               </Flex>
-
-              {/* Search Button */}
-              <Button
-                onClick={handleSearch}
-                background={theme.isLight 
-                  ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
-                  : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
-                }
-                color="white"
-                px={8}
-                h="48px"
-                borderRadius="lg"
-                flexShrink={0}
-                boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
-                _hover={{ 
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
-                }}
-                transition="all 0.2s ease"
-              >
-                Search
-              </Button>
-
+              
               {/* Sort Dropdown */}
               <Select.Root
                 collection={sortOptions}
                 value={sort}
                 onValueChange={(e) => setSort(e.value)}
-                width={{ base: "full", md: "200px" }}
+                width="200px"
                 flexShrink={0}
               >
                 <Select.HiddenSelect />
@@ -440,6 +562,28 @@ export default function Products() {
                   </Select.Positioner>
                 </Portal>
               </Select.Root>
+
+              {/* Search Button */}
+              <Button
+                onClick={handleSearch}
+                background={theme.isLight 
+                  ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                  : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                }
+                color="white"
+                px={8}
+                h="48px"
+                borderRadius="lg"
+                flexShrink={0}
+                boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
+                _hover={{ 
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
+                }}
+                transition="all 0.2s ease"
+              >
+                Search
+              </Button>
             </Flex>
 
             {/* Loading State */}
@@ -649,6 +793,15 @@ export default function Products() {
             }
           }
           
+          @keyframes floatUpDown {
+            0%, 100% {
+              transform: translateY(0px);
+            }
+            50% {
+              transform: translateY(-15px);
+            }
+          }
+          
           @keyframes pulseRing {
             0%, 100% {
               transform: scale(1);
@@ -657,6 +810,26 @@ export default function Products() {
             50% {
               transform: scale(1.15);
               opacity: 0;
+            }
+          }
+          
+          @keyframes rotate {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+          
+          @keyframes pulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.8;
+            }
+            50% {
+              transform: scale(1.05);
+              opacity: 1;
             }
           }
         `}

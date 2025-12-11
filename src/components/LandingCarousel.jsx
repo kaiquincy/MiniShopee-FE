@@ -623,9 +623,9 @@ export default function LandingCarousel() {
                 <Grid
                     templateColumns={{ base: "1fr", md: "1fr 1fr" }}
                     gap={{ base: 4, md: 8 }}
-                    minH={{ base: "auto", lg: "700px" }}
+                    minH={{ base: "auto", lg: "600px" }}
                     alignItems="center"
-                    py={{ base: 6, md: 8 }}
+                    pt={{ base: 6, md: 8 }}
                     px={16}
                 >
                     {/* Left - Hero Text */}
