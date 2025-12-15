@@ -23,7 +23,8 @@ import {
   useClipboard,
   useDisclosure,
   VStack,
-  Wrap, WrapItem,
+  Wrap, WrapItem,Accordion
+  ,Flex
 } from '@chakra-ui/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -313,89 +314,129 @@ export default function ProductDetail() {
         <Text noOfLines={1}>{p?.name || '...'}</Text>
       </HStack>
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 6, md: 10 }} position="relative" mb={40}>
-        {/* Gallery */}
-        <VStack align="stretch" gap={4}>
-          <Box
-            position="relative"
-            borderRadius="xl"
-            boxShadow="sm"
-            p={{ base: 1.5, md: 2 }}
-            bg={theme.cardBg}
-            border="1px solid"
-            borderColor={theme.border}
-            role="group"
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowRight') nextImg()
-              if (e.key === 'ArrowLeft') prevImg()
-            }}
-            tabIndex={0}
-          >
-            <Skeleton loading={loading}>
-              <AspectRatio ratio={1}>
-                <Image
-                  src={thumbs[activeIdx] || mainImg}
-                  alt={p?.name}
-                  borderRadius="lg"
-                  objectFit="cover"
-                  cursor="zoom-in"
-                  onClick={onOpen}
-                  _groupHover={{ transform: 'translateY(-1px)' }}
-                  transition="transform .15s ease"
-                />
-              </AspectRatio>
-            </Skeleton>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 8, lg: 12 }} mb={16}>
 
-            {/* Prev / Next */}
-            <HStack
-              position="absolute"
-              top="50%"
-              left={4}
-              right={4}
-              px={2}
-              justify="space-between"
-              transform="translateY(-50%)"
-              opacity={0.75}
+        {/* LEFT: Editorial Gallery */}
+        <Box
+          bg={theme.cardBg}
+          border="1px solid"
+          borderColor={theme.border}
+          borderRadius="2xl"
+          p={{ base: 3, md: 4 }}
+        >
+          <SimpleGrid columns={{ base: 1, md: 6 }} gap={4}>
+
+            {/* Thumbs (vertical) */}
+            <Box
+              display={{ base: "none", md: "block" }}
+              gridColumn="span 1"
+              maxH="560px"
+              overflowY="auto"
+              pr={1}
+              sx={{ scrollbarWidth: "thin" }}
             >
-              <IconButton 
-                aria-label="Previous image" 
-                onClick={prevImg} 
-                size="sm"
-                variant="ghost"
-                bg={theme.cardBg}
-                color={theme.text}
-                _hover={{ bg: theme.hoverBg }}
-                borderRadius="50%"
-              >
-                <LuChevronLeft />
-              </IconButton>
-              <IconButton 
-                aria-label="Next image" 
-                onClick={nextImg} 
-                size="sm" 
-                variant="ghost"
-                bg={theme.cardBg}
-                color={theme.text}
-                _hover={{ bg: theme.hoverBg }}
-                borderRadius="50%"
-              >
-                <LuChevronRight />
-              </IconButton>
-            </HStack>
-          </Box>
+              <VStack align="stretch" gap={3}>
+                {thumbs.map((src, idx) => {
+                  const active = idx === activeIdx
+                  return (
+                    <Box
+                      key={idx}
+                      onClick={() => setActiveIdx(idx)}
+                      cursor="pointer"
+                      borderRadius="lg"
+                      overflow="hidden"
+                      border="1px solid"
+                      borderColor={active ? theme.text : theme.border}
+                      opacity={active ? 1 : 0.7}
+                      transition="all .15s ease"
+                      _hover={{ opacity: 1, transform: "translateY(-1px)" }}
+                    >
+                      <AspectRatio ratio={1}>
+                        <Image src={src} alt={`thumb-${idx}`} objectFit="cover" />
+                      </AspectRatio>
+                    </Box>
+                  )
+                })}
+              </VStack>
+            </Box>
 
-          {/* Thumbnails */}
+            {/* Main Image */}
+            <Box
+              gridColumn={{ base: "span 1", md: "span 5" }}
+              position="relative"
+              borderRadius="2xl"
+              overflow="hidden"
+              border="1px solid"
+              borderColor={theme.border}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight") nextImg()
+                if (e.key === "ArrowLeft") prevImg()
+              }}
+              tabIndex={0}
+              role="group"
+            >
+              <Skeleton loading={loading}>
+                <AspectRatio ratio={1}>
+                  <Image
+                    src={thumbs[activeIdx] || mainImg}
+                    alt={p?.name}
+                    objectFit="cover"
+                    cursor="zoom-in"
+                    onClick={onOpen}
+                    transition="transform .2s ease"
+                    _groupHover={{ transform: "scale(1.01)" }}
+                  />
+                </AspectRatio>
+              </Skeleton>
+
+              {/* Minimal nav (bottom overlay, not floating circles) */}
+              <HStack
+                position="absolute"
+                left={0}
+                right={0}
+                bottom={0}
+                p={3}
+                justify="space-between"
+                bg="rgba(0,0,0,0.35)"
+                backdropFilter="blur(6px)"
+              >
+                <Button
+                  onClick={prevImg}
+                  size="sm"
+                  variant="ghost"
+                  color="white"
+                  _hover={{ bg: "rgba(255,255,255,0.12)" }}
+                  leftIcon={<LuChevronLeft />}
+                >
+                  Prev
+                </Button>
+
+                <Text color="whiteAlpha.800" fontSize="sm">
+                  {activeIdx + 1} / {thumbs.length}
+                </Text>
+
+                <Button
+                  onClick={nextImg}
+                  size="sm"
+                  variant="ghost"
+                  color="white"
+                  _hover={{ bg: "rgba(255,255,255,0.12)" }}
+                  rightIcon={<LuChevronRight />}
+                >
+                  Next
+                </Button>
+              </HStack>
+            </Box>
+          </SimpleGrid>
+
+          {/* Mobile thumbs (horizontal, clean) */}
           <HStack
+            display={{ base: "flex", md: "none" }}
+            mt={4}
             overflowX="auto"
             gap={3}
             py={1}
-            px={0.5}
-            sx={{
-              scrollbarWidth: 'thin',
-              WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
-            }}
-            position="absolute"
-            bottom={{ base: "-10%", md: "-8%" , lg:"-20%" }}
+            sx={{ scrollbarWidth: "thin" }}
           >
             {thumbs.map((src, idx) => {
               const active = idx === activeIdx
@@ -403,126 +444,175 @@ export default function ProductDetail() {
                 <Box
                   key={idx}
                   onClick={() => setActiveIdx(idx)}
-                  borderRadius="md"
+                  flex="0 0 72px"
+                  borderRadius="lg"
                   overflow="hidden"
-                  cursor="pointer"
-                  outline={active ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`}
-                  transition="all .2s ease"
-                  _hover={{ transform: 'translateY(-2px)' }}
-                  flex="0 0 88px"
-                  position="relative"
-                  bg={theme.cardBg}
+                  border="1px solid"
+                  borderColor={active ? theme.text : theme.border}
+                  opacity={active ? 1 : 0.75}
                 >
                   <AspectRatio ratio={1}>
-                    <Image src={src} alt={`thumb-${idx}`} objectFit="cover"/>
+                    <Image src={src} alt={`m-thumb-${idx}`} objectFit="cover" />
                   </AspectRatio>
-                  {active && (
-                    <Badge position="absolute" top={1} left={1} borderRadius="full" px="2" colorPalette="blue">
-                      Watching
-                    </Badge>
-                  )}
                 </Box>
               )
             })}
           </HStack>
-        </VStack>
+        </Box>
 
-        {/* Purchase Panel */}
+        {/* RIGHT: Purchase Panel (quiet, structured) */}
         <Box
-          position={{ base: 'static', lg: 'sticky' }}
-          minH="100%"
+          position={{ base: "static", lg: "sticky" }}
           top={{ lg: 24 }}
           alignSelf="start"
           bg={theme.cardBg}
-          borderRadius="2xl"
-          boxShadow="md"
           border="1px solid"
           borderColor={theme.border}
+          borderRadius="2xl"
           p={{ base: 4, md: 6 }}
         >
           <VStack align="stretch" gap={5}>
+
+            {/* Title + meta */}
             <Skeleton loading={loading}>
-              <Heading size="lg" lineHeight="1.2" color={theme.text}>{p?.name}</Heading>
+              <VStack align="stretch" gap={2}>
+                <Heading size="lg" letterSpacing="-0.02em" color={theme.text}>
+                  {p?.name}
+                </Heading>
+
+                <HStack gap={3} color={theme.textSecondary} fontSize="sm" wrap="wrap">
+                  <HStack gap={2}>
+                    <Badge variant="subtle" borderRadius="full">{avgLabel}★</Badge>
+                    {renderStars(avg)}
+                    <Text>({count})</Text>
+                  </HStack>
+
+                  <Text>•</Text>
+
+                  {(() => {
+                    const stockShown = selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)
+                    return (
+                      <Text>
+                        Stock: <b>{stockShown}</b>
+                        {stockShown <= 5 && stockShown > 0 && <Text as="span"> · low</Text>}
+                        {stockShown === 0 && <Text as="span"> · sold out</Text>}
+                      </Text>
+                    )
+                  })()}
+                </HStack>
+              </VStack>
             </Skeleton>
 
-            {/* Rating */}
-            <HStack color={theme.textSecondary} gap={3}>
-              <Badge borderRadius="full" px="2.5" py="0.5" fontWeight="semibold" colorPalette="yellow">{avgLabel}★</Badge>
-              {renderStars(avg)}
-              <Text>({count} ratings)</Text>
-              {(() => {
-                const stockShown = selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)
-                return (
-                  <>
-                    {stockShown <= 5 && stockShown > 0 && (
-                      <Badge colorPalette="orange" borderRadius="full">Low In Stock</Badge>
-                    )}
-                    {stockShown === 0 && (
-                      <Badge colorPalette="red" borderRadius="full">Sold Out</Badge>
-                    )}
-                  </>
-                )
-              })()}
-            </HStack>
+            {/* Price block as hero */}
+<Box
+  border="1px solid"
+  borderColor={theme.border}
+  borderRadius="lg"
+  px={5}
+  py={4}
+  bg={theme.secondaryBg}
+>
+  {(() => {
+    const base = Number(basePrice || 0)
+    const effective = Number(effectivePrice || 0)
+    const hasDiscount = base > effective && base > 0
 
-            {/* Price */}
-            <Box>
-              <HStack gap={3} align="baseline" wrap="wrap">
-                <Text fontSize={{ base: '2xl', md: '3xl' }} fontWeight="extrabold" color={theme.accent}>
-                  {priceFmt(Number(effectivePrice || 0))} USD
-                </Text>
-                {(() => {
-                  const showStrike = (hasDiscount || (basePrice && basePrice > effectivePrice))
-                  const pct = Math.max(0, Math.round(100 - (Number(effectivePrice) / (Number(basePrice) || 1)) * 100))
-                  return showStrike && (
-                    <HStack gap={2}>
-                      <Text as="s" color={theme.textMuted}>{priceFmt(Number(basePrice || 0))} USD</Text>
-                      <Badge colorPalette="red">-{pct}%</Badge>
-                    </HStack>
-                  )
-                })()}
-              </HStack>
-              {p?.shortDescription && (
-                <Text mt={2} color={theme.textSecondary}>{p.shortDescription}</Text>
-              )}
-            </Box>
+    const pct = hasDiscount
+      ? Math.round(((base - effective) / base) * 100)
+      : 0
 
-            {/* Description */}
-            {!!p?.description && (
-              <Text color={theme.textSecondary} noOfLines={{ base: 5, md: 6 }}>
-                {p.description}
-              </Text>
-            )}
+    return (
+      <VStack align="flex-start" spacing={1}>
+        {/* Main price + discount */}
+        <HStack spacing={3} align="center">
+          <HStack spacing={2} align="baseline">
+            <Text
+              fontSize={{ base: "32px", md: "40px" }}
+              fontWeight="800"
+              lineHeight="1"
+              color={theme.text}
+            >
+              {priceFmt(effective)}
+            </Text>
+            <Text
+              fontSize="sm"
+              fontWeight="700"
+              color={theme.textSecondary}
+            >
+              USD
+            </Text>
+          </HStack>
 
-            {/* Variant Selection */}
+          {hasDiscount && (
+            <Badge
+              colorScheme="red"
+              fontSize="sm"
+              fontWeight="800"
+              borderRadius="md"
+              px={2}
+              py={1}
+            >
+              -{pct}%
+            </Badge>
+          )}
+        </HStack>
+
+        {/* Base price */}
+        {hasDiscount && (
+          <Text fontSize="sm" color={theme.textMuted}>
+            <Text as="s">{priceFmt(base)}</Text> USD
+          </Text>
+        )}
+
+        {/* Short description */}
+        {p?.shortDescription && (
+          <Text fontSize="sm" color={theme.textSecondary} pt={1}>
+            {p.shortDescription}
+          </Text>
+        )}
+      </VStack>
+    )
+  })()}
+</Box>
+
+
+
+
+            {/* Variants (minimal pills) */}
             {!!groups.length && (
               <VStack align="stretch" gap={4}>
                 {groups.map((g) => (
                   <Box key={g.id}>
                     <HStack justify="space-between" mb={2}>
-                      <Text fontWeight="medium" color={theme.text}>{g.name}</Text>
-                      {sel[g.name] && <Text color={theme.textSecondary}>Selected: <b>{sel[g.name]}</b></Text>}
+                      <Text fontWeight="semibold" color={theme.text}>{g.name}</Text>
+                      {sel[g.name] && (
+                        <Text fontSize="sm" color={theme.textSecondary}>
+                          {sel[g.name]}
+                        </Text>
+                      )}
                     </HStack>
-                    <Wrap>
-                      {(g.options||[]).map((op) => {
+
+                    <Wrap spacing={2}>
+                      {(g.options || []).map((op) => {
                         const active = sel[g.name] === op.value
                         const available = isOptionAvailable(g.name, op.value)
                         return (
                           <WrapItem key={op.id}>
-                            <Tooltip content={!available ? 'Out Of Stock' : undefined} openDelay={250}>
+                            <Tooltip content={!available ? "Out of stock" : undefined} openDelay={250}>
                               <Button
                                 size="sm"
-                                variant={active ? 'solid' : 'outline'}
+                                variant="outline"
                                 onClick={() => setSel(prev => (prev[g.name] === op.value
-                                  ? (()=>{ const { [g.name]:_, ...rest } = prev; return rest })()
-                                  : { ...prev, [g.name]: op.value }))}
+                                  ? (() => { const { [g.name]: _, ...rest } = prev; return rest })()
+                                  : { ...prev, [g.name]: op.value }
+                                ))}
                                 isDisabled={!available}
                                 borderRadius="full"
-                                bg={active ? theme.primary : 'transparent'}
-                                color={active ? 'white' : theme.text}
-                                borderColor={theme.border}
-                                _hover={{ bg: active ? theme.primaryHover : theme.hoverBg }}
-                                _disabled={{ opacity: 0.4, cursor: 'not-allowed', textDecoration: 'line-through' }}
+                                borderColor={active ? theme.text : theme.border}
+                                bg={active ? theme.hoverBg : "transparent"}
+                                color={theme.text}
+                                _hover={{ bg: theme.hoverBg }}
+                                _disabled={{ opacity: 0.35, textDecoration: "line-through" }}
                                 aria-pressed={active}
                                 role="radio"
                               >
@@ -538,35 +628,26 @@ export default function ProductDetail() {
               </VStack>
             )}
 
-            {/* SKU & Stock Info */}
+            {/* Meta row (compact) */}
             <HStack color={theme.textMuted} fontSize="sm" wrap="wrap" gap={3}>
-              <Text>SKU: <b>{selectedVariant?.skuCode || p?.sku || '—'}</b></Text>
+              <Text>SKU: <b>{selectedVariant?.skuCode || p?.sku || "—"}</b></Text>
               <Text>•</Text>
-              <Text>In Stock: <b>{selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)}</b></Text>
+              <HStack gap={2}><LuCircleCheck /><Text>7-day returns</Text></HStack>
               <Text>•</Text>
-              <HStack>
-                <LuCircleCheck />
-                <Text>7-day returns</Text>
-              </HStack>
-              <Text>•</Text>
-              <HStack>
-                <LuTruck />
-                <Text>Fast Delivery</Text>
-              </HStack>
+              <HStack gap={2}><LuTruck /><Text>Fast delivery</Text></HStack>
             </HStack>
 
             <Separator borderColor={theme.border} />
 
-            {/* Quantity + Actions */}
-            <Stack direction={{ base: 'column', sm: 'row' }} gap={4} align="center">
+            {/* Actions (CTA dominates, share is quiet) */}
+            <Stack direction={{ base: "column", sm: "row" }} gap={3} align="stretch">
               <NumberInput.Root
                 size="sm"
                 min={1}
                 max={Math.max(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0), 1)}
                 defaultValue={qty}
-                onValueChange={(v)=>setQty(Number(v.value)||1)}
-                w={{ base: 'full', sm: '120px' }}
-                aria-label="Số lượng"
+                onValueChange={(v) => setQty(Number(v.value) || 1)}
+                w={{ base: "full", sm: "140px" }}
               >
                 <NumberInput.Control bg={theme.inputBg} borderColor={theme.border} />
                 <NumberInput.Input bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
@@ -575,39 +656,99 @@ export default function ProductDetail() {
               <Button
                 onClick={handleAddToCart}
                 isDisabled={!canAdd}
-                w={{ base: 'full', sm: 'auto' }}
                 size="md"
-                bg={theme.primary}
-                color="white"
-                _hover={{ bg: theme.primaryHover }}
+                w="full"
+                bg={theme.text}         // CTA = black/near-black
+                color={theme.cardBg}    // text = white/near-white
+                _hover={{ opacity: 0.9 }}
+                borderRadius="xl"
               >
-                <LuShoppingCart size={20} /> {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? 'Add to cart' : 'Hết hàng'}
+                <LuShoppingCart size={18} />
+                <Text ml={2}>
+                  {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? "Add to cart" : "Hết hàng"}
+                </Text>
               </Button>
 
-              <Tooltip content={hasCopied ? 'Đã sao chép link' : 'Sao chép link sản phẩm'} openDelay={200}>
-                <IconButton 
-                  aria-label="Share" 
-                  variant="outline" 
+              <Tooltip content={hasCopied ? "Đã sao chép link" : "Sao chép link"} openDelay={200}>
+                <IconButton
+                  aria-label="Share"
+                  variant="outline"
                   onClick={onCopy}
                   borderColor={theme.border}
                   color={theme.text}
                   _hover={{ bg: theme.hoverBg }}
+                  borderRadius="xl"
                 >
                   <LuCopy />
                 </IconButton>
               </Tooltip>
             </Stack>
 
-            {/* Keyboard shortcuts */}
-            <HStack color={theme.textMuted} fontSize="xs">
-              <Text>Image navigation:</Text>
-              <Kbd bg={theme.secondaryBg} color={theme.text}>←</Kbd>
-              <Text>/</Text>
-              <Kbd bg={theme.secondaryBg} color={theme.text}>→</Kbd>
-            </HStack>
+
+
           </VStack>
         </Box>
       </SimpleGrid>
+
+
+<Box
+  maxW="7xl"
+  mx="auto"
+  px={{ base: 4, md: 6 }}
+  pb={20}
+>
+  <Box
+    borderTop="1px solid"
+    borderColor={theme.border}
+    pt={{ base: 8, md: 12 }}
+  >
+    <Accordion.Root collapsible> {/* collapsible để cho phép thu gọn hoàn toàn */}
+      <Accordion.Item border="none">
+        {/* Trigger: phần clickable, thay AccordionButton */}
+        <Accordion.ItemTrigger
+          py={6}
+          _hover={{ bg: 'gray.50' }} // Hover effect nhẹ
+          borderRadius="md"
+        >
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={10} width="full" alignItems="center">
+            {/* Left: Title nổi bật */}
+            <VStack align="start" spacing={3}>
+              <Heading size="lg" letterSpacing="-0.02em" fontWeight="bold">
+                Product Details
+              </Heading>
+              <Text fontSize="sm" color={theme.textMuted}>
+                Everything you need to know about this product
+              </Text>
+            </VStack>
+
+            {/* Right: Icon chevron chỉ thị mở/rút gọn */}
+            <Box gridColumn={{ md: "span 2" }} textAlign="right">
+              <Accordion.ItemIndicator boxSize={8} />
+            </Box>
+          </SimpleGrid>
+        </Accordion.ItemTrigger>
+
+        {/* Content: phần mở ra */}
+        <Accordion.ItemContent
+          pb={8}
+          // Offset để align với cột phải trong grid
+          ml={{ md: '33.333%' }} // Tương đương offset 1 cột trong grid 3
+        >
+          <Accordion.ItemBody>
+            <Text
+              color={theme.textSecondary}
+              fontSize="md"
+              lineHeight="1.9"
+              whiteSpace="pre-line"
+            >
+              {p?.description}
+            </Text>
+          </Accordion.ItemBody>
+        </Accordion.ItemContent>
+      </Accordion.Item>
+    </Accordion.Root>
+  </Box>
+</Box>
 
       {/* Ratings Section */}
       <Box mt={{ base: 8, md: 12 }}>

@@ -33,3 +33,30 @@ export async function adminToggleProductVisible(productId, visible) {
   // TODO: call PATCH /admin/products/:id
   return { ok: true }
 }
+
+
+// GET tree
+export async function adminFetchCategoryTree(params = {}) {
+  // ví dụ backend: GET /api/admin/categories/tree
+  const { data } = await api.get("/api/categories/tree", { params })
+  return { content: data?.result || [] }
+}
+
+// CREATE category (parentId null => root, parentId = id => child)
+export async function adminCreateCategory(payload) {
+  // payload ví dụ: { name, slug, parentId }
+  const { data } = await api.post("/api/categories", payload)
+  return { content: data?.result }
+}
+
+// UPDATE category
+export async function adminUpdateCategory(categoryId, payload) {
+  const { data } = await api.put(`/api/categories/${categoryId}`, payload)
+  return { content: data?.result }
+}
+
+// DELETE category
+export async function adminDeleteCategory(categoryId) {
+  const { data } = await api.delete(`/api/categories/${categoryId}`)
+  return { ok: true, content: data?.result }
+}

@@ -101,24 +101,84 @@ export default function Orders() {
       </Box>
 
       {/* Filter tabs */}
-      <Tabs.Root value={value} onValueChange={(e) => { setValue(e.value); setPage(0); }} variant="plain">
-        <Tabs.List overflowX="auto" bg={theme.secondaryBg} rounded="l3" p="1" borderColor={theme.border}>
-          <Tabs.Trigger value="all" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>All</Tabs.Trigger>
-          <Tabs.Trigger value="processing" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
-            Processing <Badge ml="2" colorPalette="yellow">{counts.processing}</Badge>
-          </Tabs.Trigger>
-          <Tabs.Trigger value="shipping" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
-            Shipping <Badge ml="2" colorPalette="blue">{counts.shipping}</Badge>
-          </Tabs.Trigger>
-          <Tabs.Trigger value="completed" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
-            Completed <Badge ml="2" colorPalette="green">{counts.completed}</Badge>
-          </Tabs.Trigger>
-          <Tabs.Trigger value="cancelled" color={theme.textSecondary} _selected={{ bg: theme.cardBg, color: theme.text }}>
-            Cancelled <Badge ml="2" colorPalette="red">{counts.cancelled}</Badge>
-          </Tabs.Trigger>
-          <Tabs.Indicator rounded="l2" />
-        </Tabs.List>
-      </Tabs.Root>
+<Tabs.Root
+  value={value}
+  onValueChange={(e) => {
+    setValue(e.value)
+    setPage(0)
+  }}
+  variant="plain"
+>
+  <Tabs.List
+    overflowX="auto"
+    overflowY="hidden"
+    bg={theme.secondaryBg}
+    border="1px solid"
+    borderColor={theme.border}
+    rounded="xl"
+    p="1"
+    gap="1"
+    sx={{
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none",
+      "&::-webkit-scrollbar": { display: "none" },
+    }}
+  >
+    {[
+      { v: "all", label: "All" },
+      { v: "processing", label: "Processing", count: counts.processing },
+      { v: "shipping", label: "Shipping", count: counts.shipping },
+      { v: "completed", label: "Completed", count: counts.completed },
+      { v: "cancelled", label: "Cancelled", count: counts.cancelled },
+    ].map((t) => (
+      <Tabs.Trigger
+        key={t.v}
+        value={t.v}
+        px="3"
+        py="2"
+        rounded="lg"
+        fontWeight="semibold"
+        color={theme.textSecondary}
+        transition="all .15s ease"
+        _hover={{ color: theme.text, bg: theme.hoverBg }}
+        _selected={{ color: theme.text }}
+        display="inline-flex"
+        alignItems="center"
+        gap="2"
+        whiteSpace="nowrap"
+      >
+        <Text>{t.label}</Text>
+
+        {typeof t.count === "number" && (
+          <Badge
+            variant="subtle"
+            rounded="full"
+            px="2"
+            minW="22px"
+            textAlign="center"
+            color={theme.text}
+            border="1px solid"
+            borderColor={theme.border}
+            bg={theme.cardBg}
+          >
+            {t.count}
+          </Badge>
+        )}
+      </Tabs.Trigger>
+    ))}
+
+    {/* Indicator kiểu “pill” nằm dưới tab được chọn */}
+    <Tabs.Indicator
+      rounded="lg"
+      bg={theme.cardBg}
+      boxShadow="xs"
+      border="1px solid"
+      borderColor={theme.border}
+      transition="all .18s ease"
+    />
+  </Tabs.List>
+</Tabs.Root>
+
 
       {/* Orders list */}
       <VStack align="stretch" spacing={4} mt={4}>
@@ -208,18 +268,21 @@ export default function Orders() {
 }
 
 function OrderCard({ order: o, theme }) {
-  const status = up(o.status) || 'pending'
+  const status = up(o.status) || "pending"
   const style = STATUS_STYLE[status] || STATUS_STYLE.pending
-  const created = o.createdAt ? new Date(o.createdAt).toLocaleString() : ''
+  const created = o.createdAt ? new Date(o.createdAt).toLocaleString() : ""
   const items = Array.isArray(o.items) ? o.items : []
-  const [ratingOpen, setRatingOpen] = useState(false)
-  const preview = items.slice(0, 3)
-  const more = Math.max(0, items.length - preview.length)
+  const previewThumbs = items.slice(0, 4)
+  const more = Math.max(0, items.length - previewThumbs.length)
   const itemsCount = items.reduce((s, it) => s + (it.quantity || 0), 0)
 
-  // Check if all items are already rated
   const allItemsRated = items.length > 0 && items.every(item => item.hasRating === true)
   const unratedItems = items.filter(item => !item.hasRating)
+
+  const imgSrc = (it) =>
+    (it.imageUrl
+      ? `${import.meta.env.VITE_API_URL}/uploads/${it.imageUrl}`
+      : it.productImageUrl) || "/placeholder.png"
 
   return (
     <Box
@@ -230,159 +293,288 @@ function OrderCard({ order: o, theme }) {
       borderLeftColor={style.border}
       p={4}
       borderRadius="md"
-      transition="all .2s ease"
-      _hover={{ boxShadow: 'md', transform: 'translateY(-2px)', borderColor: theme.borderLight }}
     >
-      {/* Header: ID + status */}
+      {/* Header */}
       <HStack justify="space-between" align="start">
-        <HStack>
-          <Text color={theme.textMuted}>Order </Text>
-          <Text fontWeight="bold" color={theme.text}>#{o.orderId}</Text>
-        </HStack>
-        <Badge colorPalette={style.palette} variant="solid">{status.toUpperCase()}</Badge>
-      </HStack>
-
-      {/* Meta chips */}
-      <HStack mt="2" spacing="2" wrap="wrap">
-        {created && <Badge variant="subtle" colorPalette="gray">{created}</Badge>}
-        <Badge variant="subtle" colorPalette="gray">{itemsCount} products</Badge>
-        {o.paymentMethod && (
-          <Badge variant="subtle" colorPalette="purple">{o.paymentMethod}</Badge>
-        )}
-      </HStack>
-
-      {/* Thumbnails + product lines */}
-      {preview.length > 0 && (
-        <VStack align="stretch" mt={3} spacing={3}>
-          <HStack spacing="2">
-            {preview.map((it, idx) => (
-              <Box key={idx} border="1px solid" borderColor={theme.border} rounded="md" overflow="hidden">
-                <ChakraImage
-                  src={import.meta.env.VITE_API_URL + "/uploads/" + it.imageUrl || it.productImageUrl || '/placeholder.png'}
-                  alt={it.productName}
-                  boxSize="48px"
-                  objectFit="cover"
-                />
-              </Box>
-            ))}
-            {more > 0 && (
-              <Box
-                boxSize="48px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                border="1px dashed"
-                borderColor={theme.border}
-                rounded="md"
-                color={theme.textMuted}
-                fontSize="sm"
-              >
-                +{more}
-              </Box>
-            )}
+        <VStack align="start" spacing={1}>
+          <HStack spacing={2}>
+            <Text color={theme.textMuted}>Order</Text>
+            <Text fontWeight="bold" color={theme.text}>
+              #{o.orderId}
+            </Text>
           </HStack>
 
-          {preview.map(it => (
-            <HStack key={it.id || it.productId} justify="space-between">
-              <VStack align="start" flex={1} spacing={1} ml={3} onClick={() => navigate(`/product/${it.id}`)} transition="all ease-in-out 0.2s" _hover={{ cursor: 'pointer', fontWeight: 'semibold' }}>
-                <Text noOfLines={1} flex={1} color={theme.text}>{it.productName}</Text>
-                {it.optionValues && (
-                  <HStack spacing={2} flexWrap="wrap">
-                    {Object.entries(it.optionValues).map(([k, v]) => (
-                      <Badge key={k} colorScheme="purple" variant="subtle">{`${k}: ${v}`}</Badge>
-                    ))}
-                  </HStack>
-                )}
-              </VStack>
-              <Text color={theme.textMuted}>x{it.quantity}</Text>
-              <Text fontWeight="semibold" color={theme.text}>
-                {(it.price || 0) * (it.quantity || 0)}$
-              </Text>
-            </HStack>
-          ))}
+          {/* Meta gọn 1 dòng */}
+          <Text fontSize="sm" color={theme.textMuted}>
+            {created ? created : "—"} • {itemsCount} products
+            {o.paymentMethod ? ` • ${o.paymentMethod}` : ""}
+          </Text>
         </VStack>
+
+        <Badge colorPalette={style.palette} variant="solid">
+          {status.toUpperCase()}
+        </Badge>
+      </HStack>
+
+      <Separator my="3" borderColor={theme.border} />
+
+      {/* Body */}
+      {items.length > 0 ? (
+        <HStack align="start" spacing={4}>
+          {/* Thumbs cột trái */}
+          <VStack spacing={2} align="start" minW="64px">
+            <HStack spacing={2} wrap="wrap">
+              {previewThumbs.map((it, idx) => (
+                <Box
+                  key={it.id || it.productId || idx}
+                  border="1px solid"
+                  borderColor={theme.border}
+                  rounded="md"
+                  overflow="hidden"
+                  boxSize="52px"
+                >
+                  <ChakraImage
+                    src={imgSrc(it)}
+                    alt={it.productName}
+                    boxSize="52px"
+                    objectFit="cover"
+                  />
+                </Box>
+              ))}
+
+              {more > 0 && (
+                <Box
+                  boxSize="52px"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  border="1px dashed"
+                  borderColor={theme.border}
+                  rounded="md"
+                  color={theme.textMuted}
+                  fontSize="sm"
+                >
+                  +{more}
+                </Box>
+              )}
+            </HStack>
+          </VStack>
+
+          {/* Items cột phải */}
+          <VStack align="stretch" spacing={3} flex={1}>
+            {items.slice(0, 3).map((it) => (
+              <HStack key={it.id || it.productId} align="start" spacing={3}>
+                {/* Name + options */}
+                <VStack
+                  align="start"
+                  spacing={1}
+                  flex={1}
+                  onClick={() => navigate(`/product/${it.id}`)}
+                  _hover={{ cursor: "pointer" }}
+                >
+                  <Text noOfLines={1} color={theme.text} fontWeight="semibold">
+                    {it.productName}
+                  </Text>
+
+                  {it.optionValues && (
+                    <HStack spacing={2} flexWrap="wrap">
+                      {Object.entries(it.optionValues).map(([k, v]) => (
+                        <Badge key={k} colorScheme="purple" variant="subtle">
+                          {k}: {v}
+                        </Badge>
+                      ))}
+                    </HStack>
+                  )}
+                </VStack>
+
+                {/* Qty */}
+                <Text color={theme.textMuted} minW="44px" textAlign="right">
+                  x{it.quantity}
+                </Text>
+
+                {/* Line total */}
+                <Text fontWeight="semibold" color={theme.text} minW="72px" textAlign="right">
+                  {((it.price || 0) * (it.quantity || 0)).toFixed(2)}$
+                </Text>
+              </HStack>
+            ))}
+
+            {/* Nếu nhiều item hơn: gợi ý xem chi tiết */}
+            {items.length > 3 && (
+              <Text fontSize="sm" color={theme.textMuted}>
+                And {items.length - 3} more items…
+              </Text>
+            )}
+          </VStack>
+        </HStack>
+      ) : (
+        <Text color={theme.textMuted}>No items</Text>
       )}
 
       <Separator my="3" borderColor={theme.border} />
 
-      {/* Total + actions */}
+      {/* Footer: Total + actions */}
       <HStack justify="space-between" align="center">
-        <Text color={theme.textMuted}>Total</Text>
-        <Text fontWeight="bold" color={theme.text}>{o.totalAmount}$</Text>
-      </HStack>
+        <VStack align="start" spacing={0}>
+          <Text fontSize="sm" color={theme.textMuted}>Total</Text>
+          <Text fontWeight="bold" fontSize="lg" color={theme.text}>
+            {Number(o.totalAmount || 0).toFixed(2)}$
+          </Text>
+        </VStack>
 
-      <HStack justify="flex-end" mt={3} spacing={2}>
-        {status === 'shipping' && (
-          <Button as={Link} to={`/orders/${o.id}/track`} size="sm" variant="ghost" color={theme.text} _hover={{ bg: theme.hoverBg }}>
-            Track
-          </Button>
-        )}
-        {(status === 'completed' || status === 'cancelled') && (
-          <Button as={Link} to={`/orders/${o.id}`} size="sm" variant="ghost" color={theme.text} _hover={{ bg: theme.hoverBg }}>
-            Buy Again
-          </Button>
-        )}
-        {status === 'completed' && !allItemsRated && unratedItems.length > 0 ? (
-          <RatingDialog
-            order={o}
-            items={unratedItems}
-            onSubmit={async ({ orderId, orderItemId, productId, variantId, stars, comment, files }) => {
-              try {
-                const fd = new FormData()
-                const ratingData = {
-                  orderItemId,
-                  stars,
-                  comment: comment || ''
-                }
-                fd.append('payload', JSON.stringify(ratingData))
-                files.forEach(f => fd.append('images', f))
-                await addRating(fd)
-                
-                window.location.reload()
-              } catch (error) {
-                console.error('Rating error:', error)
-              }
-            }}
-          >
-            <Button size="sm" variant="outline" borderColor={theme.border} color={theme.text} _hover={{ bg: theme.hoverBg }}>
-              Rating
+        <HStack spacing={2}>
+          {status === "shipping" && (
+            <Button
+              as={Link}
+              to={`/orders/${o.id}/track`}
+              size="sm"
+              variant="outline"
+              borderColor={theme.border}
+              color={theme.text}
+            >
+              Track
             </Button>
-          </RatingDialog>
-        ) : status === 'completed' && allItemsRated ? (
-          <Button size="sm" variant="outline" borderColor={theme.border} color={theme.textMuted} isDisabled>
-            Rated
-          </Button>
-        ) : status !== 'completed' ? (
-          <Button as={Link} to={`/orders/${o.id}`} size="sm" variant="outline" borderColor={theme.border} color={theme.text} _hover={{ bg: theme.hoverBg }}>
-            Contact Seller
-          </Button>
-        ) : null}
+          )}
+
+          {(status === "completed" || status === "cancelled") && (
+            <Button
+              as={Link}
+              to={`/orders/${o.id}`}
+              size="sm"
+              variant="outline"
+              borderColor={theme.border}
+              color={theme.text}
+            >
+              Buy Again
+            </Button>
+          )}
+
+          {status === "completed" && !allItemsRated && unratedItems.length > 0 ? (
+            <RatingDialog
+              order={o}
+              items={unratedItems}
+              onSubmit={async ({ orderItemId, stars, comment, files }) => {
+                try {
+                  const fd = new FormData()
+                  fd.append(
+                    "payload",
+                    JSON.stringify({ orderItemId, stars, comment: comment || "" })
+                  )
+                  files.forEach((f) => fd.append("images", f))
+                  await addRating(fd)
+                  window.location.reload()
+                } catch (error) {
+                  console.error("Rating error:", error)
+                }
+              }}
+            >
+              <Button
+                size="sm"
+                variant="solid"
+                colorPalette="purple"
+              >
+                Rating
+              </Button>
+            </RatingDialog>
+          ) : status === "completed" && allItemsRated ? (
+            <Button size="sm" variant="outline" borderColor={theme.border} color={theme.textMuted} isDisabled>
+              Rated
+            </Button>
+          ) : status !== "completed" ? (
+            <Button
+              as={Link}
+              to={`/orders/${o.id}`}
+              size="sm"
+              variant="outline"
+              borderColor={theme.border}
+              color={theme.text}
+            >
+              Contact Seller
+            </Button>
+          ) : null}
+        </HStack>
       </HStack>
     </Box>
   )
 }
 
+
 function OrderSkeletonList({ theme }) {
   return (
     <VStack align="stretch" spacing={4}>
-      {[1, 2, 3].map(i => (
+      {[1, 2, 3].map((i) => (
         <Box
           key={i}
           bg={theme.cardBg}
           border="1px solid"
           borderColor={theme.border}
+          borderLeftWidth="4px"
+          borderLeftColor={theme.borderLight || theme.border}
           p={4}
           borderRadius="md"
+          transition="all .18s ease"
+          _hover={{ transform: "translateY(-2px)", boxShadow: "sm" }}
         >
-          <Stack>
-            <HStack justify="space-between">
-              <Skeleton height="16px" width="140px" />
-              <Skeleton height="20px" width="80px" />
+          {/* Header: order id + status */}
+          <HStack justify="space-between" align="start">
+            <VStack align="start" spacing={2}>
+              <Skeleton height="14px" width="160px" />
+              <Skeleton height="12px" width="220px" />
+            </VStack>
+            <Skeleton height="22px" width="86px" borderRadius="999px" />
+          </HStack>
+
+          <Separator my="3" borderColor={theme.border} />
+
+          {/* Body: thumbs + lines */}
+          <HStack align="start" spacing={4}>
+            {/* Thumbnails column */}
+            <HStack spacing={2} wrap="wrap" maxW="120px">
+              {[1, 2, 3, 4].map((t) => (
+                <Skeleton
+                  key={t}
+                  height="52px"
+                  width="52px"
+                  borderRadius="md"
+                />
+              ))}
             </HStack>
-            <Skeleton height="14px" width="200px" />
-            <Skeleton height="48px" />
-            <Skeleton height="18px" width="120px" />
-          </Stack>
+
+            {/* Items column */}
+            <VStack align="stretch" spacing={3} flex={1}>
+              {[1, 2, 3].map((row) => (
+                <HStack key={row} spacing={3} align="center">
+                  <VStack align="start" spacing={2} flex={1}>
+                    <Skeleton height="14px" width="70%" />
+                    <HStack spacing={2}>
+                      <Skeleton height="12px" width="64px" borderRadius="999px" />
+                      <Skeleton height="12px" width="72px" borderRadius="999px" />
+                    </HStack>
+                  </VStack>
+
+                  <Skeleton height="14px" width="44px" />
+                  <Skeleton height="14px" width="72px" />
+                </HStack>
+              ))}
+
+              <Skeleton height="12px" width="160px" />
+            </VStack>
+          </HStack>
+
+          <Separator my="3" borderColor={theme.border} />
+
+          {/* Footer: total + actions */}
+          <HStack justify="space-between" align="center">
+            <VStack align="start" spacing={1}>
+              <Skeleton height="12px" width="44px" />
+              <Skeleton height="18px" width="110px" />
+            </VStack>
+
+            <HStack spacing={2}>
+              <Skeleton height="32px" width="92px" borderRadius="md" />
+              <Skeleton height="32px" width="92px" borderRadius="md" />
+            </HStack>
+          </HStack>
         </Box>
       ))}
     </VStack>

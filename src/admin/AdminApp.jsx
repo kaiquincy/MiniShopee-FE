@@ -6,6 +6,7 @@ import AdminOrders from './pages/AdminOrders'
 import AdminUsers from './pages/AdminUsers'
 import AdminProducts from './pages/AdminProducts'
 import AdminSettings from './pages/AdminSettings'
+import AdminCategories from './pages/AdminCategories'
 
 export default function AdminApp() {
   const { token, user } = useAuth()
@@ -21,6 +22,7 @@ export default function AdminApp() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="categories" element={<AdminCategories />} />
       </Route>
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>
