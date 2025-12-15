@@ -37,14 +37,14 @@ export default function LandingPage() {
     ];
 
     return (
-        <Box bg="black" color="white">
+        <Box bg="black" color="white" className="landing-scroll-container">
             {/* ================= HERO CAROUSEL ================= */}
             <Box mb={{ base: 0, md: 0 }}>
                 <LandingCarousel />
             </Box>
 
             {/* ================= FEATURED CATEGORIES ================= */}
-            <Box py={{ base: 12, md: 16, lg: 20 }} bg="gray.950" position="relative">
+            <Box py={{ base: 12, md: 16, lg: 20 }} px={16} bg="gray.950" position="relative">
                 {/* Decorative gradient */}
                 <Box
                     position="absolute"
@@ -204,7 +204,7 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= DAILY DEALS ================= */}
-            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} position="relative">
+            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} px={16} position="relative">
                 {/* Decorative gradient */}
                 <Box
                     position="absolute"
@@ -353,7 +353,7 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= FEATURES BANNER ================= */}
-            <Box bg="gray.950" py={{ base: 10, md: 12, lg: 16 }}>
+            <Box bg="gray.950" py={{ base: 10, md: 12, lg: 16 }} px={16}>
                 <Container maxW="container.2xl" px={{ base: 4, md: 6 }}>
                     <Grid
                         templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
@@ -435,7 +435,7 @@ export default function LandingPage() {
             </Box>
 
             {/* ================= NEWSLETTER ================= */}
-            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} position="relative" overflow="hidden">
+            <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} px={16} position="relative" overflow="hidden">
                 <Container maxW="container.lg" position="relative" textAlign="center" px={{ base: 4, md: 6 }}>
                     <VStack spacing={{ base: 4, md: 6 }}>
                         <Box>

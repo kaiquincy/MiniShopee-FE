@@ -141,7 +141,7 @@ export default function Header() {
               _hover={{ borderColor: theme.borderLight }}
               _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') nav(`/?q=${encodeURIComponent(e.target.value || '')}`)
+                if (e.key === 'Enter') nav(`/products?q=${encodeURIComponent(e.target.value || '')}`)
               }}
             />
           </InputGroup>
@@ -471,7 +471,6 @@ export default function Header() {
                 _placeholder={{ color: theme.textPlaceholder }}
                 _hover={{ borderColor: theme.borderLight }}
                 _focus={{ borderColor: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}` }}
-                transition="all ease-in-out 0.2s"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     nav(`/?q=${encodeURIComponent(e.target.value || '')}`)

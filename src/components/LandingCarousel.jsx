@@ -189,6 +189,7 @@ export default function LandingCarousel() {
                     py={4}
                     borderBottom="1px solid"
                     borderColor="whiteAlpha.200"
+                    px={4}
                 >
                     {/* Logo */}
                     <Text 
@@ -202,7 +203,7 @@ export default function LandingCarousel() {
                     </Text>
 
                     {/* Category Navigation - Desktop only */}
-                    <HStack spacing={8} display={{ base: "none", lg: "flex" }}>
+                    <HStack gap={3} display={{ base: "none", lg: "flex" }}>
                         {slides.map((slide, idx) => (
                             <Text
                                 key={idx}
@@ -622,9 +623,10 @@ export default function LandingCarousel() {
                 <Grid
                     templateColumns={{ base: "1fr", md: "1fr 1fr" }}
                     gap={{ base: 4, md: 8 }}
-                    minH={{ base: "auto", lg: "700px" }}
+                    minH={{ base: "auto", lg: "600px" }}
                     alignItems="center"
-                    py={{ base: 6, md: 8 }}
+                    pt={{ base: 6, md: 8 }}
+                    px={16}
                 >
                     {/* Left - Hero Text */}
                     <VStack align="start" zIndex="1" spacing={{ base: 4, md: 8 }}>
@@ -757,7 +759,7 @@ export default function LandingCarousel() {
                                     opacity={0.2}
                                     filter="blur(80px)"
                                 />
-
+                                
                                 {/* Product Image */}
                                 <Box
                                     position="absolute"

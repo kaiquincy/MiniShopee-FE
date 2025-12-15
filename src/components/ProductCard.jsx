@@ -8,6 +8,8 @@ export default function ProductCard({ p, theme }) {
   const rating = (p.averageStars ?? p.ratingAvg ?? 0).toFixed(1)
   const ratingCount = p.totalRatings ?? p.ratingCount ?? 0
   const finalPrice = p.discountPrice || p.price
+  const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/${p.imageUrl}`
+  const dummyUrl = `https://dummyimage.com/400x300/228be6/ffffff.jpg&text=${encodeURIComponent(p.name)}`
 
   return (
     <Box
@@ -30,13 +32,17 @@ export default function ProductCard({ p, theme }) {
       <Box position="relative" overflow="hidden">
         <Link to={`/product/${p.id}`}>
           <Image
-            src={import.meta.env.VITE_API_URL + "/uploads/" + p.imageUrl || 'https://via.placeholder.com/400x300?text=Product'}
+            src={imageUrl}
             alt={p.name}
             w="full"
             h="200px"
             objectFit="cover"
             transition="transform 0.3s"
             _hover={{ transform: 'scale(1.05)' }}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = dummyUrl;
+            }}
           />
         </Link>
 
