@@ -372,6 +372,7 @@ export default function SellerProductEdit() {
                     collection={statusList}
                     value={[p.status] || ''}
                     onValueChange={(d) => setP({ ...p, status: d.value[0] })}
+                    disabled={true}
                     // defaultValue={["ACTIVE"]} // sửa đây để chọn đúng status lúc load
                   >
                     <Select.HiddenSelect />

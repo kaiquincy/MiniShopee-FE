@@ -323,8 +323,9 @@ export default function SellerProductNew() {
                   <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Status</Field.Label>
                   <Select.Root
                     collection={states}
-                    value={p.status || ['ACTIVE']}
+                    value={p.status || ['PROCESSING']}
                     onValueChange={(details) => setP({ ...p, status: details.value })}
+                    disabled={true}
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
