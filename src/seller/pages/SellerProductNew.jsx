@@ -19,13 +19,14 @@ import {
   Textarea,
   VStack
 } from '@chakra-ui/react'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { FiArrowLeft, FiImage, FiPlus, FiX } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
 import { createProduct } from '../api/seller'
 import VariantsBuilder from '../components/VariantsBuilder'
 import { buildPayloadObject } from '../utils/buildPayload'
+import api from "../../api/client"
 
 
 export default function SellerProductNew() {
@@ -61,6 +62,44 @@ export default function SellerProductNew() {
     ]
   })
 
+
+  const [tree, setTree] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let ignore = false
+    setLoading(true)
+
+    api.get("/api/categories/tree")
+      .then(({ data }) => {
+        if (!ignore) setTree(data?.result || [])
+      })
+      .catch(() => {
+        if (!ignore) setTree([])
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+
+    return () => { ignore = true }
+  }, [])
+
+  const childCategoryItems = useMemo(() => {
+    // chỉ lấy children (level 2) từ từng root
+    const items = (tree || []).flatMap(parent =>
+      (parent?.children || []).map(child => ({
+        label: `${parent.name} / ${child.name}`,
+        value: String(child.id),        // Select thường dùng string
+        id: child.id,
+        parentId: parent.id,
+      }))
+    )
+    return items
+  }, [tree])
+
+  const categoryCollection = useMemo(() => createListCollection({
+    items: childCategoryItems
+  }), [childCategoryItems])
 
   const previewUrl = useMemo(() => {
     if (p?.imageFile instanceof File) return URL.createObjectURL(p.imageFile)
@@ -323,8 +362,9 @@ export default function SellerProductNew() {
                   <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Status</Field.Label>
                   <Select.Root
                     collection={states}
-                    value={p.status || ['ACTIVE']}
+                    value={p.status || ['PROCESSING']}
                     onValueChange={(details) => setP({ ...p, status: details.value })}
+                    disabled={true}
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
@@ -493,22 +533,52 @@ export default function SellerProductNew() {
 
               {/* Category IDs */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Category IDs</Field.Label>
-                <Input
-                  placeholder="1,2,3"
-                  value={categoryIdsText}
-                  onChange={e => setCategoryIdsText(e.target.value)}
-                  bg="gray.800"
-                  border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
-                  _placeholder={{ color: "whiteAlpha.500" }}
-                  _focus={{ borderColor: "brand.500" }}
-                />
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">
+                  Category
+                </Field.Label>
+
+                  <Select.Root
+                    collection={categoryCollection}
+                    value={p.categoryIds?.[0] ? [String(p.categoryIds[0])] : []}
+                    onValueChange={(details) => {
+                      const first = details.value?.[0] // string id
+                      const id = Number(first)
+                      setP(prev => ({ ...prev, categoryIds: Number.isNaN(id) ? [] : [id] }))
+                    }}
+                  >
+                  <Select.HiddenSelect />
+                  <Select.Control>
+                    <Select.Trigger
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    >
+                      <Select.ValueText placeholder={loading ? "Loading categories..." : "Select category"} />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
+                  </Select.Control>
+
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
+                        {categoryCollection.items.map(it => (
+                          <Select.Item key={it.value} item={it} _hover={{ bg: "whiteAlpha.100" }}>
+                            {it.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
+
                 <Text mt={1} fontSize="xs" color="whiteAlpha.500">
-                  Enter category IDs separated by commas
+                  Only sub-categories (children) are selectable
                 </Text>
               </Field.Root>
+
 
 
 

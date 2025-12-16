@@ -5,10 +5,12 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiImage, FiSave } from 'react-icons/fi'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import api from "../../api/client"
 import { toaster } from '../../components/ui/toaster'
 import VariantsBuilder from '../../seller/components/VariantsBuilder'
 import { getProduct, updateProduct } from '../api/seller'; // <-- đổi theo project của bạn
 import { buildPayloadObject } from '../utils/buildPayload'
+
 
 // Utils nhỏ cho preview URL ảnh chính
 const toPreviewSrc = (imageFile, imageUrl) => {
@@ -24,6 +26,44 @@ export default function SellerProductEdit() {
   const nav = useNavigate()
   const { id } = useParams()
   const fileInputRef = useRef(null)
+
+  const [tree, setTree] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let ignore = false
+    setLoading(true)
+
+    api.get("/api/categories/tree")
+      .then(({ data }) => {
+        if (!ignore) setTree(data?.result || [])
+      })
+      .catch(() => {
+        if (!ignore) setTree([])
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false)
+      })
+
+    return () => { ignore = true }
+  }, [])
+
+  const childCategoryItems = useMemo(() => {
+    // chỉ lấy children (level 2) từ từng root
+    const items = (tree || []).flatMap(parent =>
+      (parent?.children || []).map(child => ({
+        label: `${parent.name} / ${child.name}`,
+        value: String(child.id),        // Select thường dùng string
+        id: child.id,
+        parentId: parent.id,
+      }))
+    )
+    return items
+  }, [tree])
+
+  const categoryCollection = useMemo(() => createListCollection({
+    items: childCategoryItems
+  }), [childCategoryItems])
 
   const [p, setP] = useState({
     id: undefined,
@@ -372,6 +412,7 @@ export default function SellerProductEdit() {
                     collection={statusList}
                     value={[p.status] || ''}
                     onValueChange={(d) => setP({ ...p, status: d.value[0] })}
+                    disabled={true}
                     // defaultValue={["ACTIVE"]} // sửa đây để chọn đúng status lúc load
                   >
                     <Select.HiddenSelect />
@@ -517,16 +558,50 @@ export default function SellerProductEdit() {
 
               {/* Category IDs */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Category IDs</Field.Label>
-                <Input
-                  placeholder="1,2,3"
-                  value={categoryIdsText}
-                  onChange={e => setCategoryIdsText(e.target.value)}
-                  bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
-                  _placeholder={{ color: 'whiteAlpha.500' }}
-                  _focus={{ borderColor: 'brand.500' }}
-                />
-                <Text mt={1} fontSize="xs" color="whiteAlpha.500">Enter category IDs separated by commas</Text>
+                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">
+                  Category
+                </Field.Label>
+
+                  <Select.Root
+                    collection={categoryCollection}
+                    value={p.categoryIds?.[0] ? [String(p.categoryIds[0])] : []}
+                    onValueChange={(details) => {
+                      const first = details.value?.[0] // string id
+                      const id = Number(first)
+                      setP(prev => ({ ...prev, categoryIds: Number.isNaN(id) ? [] : [id] }))
+                    }}
+                  >
+                  <Select.HiddenSelect />
+                  <Select.Control>
+                    <Select.Trigger
+                      bg="gray.800"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      color="white"
+                      _focus={{ borderColor: "brand.500" }}
+                    >
+                      <Select.ValueText placeholder={loading ? "Loading categories..." : "Select category"} />
+                    </Select.Trigger>
+                    <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
+                  </Select.Control>
+
+                  <Portal>
+                    <Select.Positioner>
+                      <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
+                        {categoryCollection.items.map(it => (
+                          <Select.Item key={it.value} item={it} _hover={{ bg: "whiteAlpha.100" }}>
+                            {it.label}
+                            <Select.ItemIndicator />
+                          </Select.Item>
+                        ))}
+                      </Select.Content>
+                    </Select.Positioner>
+                  </Portal>
+                </Select.Root>
+
+                <Text mt={1} fontSize="xs" color="whiteAlpha.500">
+                  Only sub-categories (children) are selectable
+                </Text>
               </Field.Root>
 
               {/* Variants Builder */}
