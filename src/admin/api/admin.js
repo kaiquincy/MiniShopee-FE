@@ -27,9 +27,11 @@ export async function adminUpdateUserStatus(userId, status) {
 
 export async function adminFetchProducts(params = {}) {
   // TODO: call GET /admin/products
-  return { content: [] }
+  const { data } = await api.get(`/api/admin/products`)
+  return {content: data?.result?.content || []}
 }
-export async function adminToggleProductVisible(productId, visible) {
+
+export async function adminUpdateProductStatus (productId, visible) {
   // TODO: call PATCH /admin/products/:id
   return { ok: true }
 }
@@ -59,4 +61,14 @@ export async function adminUpdateCategory(categoryId, payload) {
 export async function adminDeleteCategory(categoryId) {
   const { data } = await api.delete(`/api/categories/${categoryId}`)
   return { ok: true, content: data?.result }
+}
+
+export async function adminFetchOptions() {
+  const { data } = await api.get("/api/admin/options")
+  return { content: data?.result }
+}
+
+export async function adminSetOptions(payload) {
+  const { data } = await api.post("/api/admin/options", payload)
+  return { content: data?.result }
 }

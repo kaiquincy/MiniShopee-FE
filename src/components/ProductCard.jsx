@@ -96,7 +96,7 @@ export default function ProductCard({ p, theme }) {
             fontWeight="semibold"
             fontSize="md"
             color={theme.text}
-            noOfLines={3}
+            lineClamp={3}
             lineHeight="1.4"
             minH="4.2em"
             _hover={{ color: theme.textSecondary }}
