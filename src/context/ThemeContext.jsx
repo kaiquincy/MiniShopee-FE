@@ -24,6 +24,7 @@ export function ThemeProvider({ children }) {
         // Borders
         border: isLight ? '#DEE2E6' : '#334155',
         borderLight: isLight ? '#E9ECEF' : '#475569',
+        borderInput: isLight ? "#B5B5B5" : "#777777",
 
         // Text colors
         text: isLight ? '#212529' : '#F1F5F9',
@@ -55,8 +56,9 @@ export function ThemeProvider({ children }) {
         // Chart
         chartStroke: isLight ? "#3a3a3a" : "#d0d0d0",
 
-        // Admin
-        sideBarBg: isLight ? "#1E40AF" : "#05227e"
+        // Sidebar
+        adminSidebarBg: isLight ? "#1E40AF" : "#05227e",
+        sellerSidebarBg: isLight ? "#4c4c4c" : "#18181B",
     }), [colorMode, isLight])
 
     return (

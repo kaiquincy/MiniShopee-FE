@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
-import { Box, Text, Input, Button, Badge, HStack, Tooltip, IconButton } from '@chakra-ui/react'
+import { Badge, Box, Button, HStack, IconButton, Input, Text, Tooltip } from '@chakra-ui/react'
 import { Flex } from '@chakra-ui/react/flex'
 import { Icon } from '@chakra-ui/react/icon'
+import { useEffect, useState } from 'react'
 import { FiEye, FiEyeOff, FiRefreshCcw } from 'react-icons/fi'
-import { adminFetchProducts, adminToggleProductVisible } from '../api/admin'
 import { toaster } from '../../components/ui/toaster'
+import { adminFetchProducts, adminToggleProductVisible } from '../api/admin'
 
 export default function AdminProducts() {
   const [list, setList] = useState([])
@@ -37,6 +37,8 @@ export default function AdminProducts() {
 
   const filtered = !q ? list : list.filter(p => (p.name||'').toLowerCase().includes(q.toLowerCase()))
 
+  console.log(list)
+
   return (
     <Box>
       <Flex gap="10px" mb="12px" align="center" wrap="wrap">
@@ -50,8 +52,7 @@ export default function AdminProducts() {
         </Box>
 
         {filtered.map(p => (
-          <Box key={p.id} display="grid" gridTemplateColumns="80px 1fr 140px 120px"
-               py={3} borderBottom="1px solid #f5f5f5" alignItems="center">
+          <Box key={p.id} display="grid" gridTemplateColumns="80px 1fr 140px 120px" py={3} borderBottom="1px solid #f5f5f5" alignItems="center">
             <Box>#{p.id}</Box>
             <Text noOfLines={1}>{p.name}</Text>
             <Badge colorPalette={p.visible ? 'green' : 'gray'} variant="subtle">

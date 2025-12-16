@@ -6,11 +6,12 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { FiEdit2, FiPlus, FiRefreshCcw, FiSearch, FiTrash2 } from "react-icons/fi"
 import { toaster } from "../../components/ui/toaster"
+import { useTheme } from "../../context/ThemeContext"
 import {
-  adminFetchCategoryTree,
   adminCreateCategory,
-  adminUpdateCategory,
   adminDeleteCategory,
+  adminFetchCategoryTree,
+  adminUpdateCategory,
 } from "../api/admin"
 
 const slugify = (s = "") =>
@@ -27,6 +28,7 @@ export default function AdminCategories() {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState("create") // create | edit
   const [form, setForm] = useState({ id: null, parentId: null, name: "", slug: "" })
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
@@ -146,27 +148,27 @@ const openEdit = (node, parentId = null) => {
     <Box>
       <Flex justify="space-between" align="center" mb={6}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2} color="#1E3A8A">Categories</Heading>
-          <Text color="#64748B">Tree view + CRUD (parent/child)</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Categories</Heading>
+          <Text color={theme.textSecondary}>Tree view + CRUD (parent/child)</Text>
         </Box>
         <HStack>
           <Button
             onClick={load}
             isLoading={loading}
-            bg="white"
+            bg={theme.cardBg}
             border="1px solid"
-            color="#334155"
-            borderColor="#E2E8F0"
-            _hover={{ bg: "#F8FAFC" }}
+            color={theme.text}
+            borderColor={theme.border}
+            _hover={{ bg: theme.hoverBg }}
           >
             <Icon as={FiRefreshCcw} />
             Reload
           </Button>
           <Button
             onClick={openCreateParent}
-            bg="#1E3A8A"
+            bg={theme.buttonBg}
             color="white"
-            _hover={{ bg: "#1E40AF" }}
+            _hover={{ bg: theme.buttonHoverBg }}
           >
                 <Icon as={FiPlus} />
             New parent
@@ -176,15 +178,24 @@ const openEdit = (node, parentId = null) => {
 
       {/* Search */}
       <Flex gap={3} mb={4}>
-        <Box position="relative" flex={1} maxW="520px">
-          <Icon as={FiSearch} position="absolute" left={4} top="50%" transform="translateY(-50%)" color="#64748B" />
+        <Box position="relative" flex="1" maxW="520px" bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={3} borderRadius="lg">
+          <Icon
+            as={FiSearch}
+            position="absolute"
+            left={6}
+            top="50%"
+            transform="translateY(-50%)"
+            color={theme.text}
+            boxSize={5}
+            zIndex={1}
+          />
           <Input
             placeholder="Search by name/slug (parent or child)..."
             value={q}
             onChange={e => setQ(e.target.value)}
-            bg="white"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="#E2E8F0"
+            borderColor={theme.border}
             pl={12}
             h="48px"
             borderRadius="lg"
@@ -193,42 +204,42 @@ const openEdit = (node, parentId = null) => {
       </Flex>
 
       {/* Tree */}
-      <Box bg="white" border="1px solid" borderColor="#E2E8F0" borderRadius="lg" overflow="hidden">
-        <Box px={6} py={4} borderBottom="1px solid" borderColor="#E2E8F0">
-          <Text fontWeight="bold" fontSize="sm" color="#64748B" textTransform="uppercase" letterSpacing="wider">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
+        <Box px={6} py={4} borderBottom="1px solid" borderColor={theme.border}>
+          <Text fontWeight="bold" fontSize="md" color={theme.text} textTransform="uppercase" letterSpacing="wider">
             Tree
           </Text>
         </Box>
 
         {loading ? (
-          <Box p={10}><Text color="#64748B" textAlign="center">Loading...</Text></Box>
+          <Box p={10}><Text color={theme.text} textAlign="center">Loading...</Text></Box>
         ) : filteredTree.length === 0 ? (
-          <Box p={10}><Text color="#64748B" textAlign="center">No categories found</Text></Box>
+          <Box p={10}><Text color={theme.text} textAlign="center">No categories found</Text></Box>
         ) : (
           <VStack align="stretch" spacing={0}>
             {filteredTree.map((parent, pIdx) => (
-              <Box key={parent.id} borderBottom={pIdx !== filteredTree.length - 1 ? "1px solid" : "none"} borderColor="#F1F5F9">
+              <Box key={parent.id} borderBottom={pIdx !== filteredTree.length - 1 ? "1px solid" : "none"} borderColor={theme.borderLight}>
                 {/* Parent row */}
                 <Flex
                   px={6}
                   py={4}
                   align="center"
                   justify="space-between"
-                  _hover={{ bg: "#F8FAFC" }}
+                  _hover={{ bg: theme.hoverBg }}
                 >
                   <Box>
-                    <Text fontWeight="bold" color="#1E293B">
+                    <Text fontWeight="bold" color={theme.text}>
                       {parent.name}
                     </Text>
-                    <Text fontSize="sm" color="#64748B">{parent.slug || "—"}</Text>
+                    <Text fontSize="sm" color={theme.textSecondary}>{parent.slug || "—"}</Text>
                   </Box>
 
                   <HStack>
                     <Button
                       size="sm"
-                      bg="#EEF2FF"
-                      color="#1E3A8A"
-                      _hover={{ bg: "#E0E7FF" }}
+                      bg={theme.buttonBg}
+                      color="white"
+                      _hover={{ bg: theme.buttonHoverBg }}
                       onClick={() => openCreateChild(parent)}
                     >
                         <Icon as={FiPlus} />
@@ -238,12 +249,12 @@ const openEdit = (node, parentId = null) => {
                     <IconButton
                       aria-label="edit-parent"
                       size="sm"
-                      bg="white"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="#E2E8F0"
-                      color="#334155"
+                      borderColor={theme.border}
+                      color={theme.text}
                       onClick={() => openEdit(parent, null)}
-                      _hover={{ bg: "#F8FAFC" }}
+                      _hover={{ bg: theme.hoverBg }}
                     >
                       <Icon as={FiEdit2} />
                     </IconButton>
@@ -251,13 +262,13 @@ const openEdit = (node, parentId = null) => {
                     <IconButton
                       aria-label="delete-parent"
                       size="sm"
-                      bg="white"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="#E2E8F0"
+                      borderColor={theme.border}
                       color="#EF4444"
                       isLoading={!!busy[parent.id]}
                       onClick={() => remove(parent)}
-                      _hover={{ bg: "#FEE2E2" }}
+                      _hover={{ bg: theme.hoverBg }}
                       title="Delete parent (may fail if has children depending on backend rules)"
                     >
                       <Icon as={FiTrash2} />
@@ -279,27 +290,27 @@ const openEdit = (node, parentId = null) => {
                         align="center"
                         justify="space-between"
                         border="1px solid"
-                        borderColor="#E2E8F0"
+                        borderColor={theme.border}
                         borderRadius="lg"
-                        _hover={{ bg: "#F8FAFC" }}
+                        _hover={{ bg: theme.hoverBg }}
                       >
                         <Box>
-                          <Text fontWeight="semibold" color="#1E293B">
+                          <Text fontWeight="semibold" color={theme.text}>
                             {ch.name}
                           </Text>
-                          <Text fontSize="sm" color="#64748B">{ch.slug || "—"}</Text>
+                          <Text fontSize="sm" color={theme.textSecondary}>{ch.slug || "—"}</Text>
                         </Box>
 
                         <HStack>
                           <IconButton
                             aria-label="edit-child"
                             size="sm"
-                            bg="white"
+                            bg={theme.inputBg}
                             border="1px solid"
-                            borderColor="#E2E8F0"
-                            color="#334155"
+                            borderColor={theme.border}
+                            color={theme.text}
                             onClick={() => openEdit(ch, parent.id)}
-                            _hover={{ bg: "#F8FAFC" }}
+                            _hover={{ bg: theme.hoverBg }}
                           >
                             <Icon as={FiEdit2} />
                           </IconButton>
@@ -307,13 +318,13 @@ const openEdit = (node, parentId = null) => {
                           <IconButton
                             aria-label="delete-child"
                             size="sm"
-                            bg="white"
+                            bg={theme.inputBg}
                             border="1px solid"
-                            borderColor="#E2E8F0"
+                            borderColor={theme.border}
                             color="#EF4444"
                             isLoading={!!busy[ch.id]}
                             onClick={() => remove(ch)}
-                            _hover={{ bg: "#FEE2E2" }}
+                            _hover={{ bg: theme.hoverBg }}
                           >
                             <Icon as={FiTrash2} />
                           </IconButton>

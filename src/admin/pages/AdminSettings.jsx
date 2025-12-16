@@ -2,10 +2,12 @@ import { Box, Button, Heading, Icon, Input, Text, VStack } from '@chakra-ui/reac
 import { useState } from 'react'
 import { FiSave } from 'react-icons/fi'
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 
 export default function AdminSettings() {
   const [storeName, setStoreName] = useState('')
   const [supportEmail, setSupportEmail] = useState('')
+  const { theme } = useTheme()
 
   const save = () => {
     // TODO: call /admin/settings
@@ -16,15 +18,15 @@ export default function AdminSettings() {
     <Box>
       {/* Header */}
       <Box mb={8}>
-        <Heading size="2xl" fontWeight="black" color="#1E3A8A">Settings</Heading>
-        <Text color="#64748B">Manage your store configuration</Text>
+        <Heading size="2xl" fontWeight="black" color={theme.text}>Settings</Heading>
+        <Text color={theme.textSecondary}>Manage your store configuration</Text>
       </Box>
 
       {/* Settings Card */}
       <Box 
-        bg="white" 
+        bg={theme.cardBg} 
         border="1px solid" 
-        borderColor="#E2E8F0" 
+        borderColor={theme.border}
         borderRadius="lg" 
         p={8} 
         maxW="600px"
@@ -35,18 +37,18 @@ export default function AdminSettings() {
           <Box>
             <Text 
               mb={2} 
-              color="#1E293B" 
+              color={theme.text} 
               fontWeight="semibold"
-              fontSize="sm"
+              fontSize="md"
             >
-              Tên cửa hàng
+              Store Name
             </Text>
             <Input 
               value={storeName} 
               onChange={e => setStoreName(e.target.value)} 
-              placeholder="Ví dụ: MyShop Admin"
+              placeholder="e.g., MyShop Admin"
               size="lg"
-              borderColor="#E2E8F0"
+              borderColor={theme.borderInput}
               _hover={{ borderColor: "#3B82F6" }}
               _focus={{ 
                 borderColor: "#3B82F6", 
@@ -59,11 +61,11 @@ export default function AdminSettings() {
           <Box>
             <Text 
               mb={2} 
-              color="#1E293B" 
+              color={theme.text}
               fontWeight="semibold"
-              fontSize="sm"
+              fontSize="md"
             >
-              Email hỗ trợ
+              Support Email
             </Text>
             <Input 
               value={supportEmail} 
@@ -71,7 +73,7 @@ export default function AdminSettings() {
               placeholder="support@domain.com"
               type="email"
               size="lg"
-              borderColor="#E2E8F0"
+              borderColor={theme.borderInput}
               _hover={{ borderColor: "#3B82F6" }}
               _focus={{ 
                 borderColor: "#3B82F6", 
@@ -84,15 +86,15 @@ export default function AdminSettings() {
           <Box pt={2}>
             <Button 
               onClick={save} 
-              bg="#3B82F6"
+              bg={theme.buttonBg}
               color="white"
               size="lg"
               w="full"
-              _hover={{ bg: "#2563EB" }}
+              _hover={{ bg: theme.buttonHoverBg }}
               leftIcon={<Icon as={FiSave} />}
               fontWeight="semibold"
             >
-              Lưu cài đặt
+              Save settings
             </Button>
           </Box>
         </VStack>
