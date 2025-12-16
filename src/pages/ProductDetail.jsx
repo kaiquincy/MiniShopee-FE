@@ -1,4 +1,5 @@
 import {
+  Accordion,
   AspectRatio,
   Avatar,
   Badge,
@@ -6,12 +7,12 @@ import {
   Button,
   CloseButton,
   Dialog,
+  Flex,
   Heading,
   HStack,
   Icon,
   IconButton,
   Image,
-  Kbd,
   NumberInput,
   Portal,
   SelectContent, SelectItem,
@@ -23,15 +24,14 @@ import {
   useClipboard,
   useDisclosure,
   VStack,
-  Wrap, WrapItem,Accordion
-  ,Flex
+  Wrap, WrapItem
 } from '@chakra-ui/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchProductById, getSimilarProducts } from '../api/products'
 import { getRatings, getRatingSummary as getsum, toggleRatingLike } from '../api/ratings'
 
-import { LuChevronLeft, LuChevronRight, LuCircleCheck, LuCopy, LuPackage, LuShoppingCart, LuStar, LuThumbsUp, LuTruck } from 'react-icons/lu'
+import { LuChevronLeft, LuChevronRight, LuCopy, LuHash, LuPackage, LuShoppingCart, LuStar, LuThumbsUp } from 'react-icons/lu'
 import ProductCard from '../components/ProductCard'
 import { toaster } from '../components/ui/toaster'
 import { Tooltip } from '../components/ui/Tooltip'
@@ -469,22 +469,56 @@ export default function ProductDetail() {
           border="1px solid"
           borderColor={theme.border}
           borderRadius="2xl"
-          p={{ base: 4, md: 6 }}
+          p={{ base: 5, md: 6 }}
+          boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.05)"
+          transition="all 0.2s ease"
+          overflow="hidden"
         >
-          <VStack align="stretch" gap={5}>
+          {/* Subtle gradient overlay */}
+          <Box
+            position="absolute"
+            top="0"
+            left="0"
+            right="0"
+            h="150px"
+            background={theme.isLight
+              ? 'linear-gradient(180deg, rgba(59, 130, 246, 0.04) 0%, transparent 100%)'
+              : 'linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%)'
+            }
+            pointerEvents="none"
+          />
 
+          <VStack align="stretch" gap={5} position="relative">
             {/* Title + meta */}
             <Skeleton loading={loading}>
-              <VStack align="stretch" gap={2}>
-                <Heading size="lg" letterSpacing="-0.02em" color={theme.text}>
+              <VStack align="stretch" gap={3}>
+                <Heading 
+                  size="xl" 
+                  letterSpacing="-0.02em" 
+                  color={theme.text}
+                  lineHeight="1.2"
+                  fontWeight="black"
+                >
                   {p?.name}
                 </Heading>
 
                 <HStack gap={3} color={theme.textSecondary} fontSize="sm" wrap="wrap">
                   <HStack gap={2}>
-                    <Badge variant="subtle" borderRadius="full">{avgLabel}★</Badge>
+                    <Badge 
+                      background="linear-gradient(135deg, #FFF3BF 0%, #FFE066 100%)"
+                      color="#E67700"
+                      border="1px solid"
+                      borderColor={theme.isLight ? "#FFD43B" : "#92400E"}
+                      borderRadius="full"
+                      px={2.5}
+                      py={1}
+                      fontWeight="bold"
+                      boxShadow="0 2px 4px rgba(245, 158, 11, 0.2)"
+                    >
+                      {avgLabel}★
+                    </Badge>
                     {renderStars(avg)}
-                    <Text>({count})</Text>
+                    <Text fontWeight="medium">({count} reviews)</Text>
                   </HStack>
 
                   <Text>•</Text>
@@ -492,103 +526,139 @@ export default function ProductDetail() {
                   {(() => {
                     const stockShown = selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)
                     return (
-                      <Text>
-                        Stock: <b>{stockShown}</b>
-                        {stockShown <= 5 && stockShown > 0 && <Text as="span"> · low</Text>}
-                        {stockShown === 0 && <Text as="span"> · sold out</Text>}
-                      </Text>
+                      <HStack gap={2}>
+                        <Text fontWeight="medium">Stock: <b>{stockShown}</b></Text>
+                        {stockShown <= 5 && stockShown > 0 && (
+                          <Badge 
+                            background="linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)"
+                            color="#92400E"
+                            border="1px solid"
+                            borderColor="#FCD34D"
+                            borderRadius="md"
+                            fontSize="xs"
+                            px={2}
+                            py={0.5}
+                          >
+                            Low Stock
+                          </Badge>
+                        )}
+                        {stockShown === 0 && (
+                          <Badge 
+                            background="linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)"
+                            color="#991B1B"
+                            border="1px solid"
+                            borderColor="#FCA5A5"
+                            borderRadius="md"
+                            fontSize="xs"
+                            px={2}
+                            py={0.5}
+                          >
+                            Sold Out
+                          </Badge>
+                        )}
+                      </HStack>
                     )
                   })()}
                 </HStack>
               </VStack>
             </Skeleton>
 
-            {/* Price block as hero */}
-<Box
-  border="1px solid"
-  borderColor={theme.border}
-  borderRadius="lg"
-  px={5}
-  py={4}
-  bg={theme.secondaryBg}
->
-  {(() => {
-    const base = Number(basePrice || 0)
-    const effective = Number(effectivePrice || 0)
-    const hasDiscount = base > effective && base > 0
+            {/* Price block */}
+            {(() => {
+              const base = Number(basePrice || 0)
+              const effective = Number(effectivePrice || 0)
+              const hasDiscount = base > effective && base > 0
+              const pct = hasDiscount ? Math.round(((base - effective) / base) * 100) : 0
 
-    const pct = hasDiscount
-      ? Math.round(((base - effective) / base) * 100)
-      : 0
+              return (
+                <VStack align="flex-start" spacing={2}>
+                  {/* Main price + discount */}
+                  <HStack spacing={3} align="baseline" wrap="wrap">
+                    <HStack spacing={2} align="baseline">
+                      <Text
+                        fontSize={{ base: "36px", md: "44px" }}
+                        fontWeight="900"
+                        lineHeight="1"
+                        color={theme.text}
+                        letterSpacing="-0.02em"
+                      >
+                        {priceFmt(effective)}
+                      </Text>
+                      <Text
+                        fontSize="md"
+                        fontWeight="bold"
+                        color={theme.textSecondary}
+                      >
+                        USD
+                      </Text>
+                    </HStack>
 
-    return (
-      <VStack align="flex-start" spacing={1}>
-        {/* Main price + discount */}
-        <HStack spacing={3} align="center">
-          <HStack spacing={2} align="baseline">
-            <Text
-              fontSize={{ base: "32px", md: "40px" }}
-              fontWeight="800"
-              lineHeight="1"
-              color={theme.text}
-            >
-              {priceFmt(effective)}
-            </Text>
-            <Text
-              fontSize="sm"
-              fontWeight="700"
-              color={theme.textSecondary}
-            >
-              USD
-            </Text>
-          </HStack>
+                    {hasDiscount && (
+                      <Badge
+                        background="linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+                        color="white"
+                        fontSize="sm"
+                        fontWeight="bold"
+                        borderRadius="md"
+                        px={3}
+                        py={1.5}
+                        boxShadow="0 2px 8px rgba(239, 68, 68, 0.4)"
+                      >
+                        -{pct}% OFF
+                      </Badge>
+                    )}
+                  </HStack>
 
-          {hasDiscount && (
-            <Badge
-              colorScheme="red"
-              fontSize="sm"
-              fontWeight="800"
-              borderRadius="md"
-              px={2}
-              py={1}
-            >
-              -{pct}%
-            </Badge>
-          )}
-        </HStack>
+                  {/* Base price */}
+                  {hasDiscount && (
+                    <HStack spacing={2}>
+                      <Text fontSize="md" color={theme.textMuted} fontWeight="medium">
+                        <Text as="s">{priceFmt(base)} USD</Text>
+                      </Text>
+                      <Text fontSize="sm" color={theme.isLight ? "#10B981" : "#34D399"} fontWeight="semibold">
+                        Save {priceFmt(base - effective)}
+                      </Text>
+                    </HStack>
+                  )}
 
-        {/* Base price */}
-        {hasDiscount && (
-          <Text fontSize="sm" color={theme.textMuted}>
-            <Text as="s">{priceFmt(base)}</Text> USD
-          </Text>
-        )}
+                  {/* Short description */}
+                  {p?.shortDescription && (
+                    <Text fontSize="sm" color={theme.textSecondary} pt={1} lineHeight="1.6">
+                      {p.shortDescription}
+                    </Text>
+                  )}
+                </VStack>
+              )
+            })()}
 
-        {/* Short description */}
-        {p?.shortDescription && (
-          <Text fontSize="sm" color={theme.textSecondary} pt={1}>
-            {p.shortDescription}
-          </Text>
-        )}
-      </VStack>
-    )
-  })()}
-</Box>
+            <Separator borderColor={theme.border} />
 
-
-
-
-            {/* Variants (minimal pills) */}
+            {/* Variants section */}
             {!!groups.length && (
               <VStack align="stretch" gap={4}>
                 {groups.map((g) => (
                   <Box key={g.id}>
-                    <HStack justify="space-between" mb={2}>
-                      <Text fontWeight="semibold" color={theme.text}>{g.name}</Text>
+                    <HStack justify="space-between" mb={3}>
+                      <Text fontWeight="bold" color={theme.text} fontSize="sm">
+                        {g.name}
+                      </Text>
                       {sel[g.name] && (
-                        <Text fontSize="sm" color={theme.textSecondary}>
+                        <Badge
+                          background={theme.isLight 
+                            ? 'linear-gradient(135deg, #E7F5FF 0%, #D0EBFF 100%)' 
+                            : 'linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)'
+                          }
+                          color={theme.isLight ? "#1971C2" : "#60A5FA"}
+                          px={2.5}
+                          py={1}
+                          borderRadius="md"
+                          fontSize="xs"
+                          fontWeight="semibold"
+                          border="1px solid"
+                          borderColor={theme.isLight ? "#A5D8FF" : "#1E40AF"}
+                        >
                           {sel[g.name]}
-                        </Text>
+                        </Badge>
                       )}
                     </HStack>
 
@@ -601,20 +671,32 @@ export default function ProductDetail() {
                             <Tooltip content={!available ? "Out of stock" : undefined} openDelay={250}>
                               <Button
                                 size="sm"
-                                variant="outline"
                                 onClick={() => setSel(prev => (prev[g.name] === op.value
                                   ? (() => { const { [g.name]: _, ...rest } = prev; return rest })()
                                   : { ...prev, [g.name]: op.value }
                                 ))}
                                 isDisabled={!available}
                                 borderRadius="full"
-                                borderColor={active ? theme.text : theme.border}
-                                bg={active ? theme.hoverBg : "transparent"}
-                                color={theme.text}
-                                _hover={{ bg: theme.hoverBg }}
-                                _disabled={{ opacity: 0.35, textDecoration: "line-through" }}
+                                border="2px solid"
+                                borderColor={active ? (theme.isLight ? "#3B82F6" : "#2563EB") : theme.border}
+                                bg={active ? (theme.isLight ? "#EFF6FF" : "#1E3A5F") : "transparent"}
+                                color={active ? (theme.isLight ? "#1E40AF" : "#60A5FA") : theme.text}
+                                fontWeight={active ? "bold" : "medium"}
+                                px={4}
+                                _hover={{ 
+                                  bg: active ? undefined : theme.hoverBg,
+                                  borderColor: active ? undefined : theme.borderLight,
+                                  transform: 'translateY(-2px)'
+                                }}
+                                _disabled={{ 
+                                  opacity: 0.4, 
+                                  textDecoration: "line-through",
+                                  cursor: "not-allowed"
+                                }}
                                 aria-pressed={active}
                                 role="radio"
+                                transition="all 0.2s ease"
+                                boxShadow={active ? "0 2px 8px rgba(59, 130, 246, 0.2)" : "none"}
                               >
                                 {op.value}
                               </Button>
@@ -628,127 +710,205 @@ export default function ProductDetail() {
               </VStack>
             )}
 
-            {/* Meta row (compact) */}
-            <HStack color={theme.textMuted} fontSize="sm" wrap="wrap" gap={3}>
-              <Text>SKU: <b>{selectedVariant?.skuCode || p?.sku || "—"}</b></Text>
-              <Text>•</Text>
-              <HStack gap={2}><LuCircleCheck /><Text>7-day returns</Text></HStack>
-              <Text>•</Text>
-              <HStack gap={2}><LuTruck /><Text>Fast delivery</Text></HStack>
-            </HStack>
+            {/* Meta information */}
+            <VStack align="stretch" gap={2}>
+              <HStack color={theme.textMuted} fontSize="sm" gap={3}>
+                <HStack gap={1.5}>
+                  <Icon as={LuHash} boxSize={4} />
+                  <Text>SKU: <Text as="span" fontWeight="bold" color={theme.text}>{selectedVariant?.skuCode || p?.sku || "—"}</Text></Text>
+                </HStack>
+              </HStack>
+            </VStack>
 
             <Separator borderColor={theme.border} />
 
-            {/* Actions (CTA dominates, share is quiet) */}
-            <Stack direction={{ base: "column", sm: "row" }} gap={3} align="stretch">
-              <NumberInput.Root
-                size="sm"
-                min={1}
-                max={Math.max(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0), 1)}
-                defaultValue={qty}
-                onValueChange={(v) => setQty(Number(v.value) || 1)}
-                w={{ base: "full", sm: "140px" }}
+            {/* Actions - Horizontal layout on md+ */}
+            <VStack align="stretch" gap={3}>
+              {/* Label */}
+              <Text fontSize="sm" fontWeight="semibold" color={theme.text}>
+                Quantity
+              </Text>
+
+              {/* Buttons row */}
+              <Stack 
+                direction={{ base: "column", md: "row" }} 
+                spacing={3}
+                align="stretch"
               >
-                <NumberInput.Control bg={theme.inputBg} borderColor={theme.border} />
-                <NumberInput.Input bg={theme.inputBg} color={theme.text} borderColor={theme.border} />
-              </NumberInput.Root>
+                <Box flex={{ base: "1", md: "0 0 15%" }}>
+                  <NumberInput.Root
+                    size="lg"
+                    min={1}
+                    max={Math.max(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0), 1)}
+                    defaultValue={qty}
+                    onValueChange={(v) => setQty(Number(v.value) || 1)}
+                    w="full"
+                    h="52px"
+                  >
+                    <NumberInput.Control 
+                      bg={theme.inputBg} 
+                      borderColor={theme.borderLight}
+                      borderRadius="lg"
+                      _hover={{ borderColor: theme.hoverBg }}
+                      w="25%"
+                    />
+                    <NumberInput.Input 
+                      h="full"
+                      bg={theme.inputBg} 
+                      color={theme.text} 
+                      borderColor={theme.border}
+                      fontWeight="semibold"
+                      textAlign="left"
+                    />
+                  </NumberInput.Root>
+                </Box>
 
-              <Button
-                onClick={handleAddToCart}
-                isDisabled={!canAdd}
-                size="md"
-                w="full"
-                bg={theme.text}         // CTA = black/near-black
-                color={theme.cardBg}    // text = white/near-white
-                _hover={{ opacity: 0.9 }}
-                borderRadius="xl"
-              >
-                <LuShoppingCart size={18} />
-                <Text ml={2}>
-                  {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? "Add to cart" : "Hết hàng"}
-                </Text>
-              </Button>
+                <Box flex={{ base: "1", md: "0 0 75%" }}>
+                  <Button
+                    onClick={handleAddToCart}
+                    isDisabled={!canAdd}
+                    size="lg"
+                    w="full"
+                    h="52px"
+                    background={theme.isLight 
+                      ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                      : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                    }
+                    color="white"
+                    borderRadius="lg"
+                    fontWeight="bold"
+                    fontSize="md"
+                    boxShadow="0 4px 12px rgba(59, 130, 246, 0.3)"
+                    _hover={{ 
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
+                    }}
+                    _active={{
+                      transform: 'translateY(0)',
+                    }}
+                    _disabled={{
+                      opacity: 0.6,
+                      cursor: 'not-allowed',
+                      transform: 'none'
+                    }}
+                    transition="all 0.2s ease"
+                  >
+                    <Icon as={LuShoppingCart} boxSize={5} />
+                    <Text ml={2}>
+                      {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? "Add to Cart" : "Out of Stock"}
+                    </Text>
+                  </Button>
+                </Box>
 
-              <Tooltip content={hasCopied ? "Đã sao chép link" : "Sao chép link"} openDelay={200}>
-                <IconButton
-                  aria-label="Share"
-                  variant="outline"
-                  onClick={onCopy}
-                  borderColor={theme.border}
-                  color={theme.text}
-                  _hover={{ bg: theme.hoverBg }}
-                  borderRadius="xl"
-                >
-                  <LuCopy />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-
-
-
+                <Box flex={{ base: "1", md: "0 0 10%" }}>
+                  <Tooltip content={hasCopied ? "Link copied!" : "Share product"} openDelay={200}>
+                    <Button
+                      variant="outline"
+                      onClick={onCopy}
+                      w="full"
+                      h="52px"
+                      borderColor={theme.border}
+                      color={theme.text}
+                      borderRadius="lg"
+                      fontWeight="semibold"
+                      _hover={{ 
+                        bg: theme.hoverBg,
+                        borderColor: theme.borderLight
+                      }}
+                    >
+                      <Icon as={LuCopy} boxSize={4} />
+                    </Button>
+                  </Tooltip>
+                </Box>
+              </Stack>
+            </VStack>
           </VStack>
         </Box>
       </SimpleGrid>
 
-
-<Box
-  maxW="7xl"
-  mx="auto"
-  px={{ base: 4, md: 6 }}
-  pb={20}
->
-  <Box
-    borderTop="1px solid"
-    borderColor={theme.border}
-    pt={{ base: 8, md: 12 }}
-  >
-    <Accordion.Root collapsible> {/* collapsible để cho phép thu gọn hoàn toàn */}
-      <Accordion.Item border="none">
-        {/* Trigger: phần clickable, thay AccordionButton */}
-        <Accordion.ItemTrigger
-          py={6}
-          _hover={{ bg: 'gray.50' }} // Hover effect nhẹ
-          borderRadius="md"
-        >
-          <SimpleGrid columns={{ base: 1, md: 3 }} gap={10} width="full" alignItems="center">
-            {/* Left: Title nổi bật */}
-            <VStack align="start" spacing={3}>
-              <Heading size="lg" letterSpacing="-0.02em" fontWeight="bold">
-                Product Details
-              </Heading>
-              <Text fontSize="sm" color={theme.textMuted}>
-                Everything you need to know about this product
-              </Text>
-            </VStack>
-
-            {/* Right: Icon chevron chỉ thị mở/rút gọn */}
-            <Box gridColumn={{ md: "span 2" }} textAlign="right">
-              <Accordion.ItemIndicator boxSize={8} />
-            </Box>
-          </SimpleGrid>
-        </Accordion.ItemTrigger>
-
-        {/* Content: phần mở ra */}
-        <Accordion.ItemContent
-          pb={8}
-          // Offset để align với cột phải trong grid
-          ml={{ md: '33.333%' }} // Tương đương offset 1 cột trong grid 3
-        >
-          <Accordion.ItemBody>
-            <Text
-              color={theme.textSecondary}
-              fontSize="md"
-              lineHeight="1.9"
-              whiteSpace="pre-line"
+      <Box pb={20}>
+        <Accordion.Root collapsible>
+          <Accordion.Item border="none">
+            <Box
+              border="1px solid"
+              borderColor={theme.border}
+              bg={theme.cardBg}
+              borderRadius="2xl"
+              overflow="hidden"
+              boxShadow={theme.isLight ? "sm" : "0 8px 24px rgba(0,0,0,0.35)"}
             >
-              {p?.description}
-            </Text>
-          </Accordion.ItemBody>
-        </Accordion.ItemContent>
-      </Accordion.Item>
-    </Accordion.Root>
-  </Box>
-</Box>
+              {/* Trigger */}
+              <Accordion.ItemTrigger
+                w="full"
+                px={{ base: 5, md: 7 }}
+                py={{ base: 5, md: 6 }}
+                transition="all 0.2s ease"
+                cursor="pointer"
+                _hover={{ bg: theme.hoverBg }}
+              >
+                <Flex w="full" align="center" gap={{ base: 4, md: 6 }}>
+                  {/* Accent */}
+                  <Box
+                    w="4px"
+                    alignSelf="stretch"
+                    borderRadius="full"
+                    background={theme.isLight 
+                      ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
+                      : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'
+                    }
+                  />
+
+                  {/* Title */}
+                  <Box flex="1">
+                    <Heading size="lg" letterSpacing="-0.02em" fontWeight="bold" color={theme.text}>
+                      Product Details
+                    </Heading>
+                    <Text mt={1} fontSize="sm" color={theme.textMuted}>
+                      Everything you need to know about this product
+                    </Text>
+                  </Box>
+
+                  {/* Indicator */}
+                  <Box
+                    w="80px"
+                    h="80px"
+                    display="grid"
+                    placeItems="center"
+                  >
+                    <Accordion.ItemIndicator boxSize={6} />
+                  </Box>
+                </Flex>
+              </Accordion.ItemTrigger>
+
+              {/* Content */}
+              <Accordion.ItemContent>
+                <Box
+                  px={{ base: 5, md: 7 }}
+                  pb={{ base: 6, md: 7 }}
+                  pt={0}
+                >
+                  <Box
+                    borderTop="1px solid"
+                    borderColor={theme.border}
+                    pt={{ base: 4, md: 5 }}
+                  >
+                    <Accordion.ItemBody>
+                      <Text
+                        color={theme.textSecondary}
+                        fontSize="lg"
+                        lineHeight="1.9"
+                        whiteSpace="pre-line"
+                      >
+                        {p?.description}
+                      </Text>
+                    </Accordion.ItemBody>
+                  </Box>
+                </Box>
+              </Accordion.ItemContent>
+            </Box>
+          </Accordion.Item>
+        </Accordion.Root>
+      </Box>
 
       {/* Ratings Section */}
       <Box mt={{ base: 8, md: 12 }}>

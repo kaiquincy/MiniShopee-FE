@@ -15,10 +15,10 @@ export function ThemeProvider({ children }) {
 
         // Backgrounds
         bg: isLight ? '#FFFFFF' : '#0F172A',
-        pageBg: isLight ? '#F8F9FA' : '#0F172A',
-        cardBg: isLight ? '#FFFFFF' : '#1E293B',
+        pageBg: isLight ? '#EEF2F6' : '#0F171A',
+        cardBg: isLight ? '#FFFFFF' : '#22294B',
         secondaryBg: isLight ? '#F8F9FA' : '#2e343e',
-        inputBg: isLight ? '#FFFFFF' : '#0F172A',
+        inputBg: isLight ? '#FFFFFF' : '#0F112F',
         hoverBg: isLight ? '#E1E5E9' : '#334155',
 
         // Borders
@@ -53,7 +53,10 @@ export function ThemeProvider({ children }) {
         buttonHoverColor: '#FFF',
 
         // Chart
-        chartStroke: isLight ? "#3a3a3a" : "#d0d0d0"
+        chartStroke: isLight ? "#3a3a3a" : "#d0d0d0",
+
+        // Admin
+        sideBarBg: isLight ? "#1E40AF" : "#05227e"
     }), [colorMode, isLight])
 
     return (

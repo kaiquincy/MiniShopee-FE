@@ -324,7 +324,7 @@ export default function AdminDashboard() {
 
       {/* Revenue Trend & Details */}
       <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
             <Heading size="md" color={theme.text}>Revenue Trend</Heading>
             <Select.Root 
@@ -412,7 +412,7 @@ export default function AdminDashboard() {
         </Box>
 
         {/* Daily Revenue Details */}
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Heading size="md" mb={4} color={theme.text}>
             {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
           </Heading>
@@ -462,6 +462,7 @@ export default function AdminDashboard() {
         p={6}
         borderRadius="lg"
         mb={8}
+        position="relative"
       >
         <Heading size="lg" mb={4} color={theme.text}>
           Order Status
@@ -548,7 +549,7 @@ export default function AdminDashboard() {
       {/* Orders Per Day & Recent Orders */}
       <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
         {/* Orders Per Day Chart */}
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
             <Heading size="md" color={theme.text}>Orders Per Day</Heading>
             <Select.Root 
@@ -619,7 +620,7 @@ export default function AdminDashboard() {
                   <ChartTooltip
                     cursor={{ fill: theme.hoverBg, fillOpacity: 0.5 }}
                     contentStyle={{
-                      backgroundColor: theme.cardBg,
+                      backgroundColor: `${theme.inputBg}`,
                       border: `1px solid ${theme.border}`,
                       borderRadius: "8px",
                       boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
@@ -637,7 +638,7 @@ export default function AdminDashboard() {
         </Box>
 
         {/* Recent Orders */}
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Heading size="md" mb={4} color={theme.text}>Recent Orders</Heading>
           {stats.recentOrders.length > 0 ? (
             <VStack align="stretch" spacing={3}>
@@ -695,7 +696,7 @@ export default function AdminDashboard() {
       {/* User Growth & Recent Users */}
       <Grid templateColumns={{ base: "1fr", xl: "1fr 1fr" }} gap={6} mb={8}>
         {/* User Growth Chart */}
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
             <Heading size="md" color={theme.text}>User Growth</Heading>
             <Select.Root 
@@ -754,7 +755,7 @@ export default function AdminDashboard() {
                 <YAxis stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
                 <ChartTooltip 
                   contentStyle={{ 
-                    backgroundColor: theme.cardBg, 
+                    backgroundColor: theme.inputBg, 
                     border: `1px solid ${theme.border}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
@@ -777,7 +778,7 @@ export default function AdminDashboard() {
         </Box>
 
         {/* Recent Users */}
-        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" >
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Heading size="md" mb={4} color={theme.text}>Recent Users</Heading>
           {stats.recentUsers.length > 0 ? (
             <VStack align="stretch" spacing={3}>
@@ -881,7 +882,16 @@ function StatCard({ title, value, icon, color, loading, theme }) {
 
 function QuickStatCard({ label, value, icon, color, loading, theme }) {
   return (
-    <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" >
+    <Box
+      bg={theme.cardBg}
+      border="1px solid"
+      borderColor={theme.border}
+      p={6}
+      borderRadius="lg"
+      position="relative"
+      overflow="hidden"
+      transition="all 0.3s"
+    >
       <Skeleton loading={loading}>
         <HStack spacing={4}>
           <Box p={3} bg={`${color}15`} borderRadius="lg">

@@ -7,7 +7,7 @@ import {
   Text,
   VStack
 } from '@chakra-ui/react';
-import { FiClipboard, FiLayout, FiPackage, FiSettings, FiShield, FiUsers, FiTag } from 'react-icons/fi';
+import { FiClipboard, FiLayout, FiPackage, FiSettings, FiShield, FiTag, FiUsers } from 'react-icons/fi';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -60,11 +60,12 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <Box 
         w="280px" 
-        bg="#1E40AF"
+        bg={theme.sideBarBg}
         borderRight="1px solid"
         borderColor="whiteAlpha.200"
         position="fixed"
         h="100vh"
+        transition="all 0.3s"
       >
         {/* Logo/Header */}
         <Box p={6} borderBottom="1px solid" borderColor="whiteAlpha.200">
