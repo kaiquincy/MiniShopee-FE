@@ -38,9 +38,13 @@ export default function Header() {
   const isLandingPage = location.pathname === "/"
 
   // Use admin/seller theme override or global theme
-  const headerBg = isSellerOrAdmin ? "gray.900" : theme.headerBg
-  const headerColor = isSellerOrAdmin ? "white" : theme.text
-  const headerBorder = isSellerOrAdmin ? "gray.800" : theme.headerBorder
+  // const headerBg = isSellerOrAdmin ? "gray.900" : theme.headerBg
+  // const headerColor = isSellerOrAdmin ? "white" : theme.text
+  // const headerBorder = isSellerOrAdmin ? "gray.800" : theme.headerBorder
+
+  const headerBg = theme.headerBg
+  const headerColor = theme.text
+  const headerBorder = theme.headerBorder
 
   const loadNotifications = async () => {
     try {
@@ -167,7 +171,7 @@ export default function Header() {
               aria-label="Toggle theme"
               onClick={toggleTheme}
               variant="ghost"
-              size="sm"
+              size="md"
               borderRadius="full"
               color={headerColor}
               _hover={{ bg: theme.hoverBg }}
@@ -181,7 +185,7 @@ export default function Header() {
               aria-label="Chat"
               color={headerColor}
               variant="ghost"
-              size="sm"
+              size="md"
               _hover={{ bg: theme.hoverBg }}
               fontSize="18px"
               onClick={() => nav('/chat')}
@@ -204,7 +208,7 @@ export default function Header() {
                     aria-label="Notifications"
                     color={headerColor}
                     variant="ghost"
-                    size="sm"
+                    size="md"
                     _hover={{ bg: theme.hoverBg }}
                     fontSize="18px"
                     onClick={() => nav('/notifications')}
@@ -220,7 +224,8 @@ export default function Header() {
                       px="0.5em"
                       fontSize="0.6em"
                       fontWeight={900}
-                      colorPalette="red"
+                      bg="red.600"
+                      color="white"
                     >
                       {unread}
                     </Badge>
@@ -348,7 +353,7 @@ export default function Header() {
                 aria-label="Cart"
                 color={headerColor}
                 variant="ghost"
-                size="sm"
+                size="md"
                 _hover={{ bg: theme.hoverBg }}
                 fontSize="18px"
                 onClick={() => nav('/cart')}
@@ -356,7 +361,7 @@ export default function Header() {
                 <Icon as={FiShoppingCart} />
               </IconButton>
               {cartCount > 0 && (
-                <Badge position="absolute" top="0.08em" right="0.2em" borderRadius="full" px="0.5em" fontSize="0.6em" fontWeight={900} colorPalette="red">
+                <Badge position="absolute" top="0.08em" right="0.2em" borderRadius="full" px="0.5em" fontSize="0.6em" fontWeight={900} bg="red.600" color="white">
                   {cartCount}
                 </Badge>
               )}
@@ -376,7 +381,7 @@ export default function Header() {
                     aria-label="User"
                     color={headerColor}
                     variant="ghost"
-                    size="sm"
+                    size="md"
                     _hover={{ bg: theme.hoverBg }}
                     fontSize="18px"
                     display={{ base: "none", md: "flex" }}
@@ -432,7 +437,7 @@ export default function Header() {
                 aria-label="Login" 
                 variant="ghost" 
                 color={headerColor} 
-                size="sm"
+                size="md"
                 _hover={{ bg: theme.hoverBg }} 
                 fontSize="18px" 
                 onClick={() => nav('/login')}
@@ -564,7 +569,8 @@ export default function Header() {
                       px="0.5em"
                       fontSize="0.6em"
                       fontWeight={900}
-                      colorPalette="red"
+                      bg="red.600"
+                      color="white"
                     >
                       {unread}
                     </Badge>

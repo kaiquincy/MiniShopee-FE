@@ -34,7 +34,9 @@ import {
   ResponsiveContainer,
   XAxis, YAxis
 } from 'recharts'
+import { useTheme } from '../../context/ThemeContext'
 import { adminFetchOrders, adminFetchUsers } from '../api/admin'
+
 
 const currency = (n = 0) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(n) || 0)
@@ -57,6 +59,8 @@ export default function AdminDashboard() {
     ],
   })
 
+  const { theme } = useTheme()
+
   useEffect(() => {
     ;(async () => {
       setLoading(true)
@@ -70,6 +74,24 @@ export default function AdminDashboard() {
       }
     })()
   }, [])
+
+  function getDataRangeLabel(data, { prefix = "Data from", locale = "en-US" } = {}) {
+    if (!Array.isArray(data) || data.length === 0) return ""
+
+    const toDate = (v) => (v instanceof Date ? v : v ? new Date(v) : null)
+
+    const dates = data
+      .map((d) => toDate(d.dateObj))
+      .filter((d) => d && !Number.isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime())
+
+    if (dates.length === 0) return ""
+
+    const fmt = (d) => d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" })
+
+    return `${prefix} ${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`
+}
+
 
   const stats = useMemo(() => {
     const totalOrders = orders.length
@@ -192,6 +214,7 @@ export default function AdminDashboard() {
       return {
         date: label,
         fullDate,
+        dateObj: startDate,
         users: usersUpToDate,
         newUsers: newUsersInPeriod
       }
@@ -230,7 +253,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2} color="#1E3A8A">Dashboard</Heading>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Dashboard</Heading>
           <Text color="#64748B">Welcome to the admin control center</Text>
         </Box>
       </Flex>
@@ -243,6 +266,7 @@ export default function AdminDashboard() {
           icon={FiShoppingBag}
           color="#3B82F6"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Total Revenue"
@@ -250,6 +274,7 @@ export default function AdminDashboard() {
           icon={FiDollarSign}
           color="#10B981"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Total Users"
@@ -257,6 +282,7 @@ export default function AdminDashboard() {
           icon={FiUsers}
           color="#8B5CF6"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Avg Order Value"
@@ -264,6 +290,7 @@ export default function AdminDashboard() {
           icon={FiTrendingUp}
           color="#F59E0B"
           loading={loading}
+          theme={theme}
         />
       </Grid>
 
@@ -275,6 +302,7 @@ export default function AdminDashboard() {
           icon={FiClock}
           color="#F59E0B"
           loading={loading}
+          theme={theme}
         />
         <QuickStatCard
           label="Completed Orders"
@@ -282,6 +310,7 @@ export default function AdminDashboard() {
           icon={FiCheckCircle}
           color="#10B981"
           loading={loading}
+          theme={theme}
         />
         <QuickStatCard
           label="Active Users"
@@ -289,14 +318,15 @@ export default function AdminDashboard() {
           icon={FiUsers}
           color="#3B82F6"
           loading={loading}
+          theme={theme}
         />
       </Grid>
 
       {/* Revenue Trend & Details */}
       <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md" color="#1E3A8A">Revenue Trend</Heading>
+            <Heading size="md" color={theme.text}>Revenue Trend</Heading>
             <Select.Root 
               collection={timeRangeOptions}
               value={[revenueRange]}
@@ -308,11 +338,11 @@ export default function AdminDashboard() {
 
               <Select.Control>
                 <Select.Trigger
-                  bg="white"
-                  color="#495057"
+                  bg={theme.inputBg}
+                  color={theme.text}
                   h="36px"
                   borderRadius="lg"
-                  _hover={{ bg: "#F8F9FA" }}
+                  _hover={{ bg: theme.hoverBg }}
                 >
                   <Select.ValueText placeholder="Select range" />
                 </Select.Trigger>
@@ -325,15 +355,15 @@ export default function AdminDashboard() {
               <Portal>
                 <Select.Positioner zIndex={20}>
                   <Select.Content
-                    bg="white"
-                    shadow="lg"
+                    bg={theme.inputBg}
+                    color={theme.text}
                     borderRadius="lg"
                   >
                     {timeRangeOptions.items.map((option) => (
                       <Select.Item
                         key={option.value}
                         item={option}
-                        _hover={{ bg: "#F8F9FA" }}
+                        _hover={{ bg: theme.hoverBg }}
                       >
                         {option.label}
                         <Select.ItemIndicator />
@@ -344,8 +374,8 @@ export default function AdminDashboard() {
               </Portal>
             </Select.Root>
           </Flex>
-          <Box h="300px">
-            <ResponsiveContainer width="100%" height="100%">
+          <Box h="360px">
+            <ResponsiveContainer width="100%" height="90%">
               <AreaChart data={stats.revenueByDay}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -354,12 +384,12 @@ export default function AdminDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#64748B" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
+                <YAxis stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
                 <ChartTooltip 
                   contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #E2E8F0',
+                    backgroundColor: theme.bg, 
+                    border: `1px solid ${theme.border}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                   }}
@@ -374,29 +404,32 @@ export default function AdminDashboard() {
                   fill="url(#colorRevenue)" 
                 />
               </AreaChart>
+              <Text mt={2} fontSize="md" color={theme.textSecondary ?? theme.text} textAlign="center">
+                {getDataRangeLabel(stats.revenueByDay)}
+              </Text>
             </ResponsiveContainer>
           </Box>
         </Box>
 
         {/* Daily Revenue Details */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
+          <Heading size="md" mb={4} color={theme.text}>
             {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
           </Heading>
-          <VStack align="stretch" spacing={3} maxH="300px" overflowY="auto">
+          <VStack align="stretch" spacing={3} maxH="360px" overflowY="auto">
             {stats.revenueByDay.slice().reverse().map((day, idx) => (
               <Box 
                 key={idx}
                 p={3}
-                bg={day.orders > 0 ? "#F8FAFC" : "transparent"}
+                bg={day.orders > 0 ? theme.inputBg : theme.secondaryBg }
                 borderRadius="md"
                 border="1px solid"
-                borderColor={day.orders > 0 ? "#E2E8F0" : "transparent"}
+                borderColor={theme.borderLight}
               >
                 <Flex justify="space-between" align="center" mb={1}>
                   <HStack spacing={2}>
-                    <Icon as={FiCalendar} boxSize={4} color="#64748B" />
-                    <Text fontSize="sm" fontWeight="semibold" color="#212529">
+                    <Icon as={FiCalendar} boxSize={4} color={theme.textSecondary} />
+                    <Text fontSize="sm" fontWeight="semibold" color={theme.text}>
                       {day.fullDate}
                     </Text>
                   </HStack>
@@ -420,103 +453,122 @@ export default function AdminDashboard() {
         </Box>
       </Grid>
 
-      {/* Order Status & Status Details */}
-      <Grid templateColumns={{ base: "1fr", xl: "1fr 1.5fr" }} gap={6} mb={8}>
-        {/* Order Status Pie Chart */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Order Status</Heading>
-          <Box h="300px">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={stats.statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {stats.statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartTooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </Box>
-        </Box>
+      {/* Order Status (merged card) */}
+      <Box
+        w="100%"
+        bg={theme.cardBg}
+        border="1px solid"
+        borderColor={theme.border}
+        p={6}
+        borderRadius="lg"
+        mb={8}
+        position="relative"
+      >
+        <Heading size="lg" mb={4} color={theme.text}>
+          Order Status
+        </Heading>
 
-        {/* Status Breakdown Details */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Status Breakdown</Heading>
-          <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-            {stats.statusData.map((status) => (
-              <Box
-                key={status.name}
-                p={4}
-                bg="#F8FAFC"
-                borderRadius="lg"
-                border="1px solid"
-                borderColor="#E2E8F0"
-              >
-                <Flex justify="space-between" align="start" mb={2}>
-                  <Badge 
-                    bg={`${status.color}15`}
-                    color={status.color}
-                    border="1px solid"
-                    borderColor={`${status.color}30`}
-                    px={2}
-                    py={1}
-                    borderRadius="md"
-                    fontSize="xs"
-                    fontWeight="semibold"
+        {/* responsive: pie left + stats right; stack on small screens */}
+        <Grid templateColumns={{ base: "1fr", xl: "1fr 1.25fr" }} gap={6}>
+          {/* Pie Chart */}
+          <Box>
+            <Box h={{ base: "280px", md: "320px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.statusData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={false}
+                    outerRadius={150}
+                    dataKey="value"
                   >
-                    {status.name}
-                  </Badge>
-                  <Text fontSize="2xl" fontWeight="black" color="#212529">
-                    {status.value}
-                  </Text>
-                </Flex>
-                <Text fontSize="xs" color="#64748B">
-                  {((status.value / stats.totalOrders) * 100).toFixed(1)}% of total
-                </Text>
-              </Box>
-            ))}
-          </Grid>
-        </Box>
-      </Grid>
+                    {stats.statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip
+                    contentStyle={{
+                      backgroundColor: theme.bg,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                    }}
+                    labelStyle={{ color: theme.text }}
+                    itemStyle={{ color: theme.text }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </Box>
+          </Box>
+
+          {/* Status Breakdown */}
+          <Box>
+            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={3}>
+              {stats.statusData.map((status) => (
+                <Box
+                  key={status.name}
+                  p={4}
+                  bg={theme.pageBg}
+                  borderRadius="lg"
+                  border="1px solid"
+                  borderColor={theme.border}
+                >
+                  <Flex justify="space-between" align="start">
+                    <Flex flexDir="column" justifyContent="space-between" minH="64px">
+                      <Badge
+                        bg={`${status.color}15`}
+                        color={status.color}
+                        border="1px solid"
+                        borderColor={`${status.color}30`}
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        fontSize="xs"
+                        fontWeight="semibold"
+                      >
+                        {status.name}
+                      </Badge>
+                      <Text fontSize="xs" color={theme.textSecondary ?? theme.text}>
+                        {((status.value / stats.totalOrders) * 100).toFixed(1)}% of total
+                      </Text>
+                    </Flex>
+
+                    <Text fontSize="4xl" fontWeight="black" color={status.color}>
+                      {status.value}
+                    </Text>
+                  </Flex>
+                </Box>
+              ))}
+            </Grid>
+          </Box>
+        </Grid>
+      </Box>
 
       {/* Orders Per Day & Recent Orders */}
-      <Grid templateColumns={{ base: "1fr", xl: "1fr 1fr" }} gap={6} mb={8}>
+      <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
         {/* Orders Per Day Chart */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md" color="#1E3A8A">Orders Per Day</Heading>
+            <Heading size="md" color={theme.text}>Orders Per Day</Heading>
             <Select.Root 
               collection={timeRangeOptions}
               value={[ordersRange]}
               onValueChange={(e) => setOrdersRange(e.value[0])}
               size="sm"
               width="150px"
+              
             >
               <Select.HiddenSelect />
 
               <Select.Control>
                 <Select.Trigger
-                  bg="white"
-                  color="#495057"
+                  bg={theme.inputBg}
+                  color={theme.text}
                   h="36px"
                   borderRadius="lg"
-                  _hover={{ bg: "#F8F9FA" }}
+                  _hover={{ bg: theme.hoverBg }}
                 >
                   <Select.ValueText placeholder="Select range" />
                 </Select.Trigger>
@@ -529,15 +581,15 @@ export default function AdminDashboard() {
               <Portal>
                 <Select.Positioner zIndex={20}>
                   <Select.Content
-                    bg="white"
-                    shadow="lg"
+                    bg={theme.inputBg}
+                    color={theme.text}
                     borderRadius="lg"
                   >
                     {timeRangeOptions.items.map((option) => (
                       <Select.Item
                         key={option.value}
                         item={option}
-                        _hover={{ bg: "#F8F9FA" }}
+                        _hover={{ bg: theme.hoverBg }}
                       >
                         {option.label}
                         <Select.ItemIndicator />
@@ -548,42 +600,59 @@ export default function AdminDashboard() {
               </Portal>
             </Select.Root>
           </Flex>
-          <Box h="300px">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.ordersByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#64748B" tick={{ fontSize: 12 }} />
-                <ChartTooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Bar dataKey="orders" fill="#3B82F6" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <Box
+            h="350px" 
+            px={{ base: 2, md: 6 }}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <Box w="100%" h="100%">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stats.ordersByDay}
+                  margin={{ top: 20, right: 20, left: 10, bottom: 10 }} // ✅ more plot area
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis dataKey="date" stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
+                  <YAxis stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
+
+                  <ChartTooltip
+                    cursor={{ fill: theme.hoverBg, fillOpacity: 0.5 }}
+                    contentStyle={{
+                      backgroundColor: `${theme.inputBg}`,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                    }}
+                  />
+
+                  <Bar dataKey="orders" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+                <Text mt={2} fontSize="md" color={theme.textSecondary ?? theme.text} textAlign="center">
+                  {getDataRangeLabel(stats.ordersByDay)}
+                </Text>
+              </ResponsiveContainer>
+            </Box>
           </Box>
         </Box>
 
         {/* Recent Orders */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Recent Orders</Heading>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
+          <Heading size="md" mb={4} color={theme.text}>Recent Orders</Heading>
           {stats.recentOrders.length > 0 ? (
             <VStack align="stretch" spacing={3}>
               {stats.recentOrders.map((order) => (
                 <Box
                   key={order.orderId}
-                  p={3}
-                  bg="#F8FAFC"
+                  p={4}
+                  bg={theme.inputBg}
                   borderRadius="md"
                   border="1px solid"
-                  borderColor="#E2E8F0"
+                  borderColor={theme.borderLight}
                 >
                   <Flex justify="space-between" align="center" mb={2}>
-                    <Text fontSize="sm" fontWeight="bold" color="#212529">
+                    <Text fontSize="sm" fontWeight="bold" color={theme.text}>
                       Order #{order.orderId}
                     </Text>
                     <Badge 
@@ -600,7 +669,7 @@ export default function AdminDashboard() {
                     </Badge>
                   </Flex>
                   <Flex justify="space-between" align="center">
-                    <Text fontSize="xs" color="#64748B">
+                    <Text fontSize="xs" color={theme.textSecondary}>
                       {new Date(order.createdAt).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
@@ -627,9 +696,9 @@ export default function AdminDashboard() {
       {/* User Growth & Recent Users */}
       <Grid templateColumns={{ base: "1fr", xl: "1fr 1fr" }} gap={6} mb={8}>
         {/* User Growth Chart */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
           <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md" color="#1E3A8A">User Growth</Heading>
+            <Heading size="md" color={theme.text}>User Growth</Heading>
             <Select.Root 
               collection={timeRangeOptions}
               value={[usersRange]}
@@ -641,11 +710,11 @@ export default function AdminDashboard() {
 
               <Select.Control>
                 <Select.Trigger
-                  bg="white"
-                  color="#495057"
+                  bg={theme.inputBg}
+                  color={theme.text}
                   h="36px"
                   borderRadius="lg"
-                  _hover={{ bg: "#F8F9FA" }}
+                  _hover={{ bg: theme.hoverBg }}
                 >
                   <Select.ValueText placeholder="Select range" />
                 </Select.Trigger>
@@ -658,15 +727,15 @@ export default function AdminDashboard() {
               <Portal>
                 <Select.Positioner zIndex={20}>
                   <Select.Content
-                    bg="white"
-                    shadow="lg"
+                    bg={theme.inputBg}
+                    color={theme.text}
                     borderRadius="lg"
                   >
                     {timeRangeOptions.items.map((option) => (
                       <Select.Item
                         key={option.value}
                         item={option}
-                        _hover={{ bg: "#F8F9FA" }}
+                        _hover={{ bg: theme.hoverBg }}
                       >
                         {option.label}
                         <Select.ItemIndicator />
@@ -678,16 +747,16 @@ export default function AdminDashboard() {
             </Select.Root>
 
           </Flex>
-          <Box h="300px">
-            <ResponsiveContainer width="100%" height="100%">
+          <Box h="360px">
+            <ResponsiveContainer width="100%" height="90%">
               <LineChart data={stats.usersByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#64748B" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
+                <YAxis stroke={theme.chartStroke} tick={{ fontSize: 12 }} />
                 <ChartTooltip 
                   contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #E2E8F0',
+                    backgroundColor: theme.inputBg, 
+                    border: `1px solid ${theme.border}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                   }}
@@ -701,51 +770,55 @@ export default function AdminDashboard() {
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
+              <Text mt={2} fontSize="md" color={theme.textSecondary ?? theme.text} textAlign="center">
+                {getDataRangeLabel(stats.usersByDay)}
+              </Text>
             </ResponsiveContainer>
           </Box>
         </Box>
 
         {/* Recent Users */}
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={6} borderRadius="lg" shadow="sm">
-          <Heading size="md" mb={4} color="#1E3A8A">Recent Users</Heading>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg" position="relative">
+          <Heading size="md" mb={4} color={theme.text}>Recent Users</Heading>
           {stats.recentUsers.length > 0 ? (
             <VStack align="stretch" spacing={3}>
               {stats.recentUsers.map((user) => (
                 <Box
                   key={user.id}
                   p={3}
-                  bg="#F8FAFC"
+                  bg={theme.pageBg}
                   borderRadius="md"
                   border="1px solid"
-                  borderColor="#E2E8F0"
+                  borderColor={theme.borderLight}
                 >
                   <Flex justify="space-between" align="start" mb={2}>
                     <Box>
-                      <Text fontSize="sm" fontWeight="bold" color="#212529">
+                      <Text fontSize="md" fontWeight="bold" color={theme.text}>
                         {user.fullName || user.username}
                       </Text>
-                      <Text fontSize="xs" color="#64748B">
+                      <Text fontSize="sm" color={theme.textSecondary}>
                         @{user.username}
                       </Text>
                     </Box>
                     <Badge 
                       bg={user.role === 'ADMIN' ? '#EF444415' : '#3B82F615'}
                       color={user.role === 'ADMIN' ? '#EF4444' : '#3B82F6'}
-                      px={2}
-                      py={0.5}
+                      px={3}
+                      py={1}
                       borderRadius="md"
-                      fontSize="xs"
+                      fontSize="sm"
+                      fontWeight="bold"
                     >
                       {user.role}
                     </Badge>
                   </Flex>
                   <Flex justify="space-between" align="center">
-                    <Text fontSize="xs" color="#64748B">
+                    <Text fontSize="xs" color={theme.textMuted}>
                       {user.email}
                     </Text>
-                    <Text fontSize="xs" color="#94A3B8">
+                    <Text fontSize="xs" color={theme.textMuted}>
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
-                        month: 'short', 
+                        month: 'short',
                         day: 'numeric'
                       }) : 'N/A'}
                     </Text>
@@ -765,15 +838,15 @@ export default function AdminDashboard() {
   )
 }
 
-function StatCard({ title, value, icon, color, loading }) {
+function StatCard({ title, value, icon, color, loading, theme }) {
   return (
     <Box
-      bg="white"
+      bg={theme.cardBg}
       border="1px solid"
-      borderColor="#E2E8F0"
+      borderColor={theme.border}
       p={6}
       borderRadius="lg"
-      shadow="sm"
+      
       position="relative"
       overflow="hidden"
       transition="all 0.3s"
@@ -786,7 +859,7 @@ function StatCard({ title, value, icon, color, loading }) {
         w="150px"
         h="150px"
         bg={color}
-        opacity={0.05}
+        opacity={0.25}
         filter="blur(40px)"
         pointerEvents="none"
       />
@@ -798,8 +871,8 @@ function StatCard({ title, value, icon, color, loading }) {
             </Box>
           </HStack>
           <Box>
-            <Text color="#64748B" fontSize="sm" mb={1} fontWeight="medium">{title}</Text>
-            <Text fontWeight="black" fontSize="3xl" color="#1E293B">{value}</Text>
+            <Text color={theme.textSecondary} fontSize="sm" mb={1} fontWeight="medium">{title}</Text>
+            <Text fontWeight="black" fontSize="3xl" color={theme.text}>{value}</Text>
           </Box>
         </VStack>
       </Skeleton>
@@ -807,17 +880,26 @@ function StatCard({ title, value, icon, color, loading }) {
   )
 }
 
-function QuickStatCard({ label, value, icon, color, loading }) {
+function QuickStatCard({ label, value, icon, color, loading, theme }) {
   return (
-    <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
+    <Box
+      bg={theme.cardBg}
+      border="1px solid"
+      borderColor={theme.border}
+      p={6}
+      borderRadius="lg"
+      position="relative"
+      overflow="hidden"
+      transition="all 0.3s"
+    >
       <Skeleton loading={loading}>
         <HStack spacing={4}>
           <Box p={3} bg={`${color}15`} borderRadius="lg">
             <Icon as={icon} boxSize={5} color={color} />
           </Box>
           <Box>
-            <Text color="#64748B" fontSize="sm" fontWeight="medium">{label}</Text>
-            <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{value}</Text>
+            <Text color={theme.textSecondary} fontSize="sm" fontWeight="medium">{label}</Text>
+            <Text fontWeight="bold" fontSize="2xl" color={theme.text}>{value}</Text>
           </Box>
         </HStack>
       </Skeleton>

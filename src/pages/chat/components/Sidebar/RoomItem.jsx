@@ -21,7 +21,7 @@ function RoomItemBase({ r, active, onOpen, theme, meUsername, apiUrl }) {
       _hover={{ bg: theme.hoverBg }}
       onClick={() => onOpen(r)}
     >
-      <HStack spacing={3}>
+      <HStack spacing={3} position="relative">
         <Box w="50px" h="50px" bg="#3B82F6" borderRadius="full" overflow="hidden" display="flex" alignItems="center" justifyContent="center">
           {r.userBAvatarUrl
             ? <Image src={`${apiUrl}/uploads/${r.userBAvatarUrl}`} alt={r.userBFullName || 'avatar'} />
@@ -32,17 +32,33 @@ function RoomItemBase({ r, active, onOpen, theme, meUsername, apiUrl }) {
             {r.userBFullName || "(No Name)"}
           </Text>
 
-          <HStack gap={1} spacing={1} align="center">
-            <Text fontSize="xs" color={theme.secondaryText} noOfLines={1}>{preview}</Text>
+          <HStack spacing={1} align="center" w="full">
+            <Text 
+              fontSize="xs" 
+              color={theme.textSecondary} 
+              noOfLines={1}
+              flex={1}
+              minW={0}
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              {preview}
+            </Text>
             {last && (
               <>
-                <Box w="4px" h="4px" bg={theme.secondaryText} borderRadius="full" />
-                <Text fontSize="xs" color={theme.secondaryText}>{timeAgo(last.createdAt)}</Text>
+                <Text 
+                  fontSize="xs" 
+                  color={`${theme.textSecondary}A0`}
+                  flexShrink={0}
+                  whiteSpace="nowrap"
+                >
+                  {timeAgo(last.createdAt) === "0s" ? "Just Now" : timeAgo(last.createdAt)}
+                </Text>
               </>
             )}
           </HStack>
         </Box>
-        {isActive && <Box w="8px" h="8px" bg="#3B82F6" borderRadius="full" />}
       </HStack>
     </Box>
   )

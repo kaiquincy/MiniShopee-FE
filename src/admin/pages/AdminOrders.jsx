@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FiCheckCircle, FiClock, FiDollarSign, FiPackage, FiRefreshCcw, FiSearch } from 'react-icons/fi'
 import OrderActions from '../../components/OrderActions'
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { ORDER } from '../../seller/utils/orderFlow'
 import { adminFetchOrders, adminUpdateOrderStatus } from '../api/admin'
 
@@ -64,6 +65,7 @@ export default function AdminOrders() {
   const [status, setStatus] = useState([])
   const [loading, setLoading] = useState(false)
   const [loadingFor, setLoadingFor] = useState({})
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
@@ -131,77 +133,79 @@ export default function AdminOrders() {
     return { total, pending, completed, totalRevenue }
   }, [list])
 
+  console.log(filtered)
+
   return (
     <Box>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2} color="#1E3A8A">Orders</Heading>
-          <Text color="#64748B">Manage and track all orders</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Orders</Heading>
+          <Text color={theme.textSecondary}>Manage and track all orders</Text>
         </Box>
       </Flex>
 
       {/* Stats Cards */}
       <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={6} mb={6}>
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#3B82F615" borderRadius="lg">
-              <Icon as={FiPackage} boxSize={5} color="#3B82F6" />
+              <Icon as={FiPackage} boxSize={6} color="#3B82F6" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Total Orders</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.total}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Total Orders</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#3B82F6">{stats.total}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#F59E0B15" borderRadius="lg">
-              <Icon as={FiClock} boxSize={5} color="#F59E0B" />
+              <Icon as={FiClock} boxSize={6} color="#F59E0B" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Pending</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.pending}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Pending</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#F59E0B">{stats.pending}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#10B98115" borderRadius="lg">
-              <Icon as={FiCheckCircle} boxSize={5} color="#10B981" />
+              <Icon as={FiCheckCircle} boxSize={6} color="#10B981" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Completed</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.completed}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Completed</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#10B981">{stats.completed}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#10B98115" borderRadius="lg">
-              <Icon as={FiDollarSign} boxSize={5} color="#10B981" />
+              <Icon as={FiDollarSign} boxSize={6} color="#10B981" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Revenue</Text>
-              <Text fontWeight="bold" fontSize="xl" color="#1E293B">${stats.totalRevenue.toLocaleString()}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Revenue</Text>
+              <Text fontWeight="bold" fontSize="xl" color="#10B981">${stats.totalRevenue.toLocaleString()}</Text>
             </Box>
           </HStack>
         </Box>
       </Grid>
 
       {/* Search + Filters */}
-      <Flex gap={3} mb={6} wrap="wrap" align="center">
-        <Box position="relative" flex="1" minW="260px" maxW="500px">
+      <Grid templateColumns={{ base: "1fr", md: "4fr 1fr 1fr" }} gap={3} mb={6} wrap="wrap" align="center" bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" p={5}>
+        <Box position="relative" flex="1">
           <Icon
             as={FiSearch}
             position="absolute"
             left={4}
             top="50%"
             transform="translateY(-50%)"
-            color="#64748B"
+            color={theme.text}
             boxSize={5}
             zIndex={1}
           />
@@ -209,9 +213,9 @@ export default function AdminOrders() {
             placeholder="Search by order ID, customer name, or product..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            bg="white"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="#E2E8F0"
+            borderColor={theme.border}
             color="#1E293B"
             pl={12}
             h="48px"
@@ -231,13 +235,13 @@ export default function AdminOrders() {
           <Select.HiddenSelect />
           <Select.Control>
             <Select.Trigger
-              bg="white"
+              bg={theme.inputBg}
               border="1px solid"
-              borderColor="#E2E8F0"
-              color="#1E293B"
+              borderColor={theme.border}
+              color={theme.text}
               h="48px"
               borderRadius="lg"
-              _hover={{ bg: '#F8FAFC' }}
+              _hover={{ bg: theme.hoverBg }}
             >
               <Select.ValueText placeholder="All Status" />
             </Select.Trigger>
@@ -248,17 +252,17 @@ export default function AdminOrders() {
           <Portal>
             <Select.Positioner>
               <Select.Content
-                bg="white"
+                bg={theme.inputBg}
                 shadow="lg"
                 borderRadius="lg"
                 border="1px solid"
-                borderColor="#E2E8F0"
+                borderColor={theme.border}
               >
                 {statusOptions.items.map((option) => (
                   <Select.Item
                     key={option.value || 'all'}
                     item={option}
-                    _hover={{ bg: '#F8FAFC' }}
+                    _hover={{ bg: theme.hoverBg }}
                   >
                     {option.label}
                     <Select.ItemIndicator />
@@ -273,21 +277,24 @@ export default function AdminOrders() {
           onClick={load}
           leftIcon={<FiRefreshCcw />}
           isLoading={loading}
-          bg="white"
-          color="#1E293B"
+          bg={theme.buttonBg}
+          outline="none"
+          color="white"
+          fontSize="md"
+          fontWeight="bold"
           border="1px solid"
-          borderColor="#E2E8F0"
+          borderColor={theme.border}
           h="48px"
           px={6}
           borderRadius="lg"
-          _hover={{ bg: '#F8FAFC' }}
+          _hover={{ bg: theme.buttonHoverBg }}
         >
           Reload
         </Button>
-      </Flex>
+      </Grid>
 
       {/* Orders Table */}
-      <Box bg="white" border="1px solid" borderColor="#E2E8F0" borderRadius="lg" shadow="sm" overflow="hidden">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" shadow="sm" overflow="hidden" position="relative">
         {/* Header */}
         <Grid
           templateColumns="140px 1fr 160px 220px"
@@ -295,10 +302,11 @@ export default function AdminOrders() {
           px={6}
           fontWeight="bold"
           fontSize="sm"
-          color="#64748B"
+          color={theme.text}
           textTransform="uppercase"
           letterSpacing="wider"
-          borderBottom="1px solid #E2E8F0"
+          borderBottom="1px solid"
+          borderColor={theme.borderLight}
         >
           <Box>Order ID</Box>
           <Box>Items & Total</Box>
@@ -329,17 +337,17 @@ export default function AdminOrders() {
                 py={4}
                 px={6}
                 alignItems="center"
-                borderBottom={idx !== filtered.length - 1 ? '1px solid #F1F5F9' : 'none'}
+                borderBottom={idx !== filtered.length - 1 ? `1px solid ${theme.borderLight}` : 'none'}
                 transition="all 0.2s"
-                _hover={{ bg: '#F8FAFC' }}
+                _hover={{ bg: theme.hoverBg }}
               >
                 {/* Order ID */}
-                <VStack align="start" spacing={1}>
-                  <Text color="#3B82F6" fontWeight="bold">#{o.orderId}</Text>
-                  <Text color="#64748B" fontSize="xs">
+                <VStack align="start" gap={1}>
+                  <Text color="#3B82F6" fontWeight="bold" fontSize="lg">#{o.orderId}</Text>
+                  <Text color="#64748B" fontSize="sm">
                     {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : '—'}
                   </Text>
-                  <Text color="#64748B" fontSize="xs">
+                  <Text color="#64748B" fontSize="sm">
                     {o.createdAt ? new Date(o.createdAt).toLocaleTimeString() : ''}
                   </Text>
                 </VStack>
@@ -347,12 +355,12 @@ export default function AdminOrders() {
                 {/* Items & Total */}
                 <VStack align="start" spacing={1}>
                   {(o.items || []).slice(0, 2).map((it) => (
-                    <Text key={it.id || it.productId} fontSize="sm" noOfLines={1} color="#1E293B">
+                    <Text key={it.id || it.productId} fontSize="sm" noOfLines={1} color={theme.text}>
                       • {it.productName} × {it.quantity}
                     </Text>
                   ))}
                   {(o.items || []).length > 2 && (
-                    <Text color="#64748B" fontSize="xs">
+                    <Text color={theme.textSecondary} fontSize="xs">
                       +{(o.items || []).length - 2} more items
                     </Text>
                   )}

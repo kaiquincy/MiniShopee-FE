@@ -1,5 +1,5 @@
 import { Badge, Box, Flex, HStack, Icon, Text, useBreakpointValue, VStack } from '@chakra-ui/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiMessageCircle, FiMessageSquare, FiUsers, FiZap } from 'react-icons/fi'
 import { history, myRooms, openRoom } from '../../api/chat'
 import { useAuth } from '../../context/AuthContext'
@@ -24,6 +24,7 @@ export default function Chat() {
   const { token, user } = useAuth()
   const apiUrl = import.meta.env.VITE_API_URL
   const endRef = useAutoScroll([messages])
+  const messagesContainerRef = useRef(null)
 
   const chatTheme = useMemo(() => ({
     ...theme,
@@ -48,12 +49,24 @@ export default function Chat() {
     return rooms.filter(r => r.unread).length
   }, [rooms])
 
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
+  }, [])
+
   const open = useCallback(async (r) => {
     setActive(r)
     const page = await history(r.roomId, 0, 30)
     const initial = (page?.content || []).slice().sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
     setMessages(initial)
-  }, [])
+    
+    // Scroll to bottom after messages are loaded
+    setTimeout(() => {
+      scrollToBottom()
+    }, 100)
+  }, [scrollToBottom])
 
   const backToList = () => setActive(null)
 
@@ -63,36 +76,77 @@ export default function Chat() {
     roomId: active?.roomId,
     onMessage: (incoming) => {
       setMessages(prev => [...prev, incoming])
-      setRooms(prev => prev.map(r => 
-        r.roomId === active?.roomId 
-          ? { ...r, lastMessageAt: incoming.createdAt || new Date().toISOString() }
-          : r
-      ))
+      
+      // Update the room's lastMessageAt and lastMsg to re-sort
+      setRooms(prev => prev.map(r => {
+        if (r.roomId === active?.roomId) {
+          return {
+            ...r,
+            lastMessageAt: incoming.createdAt || new Date().toISOString(),
+            lastMsg: {
+              content: incoming.content,
+              senderUsername: incoming.senderUsername,
+              createdAt: incoming.createdAt,
+              type: incoming.type
+            }
+          }
+        }
+        return r
+      }))
     },
   })
+
+  // Periodically refresh room list to catch messages from other users
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const updatedRooms = await myRooms()
+        setRooms(updatedRooms)
+      } catch (error) {
+        console.error('Failed to refresh rooms:', error)
+      }
+    }, 10000) // Refresh every 10 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   const sendText = () => {
     if (!active || !input.trim()) return
     const tempId = `local-${Date.now()}-${Math.random()}`
-    setMessages(prev => [...prev, {
+    const newMessage = {
       id: tempId,
       type: 'TEXT',
       content: input,
       senderUsername: user?.username,
       senderId: user?.id ?? 0,
       createdAt: new Date().toISOString(),
-    }])
-    send({ type: 'TEXT', content: input })
-    setInput('')
+    }
     
-    setRooms(prev => prev.map(r => 
-      r.roomId === active.roomId 
-        ? { ...r, lastMessageAt: new Date().toISOString() }
-        : r
-    ))
+    setMessages(prev => [...prev, newMessage])
+    send({ type: 'TEXT', content: input })
+    
+    // Update room list immediately when sending
+    setRooms(prev => prev.map(r => {
+      if (r.roomId === active.roomId) {
+        return {
+          ...r,
+          lastMessageAt: newMessage.createdAt,
+          lastMsg: {
+            content: input,
+            senderUsername: user?.username,
+            createdAt: newMessage.createdAt,
+            type: 'TEXT'
+          }
+        }
+      }
+      return r
+    }))
+    
+    setInput('')
   }
 
   const sendImage = async (file) => {
+    console.log(file)
     if (!active || !file) return
     const reader = new FileReader()
     reader.onload = () => {
@@ -109,54 +163,7 @@ export default function Chat() {
 
   return (
     <Box bg={theme.pageBg} minH="100vh" position="relative" overflow="hidden">
-      {/* Decorative Background Patterns */}
-      <Box
-        position="absolute"
-        top="0"
-        left="0"
-        right="0"
-        bottom="0"
-        pointerEvents="none"
-        style={{
-          background: theme.isLight
-            ? 'radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 85%, rgba(139, 92, 246, 0.12) 0%, transparent 50%)'
-            : 'radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.25) 0%, transparent 50%), radial-gradient(circle at 80% 85%, rgba(139, 92, 246, 0.2) 0%, transparent 50%)',
-          backgroundSize: '100% 100%',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-
-      {/* Top-right floating glow */}
-      <Box
-        position="absolute"
-        top="8%"
-        right="10%"
-        w="280px"
-        h="280px"
-        borderRadius="full"
-        bg={theme.isLight ? 'rgba(59,130,246,0.4)' : 'rgba(59,130,246,0.6)'}
-        filter="blur(80px)"
-        pointerEvents="none"
-        zIndex={0}
-        animation="float 12s ease-in-out infinite"
-      />
-
-      {/* Bottom-left floating glow */}
-      <Box
-        position="absolute"
-        bottom="10%"
-        left="8%"
-        w="240px"
-        h="240px"
-        borderRadius="full"
-        bg={theme.isLight ? 'rgba(139,92,246,0.35)' : 'rgba(139,92,246,0.55)'}
-        filter="blur(70px)"
-        pointerEvents="none"
-        zIndex={0}
-        animation="float 15s ease-in-out infinite reverse"
-      />
-
-      <Box maxW="1400px" mx="auto" px={{ base: 0, md: 6 }} py={{ base: 0, md: 6 }} position="relative" zIndex={1}>
+      <Box maxW="1200px" mx="auto" px={{ base: 0, md: 6 }} py={{ base: 0, md: 6 }} position="relative" zIndex={1}>
         
         {isMobile ? (
           <MobileChatNavigator
@@ -178,8 +185,6 @@ export default function Chat() {
         ) : (
           <Flex 
             h="calc(100vh - 100px)" 
-            w="5xl"
-            mx="auto"
             gap={0} 
             border="1px solid" 
             borderColor={theme.border} 
@@ -312,6 +317,7 @@ export default function Chat() {
 
             {/* Enhanced Chat Area with Pattern Background */}
             <Box 
+              ref={messagesContainerRef}
               flex={1} 
               display="flex" 
               flexDirection="column" 
@@ -372,6 +378,7 @@ export default function Chat() {
                   </Box>
                   
                   <Box 
+                    ref={messagesContainerRef}
                     flex={1} 
                     overflowY="auto"
                     position="relative"

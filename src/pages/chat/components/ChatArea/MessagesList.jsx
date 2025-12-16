@@ -1,4 +1,4 @@
-// MessagesList.jsx - With date separators
+// MessagesList.jsx - With date separators and fixed scrolling
 
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
 import MessageBubble from './MessageBubble'
@@ -31,7 +31,7 @@ export default function MessagesList({ messages, meUsername, theme, endRef }) {
   }
 
   return (
-    <VStack align="stretch" flex={2} overflowY="auto" p={4} spacing={3}>
+    <VStack align="stretch" p={4} spacing={3}>
       {messages.map((m, index) => {
         const isMe = m.senderUsername === meUsername
         const key = m.id ?? `${m.createdAt}-${m.senderId ?? 'u'}`

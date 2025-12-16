@@ -15,11 +15,11 @@ export function ThemeProvider({ children }) {
 
         // Backgrounds
         bg: isLight ? '#FFFFFF' : '#0F172A',
-        pageBg: isLight ? '#F8F9FA' : '#0F172A',
-        cardBg: isLight ? '#FFFFFF' : '#1E293B',
-        secondaryBg: isLight ? '#F8F9FA' : '#1E293B',
-        inputBg: isLight ? '#FFFFFF' : '#0F172A',
-        hoverBg: isLight ? '#F1F5F9' : '#334155',
+        pageBg: isLight ? '#EEF2F6' : '#0F171A',
+        cardBg: isLight ? '#FFFFFF' : '#22294B',
+        secondaryBg: isLight ? '#F8F9FA' : '#2e343e',
+        inputBg: isLight ? '#FFFFFF' : '#0F112F',
+        hoverBg: isLight ? '#E1E5E9' : '#334155',
 
         // Borders
         border: isLight ? '#DEE2E6' : '#334155',
@@ -27,7 +27,7 @@ export function ThemeProvider({ children }) {
 
         // Text colors
         text: isLight ? '#212529' : '#F1F5F9',
-        textSecondary: isLight ? '#495057' : '#CBD5E1',
+        textSecondary: isLight ? '#7e8a97' : '#7c8590',
         textMuted: isLight ? '#6C757D' : '#94A3B8',
         textPlaceholder: isLight ? '#ADB5BD' : '#64748B',
 
@@ -50,7 +50,13 @@ export function ThemeProvider({ children }) {
         buttonBg: isLight ? '#3B82F6' : '#2563EB',
         buttonColor: '#FFFFFF',
         buttonHoverBg: isLight ? '#2563EB' : '#1D4ED8',
-        buttonHoverColor: '#FFF'
+        buttonHoverColor: '#FFF',
+
+        // Chart
+        chartStroke: isLight ? "#3a3a3a" : "#d0d0d0",
+
+        // Admin
+        sideBarBg: isLight ? "#1E40AF" : "#05227e"
     }), [colorMode, isLight])
 
     return (

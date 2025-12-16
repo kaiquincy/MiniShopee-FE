@@ -15,18 +15,18 @@ import {
 import { Flex } from '@chakra-ui/react/flex'
 import { Icon } from '@chakra-ui/react/icon'
 import { useEffect, useMemo, useState } from 'react'
-import { Tooltip } from '../../components/ui/tooltip'
+import { Tooltip } from '../../components/ui/Tooltip'
 import { fetchOrders } from '../api/seller'
 
 // Charts
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Cell,
   Tooltip as ChartTooltip,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -37,6 +37,7 @@ import {
 // Icons
 import {
   FiAlertCircle,
+  FiCalendar,
   FiCheckCircle,
   FiClock,
   FiDollarSign,
@@ -46,16 +47,25 @@ import {
 } from 'react-icons/fi'
 
 const currency = (n = 0) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
     .format(Number(n) || 0)
-
-const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899']
 
 export default function SellerAnalytics() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [range, setRange] = useState("last7days")
+  
+  // Time range states for different charts
+  const [revenueRange, setRevenueRange] = useState('7')
+  const [ordersRange, setOrdersRange] = useState('7')
+
+  const timeRangeOptions = createListCollection({
+    items: [
+      { label: 'Last 7 Days', value: '7' },
+      { label: 'Last 30 Days', value: '30' },
+      { label: 'Last 6 Months', value: '180' },
+    ],
+  })
 
   useEffect(() => {
     ;(async () => {
@@ -64,7 +74,7 @@ export default function SellerAnalytics() {
         const d = await fetchOrders()
         setOrders(Array.isArray(d) ? d : (d?.content || []))
       } catch (e) {
-        setError(e?.message || 'Không tải được dữ liệu')
+        setError(e?.message || 'Cannot load data')
       } finally {
         setLoading(false)
       }
@@ -72,156 +82,134 @@ export default function SellerAnalytics() {
   }, [])
 
   const stats = useMemo(() => {
-    const totalRevenue = orders.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0)
-    const completedRevenue = orders.reduce((s, o) => s + (o.status === "COMPLETED" ? Number(o.totalAmount) || 0 : 0), 0)
-
+    const totalOrders = orders.length
+    const totalRevenue = orders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
+    
     const byStatus = orders.reduce((m, o) => {
-        m[o.status] = (m[o.status] || 0) + 1
-        return m
+      m[o.status] = (m[o.status] || 0) + 1
+      return m
     }, {})
 
-    const totalOrders = orders.length
-    const completedOrders = byStatus['COMPLETED'] || 0
     const pendingOrders = byStatus['PENDING'] || 0
+    const completedOrders = byStatus['COMPLETED'] || 0
     const cancelledOrders = byStatus['CANCELLED'] || 0
-    const successRate = totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : 0
-    const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(0) : 0
+    const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0
 
-    const pipeline = pickPipelinePercents(byStatus, totalOrders)
-
-    let chartData = []
-
-    if (range === "last7days") {
-        const today = new Date()
-        const days = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date()
-            d.setDate(today.getDate() - (6 - i))
-            return { label: `${d.getDate()}/${d.getMonth() + 1}`, date: d }
-        })
-
-        chartData = days.map(({ label, date }) => {
-            const filtered = orders.filter(o => {
-                const d = new Date(o.createdAt)
-                return (
-                    d.getDate() === date.getDate() &&
-                    d.getMonth() === date.getMonth() &&
-                    d.getFullYear() === date.getFullYear()
-                )
-            })
-            return {
-                day: label,
-                orders: filtered.length,
-                revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
-            }
-        })
-    }
-
-    if (range === "thismonth") {
-        const now = new Date()
-        const year = now.getFullYear()
-        const month = now.getMonth()
-        const daysInMonth = new Date(year, month + 1, 0).getDate()
-        const days = Array.from({ length: daysInMonth }, (_, i) => {
-            return { label: `${i + 1}/${month + 1}`, date: new Date(year, month, i + 1) }
-        })
-
-        chartData = days.map(({ label, date }) => {
-            const filtered = orders.filter(o => {
-                const d = new Date(o.createdAt)
-                return d.getDate() === date.getDate() && d.getMonth() === date.getMonth()
-            })
-            return {
-                day: label,
-                orders: filtered.length,
-                revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
-            }
-        })
-    }
-
-    if (range === "last6months") {
-      const now = new Date()
-      const months = []
-      for (let i = 5; i >= 0; i--) {
-          const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-          months.push({
-              label: `${d.getMonth() + 1}/${d.getFullYear()}`,
-              year: d.getFullYear(),
-              month: d.getMonth(),
-          })
-      }
-
-      chartData = months.map(({ label, year, month }) => {
-          const filtered = orders.filter(o => {
-              const d = new Date(o.createdAt)
-              return d.getMonth() === month && d.getFullYear() === year
-          })
-          return {
-              day: label,
-              orders: filtered.length,
-              revenue: filtered.reduce((s, o) => s + (o.status === "PAID" ? Number(o.totalAmount) || 0 : 0), 0),
-          }
+    // Helper function to generate date ranges
+    const generateDateRange = (days) => {
+      return Array.from({ length: parseInt(days) }, (_, i) => {
+        const d = new Date()
+        d.setDate(d.getDate() - (days - 1 - i))
+        return {
+          date: days <= 30 ? `${d.getMonth() + 1}/${d.getDate()}` : `${d.getMonth() + 1}/${d.getDate()}`,
+          dateObj: d,
+          fullDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        }
       })
     }
 
-    // Pie chart data
-    const pieData = Object.entries(byStatus).map(([status, count]) => ({
+    // Helper to group by interval for 6 months
+    const groupByInterval = (dateRange, intervalDays) => {
+      const grouped = []
+      for (let i = 0; i < dateRange.length; i += intervalDays) {
+        const chunk = dateRange.slice(i, Math.min(i + intervalDays, dateRange.length))
+        if (chunk.length > 0) {
+          const startDate = chunk[0].dateObj
+          const endDate = chunk[chunk.length - 1].dateObj
+          grouped.push({
+            dates: chunk,
+            label: intervalDays === 1 ? chunk[0].date : 
+                  `${startDate.getMonth() + 1}/${startDate.getDate()}-${endDate.getMonth() + 1}/${endDate.getDate()}`,
+            fullDate: chunk[0].fullDate,
+            startDate,
+            endDate
+          })
+        }
+      }
+      return grouped
+    }
+
+    // Revenue by selected range
+    const revenueDays = parseInt(revenueRange)
+    const revenueDateRange = generateDateRange(revenueDays)
+    const revenueGroups = revenueDays === 180 ? groupByInterval(revenueDateRange, 7) : 
+                          revenueDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+
+    const revenueByDay = revenueGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
+      const periodOrders = orders.filter(o => {
+        const orderDate = new Date(o.createdAt)
+        return orderDate >= startDate && orderDate <= endDate
+      })
+      return {
+        date: label,
+        fullDate,
+        dateObj: startDate,
+        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
+        orders: periodOrders.length,
+        ordersList: periodOrders
+      }
+    })
+
+    // Orders by selected range
+    const ordersDays = parseInt(ordersRange)
+    const orderDateRange = generateDateRange(ordersDays)
+    const orderGroups = ordersDays === 180 ? groupByInterval(orderDateRange, 7) : 
+                        orderDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+
+    const ordersByDay = orderGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
+      const periodOrders = orders.filter(o => {
+        const orderDate = new Date(o.createdAt)
+        return orderDate >= startDate && orderDate <= endDate
+      })
+      return {
+        date: label,
+        fullDate,
+        dateObj: startDate,
+        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
+        orders: periodOrders.length,
+        ordersList: periodOrders
+      }
+    })
+
+    // Status distribution for pie chart
+    const statusData = Object.entries(byStatus).map(([status, count]) => ({
       name: status,
       value: count,
-      color: getStatusColor(status)
+      color: getStatusColor(status),
+      orders: orders.filter(o => o.status === status)
     }))
+
+    // Recent orders (last 5)
+    const recentOrders = [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5)
+
+    const pipeline = pickPipelinePercents(byStatus, totalOrders)
 
     return { 
       totalOrders, 
       totalRevenue, 
-      completedRevenue,
       completedOrders,
       pendingOrders,
       cancelledOrders,
-      successRate,
       avgOrderValue,
       byStatus, 
-      pipeline, 
-      chartData,
-      pieData
+      revenueByDay,
+      ordersByDay,
+      statusData,
+      recentOrders,
+      pipeline
     }
-  }, [orders, range])
+  }, [orders, revenueRange, ordersRange])
 
   return (
-    <Box color="white">
+    <Box color="white" p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
           <Heading size="2xl" fontWeight="black" mb={2}>Analytics Dashboard</Heading>
           <Text color="whiteAlpha.600">Track your store performance and insights</Text>
         </Box>
-        <Select.Root
-          collection={ranges}
-          width="220px"
-          value={[range]}
-          onValueChange={(e) => setRange(e.value[0])}
-        >
-          <Select.HiddenSelect />
-          <Select.Control>
-            <Select.Trigger bg="gray.900" borderColor="whiteAlpha.300" color="white">
-              <Select.ValueText placeholder="Select range" />
-            </Select.Trigger>
-            <Select.IndicatorGroup>
-              <Select.Indicator />
-            </Select.IndicatorGroup>
-          </Select.Control>
-          <Portal>
-            <Select.Positioner>
-              <Select.Content bg="gray.900" color="white" borderColor="whiteAlpha.300">
-                {ranges.items.map((range) => (
-                  <Select.Item item={range} key={range.value} _hover={{ bg: "whiteAlpha.200" }}>
-                    {range.label}
-                    <Select.ItemIndicator />
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select.Positioner>
-          </Portal>
-        </Select.Root>
       </Flex>
 
       {/* KPI Cards */}
@@ -232,7 +220,6 @@ export default function SellerAnalytics() {
           icon={FiShoppingBag}
           color="#2563EB"
           loading={loading}
-          trend="+12.5%"
         />
         <StatCard
           title="Total Revenue"
@@ -240,7 +227,6 @@ export default function SellerAnalytics() {
           icon={FiDollarSign}
           color="#10B981"
           loading={loading}
-          trend="+8.3%"
         />
         <StatCard
           title="Avg Order Value"
@@ -250,12 +236,11 @@ export default function SellerAnalytics() {
           loading={loading}
         />
         <StatCard
-          title="Success Rate"
-          value={`${stats.successRate}%`}
+          title="Completed Orders"
+          value={stats.completedOrders}
           icon={FiCheckCircle}
           color="#8B5CF6"
           loading={loading}
-          trend="+2.1%"
         />
       </Grid>
 
@@ -284,14 +269,49 @@ export default function SellerAnalytics() {
         />
       </Grid>
 
-      {/* Charts Grid */}
-      <Grid templateColumns={{ base: "1fr", xl: "2fr 1fr" }} gap={6} mb={8}>
+      {/* Revenue Trend & Daily Breakdown */}
+      <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
         {/* Revenue Trend */}
         <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
-          <Heading size="md" mb={4}>Revenue Trend</Heading>
-          <Box h="350px">
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading size="md">Revenue Trend</Heading>
+            <Select.Root 
+              collection={timeRangeOptions}
+              value={[revenueRange]}
+              onValueChange={(e) => setRevenueRange(e.value[0])}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+              <Select.Control>
+                <Select.Trigger bg="gray.800" borderColor="whiteAlpha.300" color="white">
+                  <Select.ValueText placeholder="Select range" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner zIndex={20}>
+                  <Select.Content bg="gray.900" color="white" borderColor="whiteAlpha.300">
+                    {timeRangeOptions.items.map((option) => (
+                      <Select.Item
+                        key={option.value}
+                        item={option}
+                        _hover={{ bg: "whiteAlpha.200" }}
+                      >
+                        {option.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </Flex>
+          <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.chartData}>
+              <AreaChart data={stats.revenueByDay}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
@@ -299,7 +319,7 @@ export default function SellerAnalytics() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
                 <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
                 <ChartTooltip 
                   contentStyle={{ 
@@ -314,7 +334,7 @@ export default function SellerAnalytics() {
                   type="monotone" 
                   dataKey="revenue" 
                   stroke="#10B981" 
-                  strokeWidth={2}
+                  strokeWidth={3}
                   fillOpacity={1} 
                   fill="url(#colorRevenue)" 
                 />
@@ -323,23 +343,67 @@ export default function SellerAnalytics() {
           </Box>
         </Box>
 
-        {/* Order Status Distribution */}
+        {/* Daily Revenue Details */}
+        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+          <Heading size="md" mb={4}>
+            {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
+          </Heading>
+          <VStack align="stretch" spacing={3} maxH="300px" overflowY="auto">
+            {stats.revenueByDay.slice().reverse().map((day, idx) => (
+              <Box 
+                key={idx}
+                p={3}
+                bg={day.orders > 0 ? "whiteAlpha.50" : "transparent"}
+                borderRadius="md"
+                border="1px solid"
+                borderColor={day.orders > 0 ? "whiteAlpha.200" : "transparent"}
+              >
+                <Flex justify="space-between" align="center" mb={1}>
+                  <HStack spacing={2}>
+                    <Icon as={FiCalendar} boxSize={4} color="whiteAlpha.600" />
+                    <Text fontSize="sm" fontWeight="semibold" color="white">
+                      {day.fullDate}
+                    </Text>
+                  </HStack>
+                  <Badge 
+                    bg="blue.900"
+                    color="blue.300"
+                    px={2}
+                    py={0.5}
+                    borderRadius="md"
+                    fontSize="xs"
+                  >
+                    {day.orders} orders
+                  </Badge>
+                </Flex>
+                <Text fontSize="lg" fontWeight="bold" color="#10B981">
+                  {currency(day.revenue)}
+                </Text>
+              </Box>
+            ))}
+          </VStack>
+        </Box>
+      </Grid>
+
+      {/* Order Status & Orders Per Day */}
+      <Grid templateColumns={{ base: "1fr", xl: "1fr 1.5fr" }} gap={6} mb={8}>
+        {/* Order Status Pie Chart */}
         <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
           <Heading size="md" mb={4}>Order Status</Heading>
-          <Box h="350px">
+          <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={stats.pieData}
+                  data={stats.statusData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
+                  outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {stats.pieData.map((entry, index) => (
+                  {stats.statusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -355,36 +419,119 @@ export default function SellerAnalytics() {
             </ResponsiveContainer>
           </Box>
         </Box>
+
+        {/* Orders Per Day Chart */}
+        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading size="md">Orders Per Day</Heading>
+            <Select.Root 
+              collection={timeRangeOptions}
+              value={[ordersRange]}
+              onValueChange={(e) => setOrdersRange(e.value[0])}
+              size="sm"
+              width="150px"
+            >
+              <Select.HiddenSelect />
+              <Select.Control>
+                <Select.Trigger bg="gray.800" borderColor="whiteAlpha.300" color="white">
+                  <Select.ValueText placeholder="Select range" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner zIndex={20}>
+                  <Select.Content bg="gray.900" color="white" borderColor="whiteAlpha.300">
+                    {timeRangeOptions.items.map((option) => (
+                      <Select.Item
+                        key={option.value}
+                        item={option}
+                        _hover={{ bg: "whiteAlpha.200" }}
+                      >
+                        {option.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+          </Flex>
+          <Box h="300px">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.ordersByDay}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="date" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
+                <ChartTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                />
+                <Bar dataKey="orders" fill="#2563EB" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
       </Grid>
 
-      {/* Orders Chart */}
+      {/* Recent Orders */}
       <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6} mb={8}>
-        <Heading size="md" mb={4}>Orders Overview</Heading>
-        <Box h="350px">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={stats.chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="day" stroke="#9CA3AF" tick={{ fontSize: 12 }} />
-              <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
-              <ChartTooltip 
-                contentStyle={{ 
-                  backgroundColor: '#1F2937', 
-                  border: '1px solid #374151',
-                  borderRadius: '8px',
-                  color: '#fff'
-                }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="orders" 
-                stroke="#2563EB" 
-                strokeWidth={3}
-                dot={{ fill: '#2563EB', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Box>
+        <Heading size="md" mb={4}>Recent Orders</Heading>
+        {stats.recentOrders.length > 0 ? (
+          <VStack align="stretch" spacing={3}>
+            {stats.recentOrders.map((order) => (
+              <Box
+                key={order.orderId}
+                p={3}
+                bg="whiteAlpha.50"
+                borderRadius="md"
+                border="1px solid"
+                borderColor="whiteAlpha.200"
+              >
+                <Flex justify="space-between" align="center" mb={2}>
+                  <Text fontSize="sm" fontWeight="bold" color="white">
+                    Order #{order.orderId}
+                  </Text>
+                  <Badge 
+                    bg={`${getStatusColor(order.status)}20`}
+                    color={getStatusColor(order.status)}
+                    border="1px solid"
+                    borderColor={`${getStatusColor(order.status)}40`}
+                    px={2}
+                    py={0.5}
+                    borderRadius="md"
+                    fontSize="xs"
+                  >
+                    {order.status}
+                  </Badge>
+                </Flex>
+                <Flex justify="space-between" align="center">
+                  <Text fontSize="xs" color="whiteAlpha.600">
+                    {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </Text>
+                  <Text fontSize="md" fontWeight="bold" color="#10B981">
+                    {currency(order.totalAmount)}
+                  </Text>
+                </Flex>
+              </Box>
+            ))}
+          </VStack>
+        ) : (
+          <Box textAlign="center" py={8}>
+            <Icon as={FiShoppingBag} boxSize={10} color="whiteAlpha.300" mb={2} />
+            <Text color="whiteAlpha.600" fontSize="sm">No orders yet</Text>
+          </Box>
+        )}
       </Box>
 
       {/* Status Pipeline */}
@@ -415,7 +562,7 @@ export default function SellerAnalytics() {
 
 /* ---------- Components ---------- */
 
-function StatCard({ title, value, icon, color, loading = false, trend }) {
+function StatCard({ title, value, icon, color, loading = false }) {
   return (
     <Box
       bg="gray.900"
@@ -450,11 +597,6 @@ function StatCard({ title, value, icon, color, loading = false, trend }) {
             >
               <Icon as={icon} boxSize={6} color={color} />
             </Box>
-            {trend && (
-              <Badge colorPalette="green" variant="subtle" px={2} py={1}>
-                {trend}
-              </Badge>
-            )}
           </HStack>
           <Box>
             <Text color="whiteAlpha.600" fontSize="sm" mb={1}>{title}</Text>
@@ -587,11 +729,3 @@ function pickPipelinePercents(byStatus = {}, total = 0) {
     return { ...o, percent }
   }).filter(seg => seg.percent > 0)
 }
-
-const ranges = createListCollection({
-  items: [
-    { label: "Last 7 days", value: "last7days" },
-    { label: "This month", value: "thismonth" },
-    { label: "Last 6 months", value: "last6months" },
-  ],
-})

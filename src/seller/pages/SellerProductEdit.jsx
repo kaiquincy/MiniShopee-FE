@@ -2,14 +2,14 @@ import {
   Badge, Box, Button, createListCollection, Field, Flex, Heading, HStack, Icon, Image,
   Input, NumberInput, Portal, Select, Separator, SimpleGrid, Stack, Switch, Text, Textarea, VStack
 } from '@chakra-ui/react'
-import { useEffect, useMemo, useRef, useState} from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiImage, FiSave } from 'react-icons/fi'
-import { useNavigate, useParams, useLocation  } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import api from "../../api/client"
 import { toaster } from '../../components/ui/toaster'
 import VariantsBuilder from '../../seller/components/VariantsBuilder'
+import { getProduct, updateProduct } from '../api/seller'; // <-- đổi theo project của bạn
 import { buildPayloadObject } from '../utils/buildPayload'
-import { getProduct, updateProduct } from '../api/seller' 
-import api from "../../api/client"
 
 
 // Utils nhỏ cho preview URL ảnh chính
@@ -207,7 +207,7 @@ export default function SellerProductEdit() {
   }
 
   return (
-    <Box color="white">
+    <Box color="white" p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
