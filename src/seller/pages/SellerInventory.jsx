@@ -62,7 +62,7 @@ export default function SellerInventory() {
   }, [items])
 
   return (
-    <Box color="white">
+    <Box color="white" p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>

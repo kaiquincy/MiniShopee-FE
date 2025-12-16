@@ -1,6 +1,6 @@
 import { Badge, Box, Button, Text as ChakraText, Container, Drawer, Flex, Grid, Heading, HStack, Icon, IconButton, Image, Input, InputGroup, Menu, Portal, Separator, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { FiBell, FiLogOut, FiMenu, FiMessageCircle, FiPackage, FiSearch, FiSettings, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser, FiX } from "react-icons/fi";
+import { FiBell, FiLogOut, FiMenu, FiMessageCircle, FiPackage, FiSearch, FiSettings, FiShield, FiShoppingBag, FiShoppingCart, FiStar, FiTag, FiUser, FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { markRead, myNotifications, unreadCount } from '../api/notifications';
 import { useAuth } from '../context/AuthContext';
@@ -535,7 +535,9 @@ export default function LandingCarousel() {
                                                         _hover={{ bg: 'whiteAlpha.200', cursor: 'pointer' }}
                                                         color="whiteAlpha.600"
                                                     >
-                                                        <Icon as={FiPackage} />
+                                                        <Box display="flex" alignItems="center" justifyContent="center" w={5} h={5} bg="#3B82F6" borderRadius="lg" flexShrink={0} mr={0}>
+                                                            <Icon as={FiShield} boxSize={3} color="white" />
+                                                        </Box>
                                                         <Text>Admin Center</Text>
                                                     </Menu.Item>
                                                 </>

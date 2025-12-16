@@ -1,5 +1,5 @@
-import { Box, Button, Flex, Grid, Heading, HStack, Icon, Image, Input, Text, VStack, Badge, Dialog, Portal, CloseButton } from '@chakra-ui/react'
-import { useEffect, useMemo, useState } from 'react'
+import { Badge, Box, Button, CloseButton, Dialog, Flex, Grid, Heading, HStack, Icon, Image, Input, Portal, Text, VStack } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
 import { FiEdit2, FiPackage, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
@@ -313,7 +313,7 @@ const ValidationDialog = ({ product, onClose }) => {
 
 
   return (
-    <Box color="white">
+    <Box color="white" p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>

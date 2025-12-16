@@ -48,13 +48,13 @@ export default function LandingPage() {
                 {/* Decorative gradient */}
                 <Box
                     position="absolute"
-                    top="0"
+                    top="20%"
                     left="50%"
                     transform="translateX(-50%)"
                     w={{ base: "300px", md: "600px" }}
                     h={{ base: "300px", md: "600px" }}
                     bg="#2563EB"
-                    opacity={0.05}
+                    opacity={0.5}
                     filter="blur(100px)"
                     pointerEvents="none"
                     display={{ base: "none", md: "block" }}
@@ -64,11 +64,10 @@ export default function LandingPage() {
                     {/* Section Header */}
                     <Flex 
                         justify="space-between" 
-                        align={{ base: "start", md: "center" }} 
+                        align="center"
                         mb={{ base: 8, md: 12 }}
                         flexWrap="wrap"
                         gap={4}
-                        direction={{ base: "column", md: "row" }}
                     >
                         <Box>
                             <HStack mb={2}>
@@ -99,7 +98,6 @@ export default function LandingPage() {
                             rightIcon={<FiArrowRight />}
                             _hover={{ bg: "whiteAlpha.100" }}
                             onClick={() => nav('/products')}
-                            w={{ base: "full", md: "auto" }}
                         >
                             View All
                         </Button>
@@ -205,20 +203,6 @@ export default function LandingPage() {
 
             {/* ================= DAILY DEALS ================= */}
             <Box bg="black" py={{ base: 12, md: 16, lg: 20 }} px={16} position="relative">
-                {/* Decorative gradient */}
-                <Box
-                    position="absolute"
-                    bottom="0"
-                    right="10%"
-                    w={{ base: "300px", md: "500px" }}
-                    h={{ base: "300px", md: "500px" }}
-                    bg="#EA580C"
-                    opacity={0.08}
-                    filter="blur(100px)"
-                    pointerEvents="none"
-                    display={{ base: "none", md: "block" }}
-                />
-
                 <Container maxW="container.2xl" position="relative" px={{ base: 4, md: 6 }}>
                     {/* Section Header */}
                     <Flex 
@@ -252,14 +236,6 @@ export default function LandingPage() {
                                 Limited time offers • Up to 60% off
                             </Text>
                         </Box>
-                        <Text
-                            fontSize={{ base: "4xl", lg: "6xl" }}
-                            fontWeight="black"
-                            color="whiteAlpha.100"
-                            display={{ base: "none", lg: "block" }}
-                        >
-                            SALE
-                        </Text>
                     </Flex>
 
                     {/* Products Grid */}

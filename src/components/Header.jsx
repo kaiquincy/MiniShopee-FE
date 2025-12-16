@@ -38,9 +38,13 @@ export default function Header() {
   const isLandingPage = location.pathname === "/"
 
   // Use admin/seller theme override or global theme
-  const headerBg = isSellerOrAdmin ? "gray.900" : theme.headerBg
-  const headerColor = isSellerOrAdmin ? "white" : theme.text
-  const headerBorder = isSellerOrAdmin ? "gray.800" : theme.headerBorder
+  // const headerBg = isSellerOrAdmin ? "gray.900" : theme.headerBg
+  // const headerColor = isSellerOrAdmin ? "white" : theme.text
+  // const headerBorder = isSellerOrAdmin ? "gray.800" : theme.headerBorder
+
+  const headerBg = theme.headerBg
+  const headerColor = theme.text
+  const headerBorder = theme.headerBorder
 
   const loadNotifications = async () => {
     try {

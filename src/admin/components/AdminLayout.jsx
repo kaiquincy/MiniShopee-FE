@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { FiClipboard, FiLayout, FiPackage, FiSettings, FiShield, FiUsers } from 'react-icons/fi';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 const menuItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: FiLayout },
@@ -18,7 +19,7 @@ const menuItems = [
   { to: '/admin/settings', label: 'Settings', icon: FiSettings },
 ]
 
-const NavItem = ({ to, children, icon }) => {
+const NavItem = ({ to, children, icon, theme }) => {
   const loc = useLocation()
   const active = loc.pathname.startsWith(to)
   return (
@@ -51,6 +52,8 @@ const NavItem = ({ to, children, icon }) => {
 }
 
 export default function AdminLayout() {
+  const { theme } = useTheme()
+
   return (
     <Flex minH="100vh" bg="#1E3A8A">
       {/* Sidebar */}
@@ -64,7 +67,7 @@ export default function AdminLayout() {
       >
         {/* Logo/Header */}
         <Box p={6} borderBottom="1px solid" borderColor="whiteAlpha.200">
-          <HStack spacing={3} mb={1}>
+          <HStack gap={3} mb={1}>
             <Box
               p={2}
               bg="#3B82F6"
@@ -84,7 +87,7 @@ export default function AdminLayout() {
         {/* Navigation */}
         <VStack align="stretch" gap={1} p={4}>
           {menuItems.map((item) => (
-            <NavItem key={item.to} to={item.to} icon={item.icon}>
+            <NavItem key={item.to} to={item.to} icon={item.icon} theme={theme}>
               {item.label}
             </NavItem>
           ))}
@@ -92,7 +95,7 @@ export default function AdminLayout() {
       </Box>
 
       {/* Main Content */}
-      <Box flex={1} ml="280px" bg="#EFF6FF" minH="100vh">
+      <Box flex={1} ml="280px" bg={theme.pageBg} minH="100vh">
         <Box maxW="1600px" mx="auto" p={8}>
           <Outlet />
         </Box>

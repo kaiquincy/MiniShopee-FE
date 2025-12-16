@@ -2,7 +2,7 @@
 
 import { Box, Container, Flex, Text } from '@chakra-ui/react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { ThemeProvider } from '../context/ThemeContext'
+import { ThemeProvider, useTheme } from '../context/ThemeContext'
 import Header from './Header'
 
 export default function Layout() {
@@ -17,7 +17,8 @@ export default function Layout() {
 }
 
 function LayoutContent({ isLandingPage }) {
-  
+  const { theme } = useTheme()
+
   return (
     <Box 
       display="flex" 
@@ -29,7 +30,36 @@ function LayoutContent({ isLandingPage }) {
     >
       <Box>
         <Header />
-        <Container py={0} px={0} mx={0} maxW="100vw">
+        <Container py={0} px={0} mx={0} maxW="100vw" bg={theme.pageBg} position="relative">
+          <Box
+            position="absolute"
+            top="0"
+            left="0"
+            right="0"
+            bottom="0"
+            pointerEvents="none"
+            style={{
+              background: theme.isLight
+                ? 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%)'
+                : 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)',
+              backgroundSize: '100% 100%',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+
+          {/* Floating glows */}
+          <Box
+            position="absolute"
+            top="15%"
+            right="10%"
+            w="200px"
+            h="200px"
+            borderRadius="full"
+            bg={theme.isLight ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.5)'}
+            filter="blur(60px)"
+            pointerEvents="none"
+            animation="float 10s ease-in-out infinite"
+          />
           <Outlet />
         </Container>
       </Box>
