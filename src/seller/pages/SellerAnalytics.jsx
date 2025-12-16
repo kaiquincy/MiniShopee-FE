@@ -16,6 +16,7 @@ import { Flex } from '@chakra-ui/react/flex'
 import { Icon } from '@chakra-ui/react/icon'
 import { useEffect, useMemo, useState } from 'react'
 import { Tooltip } from '../../components/ui/Tooltip'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchOrders } from '../api/seller'
 
 // Charts
@@ -66,6 +67,8 @@ export default function SellerAnalytics() {
       { label: 'Last 6 Months', value: '180' },
     ],
   })
+
+  const { theme } = useTheme()
 
   useEffect(() => {
     ;(async () => {
@@ -224,8 +227,8 @@ export default function SellerAnalytics() {
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2}>Analytics Dashboard</Heading>
-          <Text color="whiteAlpha.600">Track your store performance and insights</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Analytics Dashboard</Heading>
+          <Text color={theme.textSecondary}>Track your store performance and insights</Text>
         </Box>
       </Flex>
 
@@ -237,6 +240,7 @@ export default function SellerAnalytics() {
           icon={FiShoppingBag}
           color="#2563EB"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Total Revenue"
@@ -244,6 +248,7 @@ export default function SellerAnalytics() {
           icon={FiDollarSign}
           color="#10B981"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Avg Order Value"
@@ -251,6 +256,7 @@ export default function SellerAnalytics() {
           icon={FiTrendingUp}
           color="#F59E0B"
           loading={loading}
+          theme={theme}
         />
         <StatCard
           title="Completed Orders"
@@ -258,6 +264,7 @@ export default function SellerAnalytics() {
           icon={FiCheckCircle}
           color="#8B5CF6"
           loading={loading}
+          theme={theme}
         />
       </Grid>
 
@@ -269,6 +276,7 @@ export default function SellerAnalytics() {
           icon={FiClock}
           color="#F59E0B"
           loading={loading}
+          theme={theme}
         />
         <QuickStatCard
           label="Completed Orders"
@@ -276,6 +284,7 @@ export default function SellerAnalytics() {
           icon={FiCheckCircle}
           color="#10B981"
           loading={loading}
+          theme={theme}
         />
         <QuickStatCard
           label="Cancelled Orders"
@@ -283,15 +292,16 @@ export default function SellerAnalytics() {
           icon={FiXCircle}
           color="#EF4444"
           loading={loading}
+          theme={theme}
         />
       </Grid>
 
       {/* Revenue Trend & Daily Breakdown */}
-      <Grid templateColumns={{ base: "1fr", xl: "1.5fr 1fr" }} gap={6} mb={8}>
+      <Grid templateColumns={{ base: "1fr", md: "1.5fr 1fr" }} gap={6} mb={8}>
         {/* Revenue Trend */}
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg">
           <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md">Revenue Trend</Heading>
+            <Heading size="md" color={theme.text} >Revenue Trend</Heading>
             <Select.Root 
               collection={timeRangeOptions}
               value={[revenueRange]}
@@ -301,7 +311,7 @@ export default function SellerAnalytics() {
             >
               <Select.HiddenSelect />
               <Select.Control>
-                <Select.Trigger bg="gray.800" borderColor="whiteAlpha.300" color="white">
+                <Select.Trigger bg={theme.inputBg} borderColor={theme.border} color={theme.text}>
                   <Select.ValueText placeholder="Select range" />
                 </Select.Trigger>
                 <Select.IndicatorGroup>
@@ -310,12 +320,12 @@ export default function SellerAnalytics() {
               </Select.Control>
               <Portal>
                 <Select.Positioner zIndex={20}>
-                  <Select.Content bg="gray.900" color="white" borderColor="whiteAlpha.300">
+                  <Select.Content bg={theme.inputBg} color={theme.text} borderColor={theme.border}>
                     {timeRangeOptions.items.map((option) => (
                       <Select.Item
                         key={option.value}
                         item={option}
-                        _hover={{ bg: "whiteAlpha.200" }}
+                        _hover={{ bg: theme.hoverBg }}
                       >
                         {option.label}
                         <Select.ItemIndicator />
@@ -340,10 +350,11 @@ export default function SellerAnalytics() {
                 <YAxis stroke="#9CA3AF" tick={{ fontSize: 12 }} />
                 <ChartTooltip 
                   contentStyle={{ 
-                    backgroundColor: '#1F2937', 
-                    border: '1px solid #374151',
+                    backgroundColor: theme.inputBg, 
+                    border: '1px solid',
+                    borderColor: theme.border,
                     borderRadius: '8px',
-                    color: '#fff'
+                    color: theme.text
                   }}
                   formatter={(v) => currency(v)} 
                 />
@@ -361,7 +372,7 @@ export default function SellerAnalytics() {
         </Box>
 
         {/* Daily Revenue Details */}
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={6}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={6} borderRadius="lg">
           <Heading size="md" mb={4}>
             {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
           </Heading>
@@ -581,17 +592,18 @@ export default function SellerAnalytics() {
 
 /* ---------- Components ---------- */
 
-function StatCard({ title, value, icon, color, loading = false }) {
+function StatCard({ title, value, icon, color, loading = false, theme }) {
   return (
     <Box
-      bg="gray.900"
+      bg={theme.cardBg}
       border="1px solid"
-      borderColor="whiteAlpha.200"
+      borderColor={theme.border}
       p={6}
       position="relative"
       overflow="hidden"
       transition="all 0.3s"
       _hover={{ borderColor: color }}
+      borderRadius="lg"
     >
       {/* Decorative gradient */}
       <Box
@@ -618,8 +630,8 @@ function StatCard({ title, value, icon, color, loading = false }) {
             </Box>
           </HStack>
           <Box>
-            <Text color="whiteAlpha.600" fontSize="sm" mb={1}>{title}</Text>
-            <Text fontWeight="black" fontSize="3xl">{value}</Text>
+            <Text color={theme.text} fontSize="sm" mb={1}>{title}</Text>
+            <Text color={color} fontWeight="black" fontSize="3xl">{value}</Text>
           </Box>
         </VStack>
       </Skeleton>
@@ -627,13 +639,14 @@ function StatCard({ title, value, icon, color, loading = false }) {
   )
 }
 
-function QuickStatCard({ label, value, icon, color, loading }) {
+function QuickStatCard({ label, value, icon, color, loading, theme }) {
   return (
     <Box
-      bg="gray.900"
+      bg={theme.cardBg}
       border="1px solid"
-      borderColor="whiteAlpha.200"
+      borderColor={theme.border}
       p={4}
+      borderRadius="lg"
     >
       <Skeleton loading={loading}>
         <HStack spacing={4}>
@@ -641,8 +654,8 @@ function QuickStatCard({ label, value, icon, color, loading }) {
             <Icon as={icon} boxSize={5} color={color} />
           </Box>
           <Box>
-            <Text color="whiteAlpha.600" fontSize="sm">{label}</Text>
-            <Text fontWeight="bold" fontSize="2xl">{value}</Text>
+            <Text color={theme.text} fontSize="sm">{label}</Text>
+            <Text color={color} fontWeight="bold" fontSize="2xl">{value}</Text>
           </Box>
         </HStack>
       </Skeleton>

@@ -11,13 +11,12 @@ import {
 } from "@chakra-ui/react"
 import { useEffect, useMemo, useState } from "react"
 import {
-  FiSave,
+  FiCpu,
   FiRefreshCw,
   FiSettings,
-  FiCpu,
   FiShield,
-  FiZap,
   FiToggleRight,
+  FiZap
 } from "react-icons/fi"
 import { toaster } from "../../components/ui/toaster"
 import { adminFetchOptions, adminSetOptions } from "../api/admin"

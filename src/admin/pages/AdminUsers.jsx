@@ -25,6 +25,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { FiAlertTriangle, FiInfo, FiRefreshCcw, FiSearch, FiUserCheck, FiUsers, FiUserX } from 'react-icons/fi'
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { adminFetchUsers, adminUpdateUserStatus } from '../api/admin'
 
 const STATUS = {
@@ -53,6 +54,7 @@ export default function AdminUsers() {
   const [busy, setBusy] = useState({})
   const [detailUser, setDetailUser] = useState(null)
   const [isOpen, setIsOpen] = useState(false)
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
@@ -112,72 +114,72 @@ export default function AdminUsers() {
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2} color="#1E3A8A">Users</Heading>
-          <Text color="#64748B">Manage user accounts and permissions</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Users</Heading>
+          <Text color={theme.textSecondary}>Manage user accounts and permissions</Text>
         </Box>
       </Flex>
 
       {/* Stats Cards */}
       <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={6} mb={6}>
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#3B82F615" borderRadius="lg">
               <Icon as={FiUsers} boxSize={5} color="#3B82F6" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Total Users</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.total}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Total Users</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#3B82F6">{stats.total}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#10B98115" borderRadius="lg">
               <Icon as={FiUserCheck} boxSize={5} color="#10B981" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Active</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.active}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Active</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#10B981">{stats.active}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#6B728015" borderRadius="lg">
               <Icon as={FiUserX} boxSize={5} color="#6B7280" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Inactive</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.inactive}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Inactive</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#6B7280">{stats.inactive}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="white" border="1px solid" borderColor="#E2E8F0" p={5} borderRadius="lg" shadow="sm">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" shadow="sm">
+          <HStack gap={5}>
             <Box p={3} bg="#F59E0B15" borderRadius="lg">
               <Icon as={FiAlertTriangle} boxSize={5} color="#F59E0B" />
             </Box>
             <Box>
-              <Text color="#64748B" fontSize="sm" fontWeight="medium">Suspended</Text>
-              <Text fontWeight="bold" fontSize="2xl" color="#1E293B">{stats.suspended}</Text>
+              <Text color={theme.text} fontSize="md" fontWeight="medium">Suspended</Text>
+              <Text fontWeight="bold" fontSize="2xl" color="#F59E0B">{stats.suspended}</Text>
             </Box>
           </HStack>
         </Box>
       </Grid>
 
       {/* Search Bar */}
-      <Flex gap={3} mb={6}>
-        <Box position="relative" flex={1} maxW="500px">
+      <Flex gap={3} mb={6} bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" p={5}>
+        <Box position="relative" flex={1} maxW="600px">
           <Icon
             as={FiSearch}
             position="absolute"
             left={4}
             top="50%"
             transform="translateY(-50%)"
-            color="#64748B"
+            color={theme.text}
             boxSize={5}
             zIndex={1}
           />
@@ -185,46 +187,46 @@ export default function AdminUsers() {
             placeholder="Search by email, name, or username..."
             value={q}
             onChange={e => setQ(e.target.value)}
-            bg="white"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="#E2E8F0"
-            color="#1E293B"
+            borderColor={theme.border}
+            color={theme.textSecondary}
             pl={12}
             h="48px"
             borderRadius="lg"
             _placeholder={{ color: "#94A3B8" }}
-            _focus={{ borderColor: "#3B82F6", boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
+            _focus={{ borderColor: theme.borderLight, boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
           />
         </Box>
         <Button
           onClick={load}
           leftIcon={<Icon as={FiRefreshCcw} />}
           isLoading={loading}
-          bg="white"
-          color="#1E293B"
+          bg={theme.buttonBg}
+          color="white"
           border="1px solid"
-          borderColor="#E2E8F0"
+          borderColor={theme.border}
           h="48px"
           px={6}
           borderRadius="lg"
-          _hover={{ bg: "#F8FAFC" }}
+          _hover={{ bg: theme.buttonHoverBg }}
         >
           Reload
         </Button>
       </Flex>
 
       {/* Users Table */}
-      <Box bg="white" border="1px solid" borderColor="#E2E8F0" borderRadius="lg" shadow="sm" overflow="hidden">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" shadow="sm" overflow="hidden">
         {/* Table Header */}
         <Grid
           templateColumns="80px 1fr 200px 280px"
           py={4}
           px={6}
           borderBottom="1px solid"
-          borderColor="#E2E8F0"
+          borderColor={theme.borderLight}
           fontWeight="bold"
           fontSize="sm"
-          color="#64748B"
+          color={theme.text}
           textTransform="uppercase"
           letterSpacing="wider"
         >
@@ -237,13 +239,13 @@ export default function AdminUsers() {
         {/* Table Body */}
         {loading ? (
           <Box p={12} textAlign="center">
-            <Text color="#64748B">Loading users...</Text>
+            <Text color={theme.text}>Loading users...</Text>
           </Box>
         ) : filtered.length === 0 ? (
           <Box p={12} textAlign="center">
-            <Icon as={FiUsers} boxSize={12} color="#CBD5E1" mb={4} />
-            <Text color="#64748B" fontSize="lg" mb={2}>No users found</Text>
-            <Text color="#94A3B8" fontSize="sm">
+            <Icon as={FiUsers} boxSize={12} color={theme.text} mb={4} />
+            <Text color={theme.text} fontSize="lg" mb={2}>No users found</Text>
+            <Text color={theme.textSecondary} fontSize="sm">
               {q ? 'Try adjusting your search' : 'No users in the system'}
             </Text>
           </Box>
@@ -260,10 +262,10 @@ export default function AdminUsers() {
                 py={4}
                 px={6}
                 borderBottom={idx !== filtered.length - 1 ? "1px solid" : "none"}
-                borderColor="#F1F5F9"
+                borderColor={theme.borderLight}
                 alignItems="center"
                 transition="all 0.2s"
-                _hover={{ bg: "#F8FAFC" }}
+                _hover={{ bg: theme.hoverBg }}
               >
                 {/* ID */}
                 <Box>
@@ -272,8 +274,8 @@ export default function AdminUsers() {
 
                 {/* User Info */}
                 <Box>
-                  <Text fontWeight="semibold" color="#1E293B" mb={1}>{u.email}</Text>
-                  <HStack spacing={2}>
+                  <Text fontWeight="semibold" color={theme.text} mb={2}>{u.email}</Text>
+                  <HStack gap={2}>
                     <Badge
                       bg={`${color}15`}
                       color={color}
@@ -289,8 +291,8 @@ export default function AdminUsers() {
                     </Badge>
                     {u.role && (
                       <Badge
-                        bg="#F1F5F9"
-                        color={u.role == 'ADMIN' ? "#3B82F6" : "#475569"}
+                        bg={u.role == 'ADMIN' ? "#3B82F6" : "#F1F5F9"}
+                        color={u.role == 'ADMIN' ? "#F1F5F9" : "#475569"}
                         px={2}
                         py={0.5}
                         borderRadius="md"
@@ -305,7 +307,7 @@ export default function AdminUsers() {
 
                 {/* Username */}
                 <Box>
-                  <Text noOfLines={1} color="#64748B">{u.username || '—'}</Text>
+                  <Text noOfLines={1} color={theme.textMuted}>{u.username || '—'}</Text>
                 </Box>
 
                 {/* Actions */}
@@ -313,14 +315,14 @@ export default function AdminUsers() {
                   <IconButton
                     aria-label="toggle-status"
                     size="sm"
-                    bg="white"
+                    bg={theme.inputBg}
                     border="1px solid"
-                    borderColor="#E2E8F0"
+                    borderColor={theme.border}
                     color={u.status === STATUS.ACTIVE ? "#EF4444" : "#10B981"}
                     isDisabled={isBlockedToggle}
                     isLoading={!!busy[u.id]}
                     onClick={() => toggleActiveInactive(u)}
-                    _hover={{ bg: "#F8FAFC" }}
+                    _hover={{ bg: theme.hoverBg }}
                     title={isBlockedToggle ? 'Cannot toggle when SUSPENDED/DELETED' : (u.status === STATUS.ACTIVE ? 'Deactivate' : 'Activate')}
                   >
                     <Icon as={u.status === STATUS.ACTIVE ? FiUserX : FiUserCheck} />
@@ -329,14 +331,14 @@ export default function AdminUsers() {
                   <IconButton
                     aria-label="suspend-user"
                     size="sm"
-                    bg={isSuspended ? "#F59E0B15" : "white"}
+                    bg={isSuspended ? "#F59E0B15" : theme.inputBg}
                     border="1px solid"
-                    borderColor={isSuspended ? "#F59E0B" : "#E2E8F0"}
+                    borderColor={theme.border}
                     color="#F59E0B"
                     isDisabled={u.status === STATUS.DELETED || isSuspended}
                     isLoading={!!busy[u.id] && !isBlockedToggle}
                     onClick={() => suspendUser(u)}
-                    _hover={{ bg: isSuspended ? "#F59E0B15" : "#F8FAFC" }}
+                    _hover={{ bg: isSuspended ? "#F59E0B15" : theme.hoverBg }}
                     title={isSuspended ? 'Already suspended' : 'Suspend user'}
                   >
                     <Icon as={FiAlertTriangle} />
@@ -345,12 +347,12 @@ export default function AdminUsers() {
                   <IconButton
                     aria-label="info-user"
                     size="sm"
-                    bg="white"
+                    bg={theme.inputBg}
                     border="1px solid"
-                    borderColor="#E2E8F0"
+                    borderColor={theme.border}
                     color="#3B82F6"
                     onClick={() => openDetail(u)}
-                    _hover={{ bg: "#F8FAFC" }}
+                    _hover={{ bg: theme.hoverBg }}
                     title="View details"
                   >
                     <Icon as={FiInfo} />

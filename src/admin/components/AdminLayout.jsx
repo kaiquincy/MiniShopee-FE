@@ -60,7 +60,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <Box 
         w="280px" 
-        bg={theme.sideBarBg}
+        bg={theme.adminSidebarBg}
         borderRight="1px solid"
         borderColor="whiteAlpha.200"
         position="fixed"

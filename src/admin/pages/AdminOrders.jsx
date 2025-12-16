@@ -133,7 +133,7 @@ export default function AdminOrders() {
     return { total, pending, completed, totalRevenue }
   }, [list])
 
-  console.log(filtered)
+  console.log(list)
 
   return (
     <Box>

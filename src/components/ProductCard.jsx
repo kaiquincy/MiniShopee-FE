@@ -4,12 +4,13 @@ import { Link, useNavigate } from 'react-router-dom'
 
 export default function ProductCard({ p, theme }) {
   const navigate = useNavigate()
-  const discountPercent = p.discountPrice ? Math.round(100 - (p.discountPrice / p.price) * 100) : 0
+  const discountPercent = p.discountPrice ? Math.round(100 - (p.price / p.discountPrice) * 100) : 0
   const rating = (p.averageStars ?? p.ratingAvg ?? 0).toFixed(1)
   const ratingCount = p.totalRatings ?? p.ratingCount ?? 0
-  const finalPrice = p.discountPrice || p.price
   const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/${p.imageUrl}`
   const dummyUrl = `https://dummyimage.com/400x300/228be6/ffffff.jpg&text=${encodeURIComponent(p.name)}`
+
+  console.log(p)
 
   return (
     <Box
@@ -111,11 +112,11 @@ export default function ProductCard({ p, theme }) {
           {/* Price Section */}
           <HStack spacing={2} align="baseline">
             <Text fontSize="xl" fontWeight="black" color={theme.text} whiteSpace="nowrap">
-              ${finalPrice?.toLocaleString()}
+              ${p.price?.toLocaleString()}
             </Text>
             {p.discountPrice && (
               <Text fontSize="sm" color={theme.textMuted} textDecoration="line-through" whiteSpace="nowrap">
-                ${p.price?.toLocaleString()}
+                ${p.discountPrice?.toLocaleString()}
               </Text>
             )}
           </HStack>

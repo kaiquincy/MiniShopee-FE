@@ -1,10 +1,19 @@
-import { useEffect, useState } from 'react'
 import {
-  Box, Text, Input, Button, Badge, HStack, Tooltip, IconButton, Flex, Icon
+  Badge,
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  Text,
+  Tooltip
 } from '@chakra-ui/react'
-import { FiRefreshCcw, FiCheck, FiX, FiPower, FiRotateCcw } from 'react-icons/fi'
-import { adminFetchProducts, adminUpdateProductStatus } from '../api/admin'
+import { useEffect, useState } from 'react'
+import { FiCheck, FiPower, FiRefreshCcw, FiRotateCcw, FiX } from 'react-icons/fi'
 import { toaster } from '../../components/ui/toaster'
+import { adminFetchProducts, adminUpdateProductStatus } from '../api/admin'
 
 const STATUS_META = {
   ACTIVE:     { label: 'Active',     color: 'green' },

@@ -1,6 +1,7 @@
 import { Box, Button, Flex, HStack, Icon, Text, VStack } from '@chakra-ui/react'
 import { FiBarChart2, FiBox, FiMessageSquare, FiPackage, FiShoppingBag } from 'react-icons/fi'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useTheme } from '../../context/ThemeContext'
 
 const menuItems = [
   { to: '/seller/orders', label: 'Orders', icon: FiShoppingBag },
@@ -43,12 +44,45 @@ const NavItem = ({ to, children, icon }) => {
 }
 
 export default function SellerLayout() {
+  const { theme } = useTheme()
   return (
-    <Flex minH="100vh" bg="black">
+    <Flex minH="100vh" bg={theme.pageBg} position="relative" overflow="hidden">
+      <Box
+        position="absolute"
+        top="0"
+        left="0"
+        right="0"
+        bottom="0"
+        pointerEvents="none"
+        zIndex={0}
+        style={{
+          background: theme.isLight
+            ? 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)'
+            : 'radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%)',
+          backgroundSize: '100% 100%',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+
+      {/* Floating glow - top right */}
+      <Box
+        position="fixed"
+        top="10%"
+        right="8%"
+        w="280px"
+        h="280px"
+        borderRadius="full"
+        bg={theme.isLight ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.4)'}
+        filter="blur(80px)"
+        pointerEvents="none"
+        zIndex={0}
+        animation="float 14s ease-in-out infinite"
+      />
+      
       {/* Sidebar */}
       <Box 
         w="280px" 
-        bg="gray.900" 
+        bg={theme.sellerSidebarBg} 
         borderRight="1px solid"
         borderColor="whiteAlpha.200"
         position="fixed"
@@ -76,7 +110,7 @@ export default function SellerLayout() {
       </Box>
 
       {/* Main Content */}
-      <Box flex={1} ml="280px" bg="gray.950" minH="100vh">
+      <Box flex={1} ml="280px" bg={theme.pageBg} minH="100vh" position="relative">
         <Box maxW="1600px" mx="auto">
           <Outlet />
         </Box>
