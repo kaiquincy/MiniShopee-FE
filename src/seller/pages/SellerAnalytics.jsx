@@ -97,16 +97,20 @@ export default function SellerAnalytics() {
 
     // Helper function to generate date ranges
     const generateDateRange = (days) => {
-      return Array.from({ length: parseInt(days) }, (_, i) => {
+      const n = parseInt(days)
+      return Array.from({ length: n }, (_, i) => {
         const d = new Date()
-        d.setDate(d.getDate() - (days - 1 - i))
+        d.setDate(d.getDate() - (n - 1 - i))
+        d.setHours(0, 0, 0, 0) // ✅ reset về đầu ngày
+
         return {
-          date: days <= 30 ? `${d.getMonth() + 1}/${d.getDate()}` : `${d.getMonth() + 1}/${d.getDate()}`,
+          date: `${d.getMonth() + 1}/${d.getDate()}`,
           dateObj: d,
           fullDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
         }
       })
     }
+
 
     // Helper to group by interval for 6 months
     const groupByInterval = (dateRange, intervalDays) => {
@@ -114,8 +118,10 @@ export default function SellerAnalytics() {
       for (let i = 0; i < dateRange.length; i += intervalDays) {
         const chunk = dateRange.slice(i, Math.min(i + intervalDays, dateRange.length))
         if (chunk.length > 0) {
-          const startDate = chunk[0].dateObj
-          const endDate = chunk[chunk.length - 1].dateObj
+          const startDate = new Date(chunk[0].dateObj)
+          startDate.setHours(0, 0, 0, 0)
+          const endDate = new Date(chunk[chunk.length - 1].dateObj)
+          endDate.setHours(23, 59, 59, 999)
           grouped.push({
             dates: chunk,
             label: intervalDays === 1 ? chunk[0].date : 
@@ -132,8 +138,19 @@ export default function SellerAnalytics() {
     // Revenue by selected range
     const revenueDays = parseInt(revenueRange)
     const revenueDateRange = generateDateRange(revenueDays)
-    const revenueGroups = revenueDays === 180 ? groupByInterval(revenueDateRange, 7) : 
-                          revenueDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+    const revenueGroups =
+      revenueDays === 180
+        ? groupByInterval(revenueDateRange, 7)
+        : revenueDateRange.map(d => {
+            const start = new Date(d.dateObj)
+            start.setHours(0, 0, 0, 0)
+
+            const end = new Date(d.dateObj)
+            end.setHours(23, 59, 59, 999) // ✅ cuối ngày
+
+            return { dates: [d], label: d.date, fullDate: d.fullDate, startDate: start, endDate: end }
+          })
+
 
     const revenueByDay = revenueGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
       const periodOrders = orders.filter(o => {
@@ -349,6 +366,8 @@ export default function SellerAnalytics() {
             {revenueRange === '180' ? 'Weekly Breakdown' : 'Daily Breakdown'}
           </Heading>
           <VStack align="stretch" spacing={3} maxH="300px" overflowY="auto">
+
+            {/* {console.log(stats.revenueByDay)} */}
             {stats.revenueByDay.slice().reverse().map((day, idx) => (
               <Box 
                 key={idx}
@@ -357,7 +376,7 @@ export default function SellerAnalytics() {
                 borderRadius="md"
                 border="1px solid"
                 borderColor={day.orders > 0 ? "whiteAlpha.200" : "transparent"}
-              >
+              >           
                 <Flex justify="space-between" align="center" mb={1}>
                   <HStack spacing={2}>
                     <Icon as={FiCalendar} boxSize={4} color="whiteAlpha.600" />
