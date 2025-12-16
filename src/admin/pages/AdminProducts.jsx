@@ -134,7 +134,7 @@ export default function AdminProducts() {
 
       <Box bg="white" border="1px solid" borderColor="gray.100" borderRadius="md" p={2}>
         <Box display="grid" gridTemplateColumns="80px 1fr 160px 220px" py={2} fontWeight="bold" borderBottom="1px solid #eee">
-          <Box>ID</Box><Box>Tên</Box><Box>Trạng thái</Box><Box>Actions</Box>
+          <Box>ID</Box><Box>Name</Box><Box>Status</Box><Box>Actions</Box>
         </Box>
 
         {filtered.map(p => {

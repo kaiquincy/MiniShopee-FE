@@ -565,8 +565,8 @@ export default function ProductDetail() {
 
             {/* Price block */}
             {(() => {
-              const base = Number(basePrice || 0)
-              const effective = Number(effectivePrice || 0)
+              const effective = Number(basePrice || 0)
+              const base = Number(effectivePrice || 0)
               const hasDiscount = base > effective && base > 0
               const pct = hasDiscount ? Math.round(((base - effective) / base) * 100) : 0
 
