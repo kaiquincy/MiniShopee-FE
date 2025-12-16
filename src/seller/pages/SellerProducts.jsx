@@ -105,14 +105,13 @@ const ValidationDialog = ({ product, onClose }) => {
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content
-            maxW="720px"
-            bg="black"
-            border="1px solid"
-            borderColor={hasRejection ? "red.700" : "whiteAlpha.200"}
-            shadow="xl"
-            rounded="2xl"
-            p={2}
-          >
+              maxW="720px"
+              bg="black"
+              border="1px solid"
+              borderColor={hasRejection ? "red.700" : "whiteAlpha.200"}
+              shadow="xl"
+              rounded="2xl"
+              p={2}>
             <Dialog.Header borderBottom="1px solid" borderColor="whiteAlpha.200" pb={3}>
               <HStack spacing={3}>
                 <Icon
@@ -430,7 +429,7 @@ const ValidationDialog = ({ product, onClose }) => {
           <Box>ID</Box>
           <Box>Image</Box>
           <Box>Product Info</Box>
-          <Box>Price</Box>
+          <Box pl={5}>Price</Box>
           <Box>Status</Box>
           <Box textAlign="center">Actions</Box>
         </Grid>
@@ -480,10 +479,10 @@ const ValidationDialog = ({ product, onClose }) => {
 
               {/* Product Info */}
               <VStack align="start" spacing={1}>
-                <Text fontWeight="bold" fontSize="md" noOfLines={1}>
+                <Text fontWeight="bold" fontSize="md" lineClamp={1}>
                   {p.name}
                 </Text>
-                <Text fontSize="sm" color="whiteAlpha.600" noOfLines={2}>
+                <Text fontSize="sm" color="whiteAlpha.600" lineClamp={2}>
                   {p.description || 'No description'}
                 </Text>
                 {p.stockQuantity !== undefined && (
@@ -498,9 +497,9 @@ const ValidationDialog = ({ product, onClose }) => {
               </VStack>
 
               {/* Price */}
-              <Box>
+              <Box pl={5}>
                 <Text fontWeight="black" fontSize="xl" color="brand.400">
-                  {(p.price || 0).toLocaleString()} ₫
+                  {(p.price || 0).toLocaleString()} $
                 </Text>
                 {p.discountPrice && (
                   <Text
@@ -508,7 +507,7 @@ const ValidationDialog = ({ product, onClose }) => {
                     color="whiteAlpha.500"
                     textDecoration="line-through"
                   >
-                    {(p.discountPrice || 0).toLocaleString()} ₫
+                    {(p.discountPrice || 0).toLocaleString()} $
                   </Text>
                 )}
               </Box>
