@@ -3,7 +3,7 @@
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
 import MessageBubble from './MessageBubble'
 
-export default function MessagesList({ messages, meUsername, theme, endRef }) {
+export default function MessagesList({ messages, meUsername, theme, endRef, onMediaLoad }) {
   
   // Helper to get date string for comparison
   const getDateString = (dateString) => {
@@ -63,7 +63,7 @@ export default function MessagesList({ messages, meUsername, theme, endRef }) {
             
             {/* Message */}
             <Flex justify={isMe ? "flex-end" : "flex-start"}>
-              <MessageBubble m={m} isMe={isMe} theme={theme} />
+              <MessageBubble m={m} isMe={isMe} theme={theme} onMediaLoad={onMediaLoad} />
             </Flex>
           </Box>
         )

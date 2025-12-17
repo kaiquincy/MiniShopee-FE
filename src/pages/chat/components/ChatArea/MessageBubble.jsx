@@ -2,7 +2,7 @@
 
 import { Box, Text } from '@chakra-ui/react'
 
-export default function MessageBubble({ m, isMe, theme }) {
+export default function MessageBubble({ m, isMe, theme, onMediaLoad }) {
   // Format time and date
   const formatDateTime = (dateString) => {
     const msgDate = new Date(dateString)
@@ -57,7 +57,8 @@ export default function MessageBubble({ m, isMe, theme }) {
           as="img" 
           src={m.content} 
           alt="Image" 
-          maxW="100%" 
+          maxW="200px" 
+          onLoad={onMediaLoad}
           borderRadius="lg" 
         />
       ) : (
