@@ -3,7 +3,10 @@ import Layout from './components/Layout.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Cart from './pages/Cart.jsx'
 // import Chat from './pages/Chat.jsx'
-import Chat from './pages/chat/Chat.jsx' 
+import AdminApp from './admin/AdminApp.jsx'
+import AccountAddresses from './pages/AccountAddresses'
+import CancelPage from './pages/Cancel.jsx'
+import Chat from './pages/chat/Chat.jsx'
 import Checkout from './pages/Checkout.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import Login from './pages/Login.jsx'
@@ -11,13 +14,10 @@ import Notifications from './pages/Notifications.jsx'
 import Orders from './pages/Orders.jsx'
 import ProductDetail from './pages/ProductDetail.jsx'
 import Products from './pages/Products.jsx'
-import Register from './pages/Register.jsx'
-import SellerApp from './seller/SellerApp'
-import AccountAddresses from './pages/AccountAddresses'
-import ReturnPage from './pages/Return.jsx'
-import CancelPage from './pages/Cancel.jsx'
-import AdminApp from './admin/AdminApp.jsx'
 import Profile from './pages/Profile.jsx'
+import Register from './pages/Register.jsx'
+import ReturnPage from './pages/Return.jsx'
+import SellerApp from './seller/SellerApp'
 
 export default function App() {
   return (
@@ -26,6 +26,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<LandingPage />} />
           <Route path='products' element={<Products />}/>
+          <Route path="products/:category" element={<Products />} />
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="cart" element={<ProtectedRoute><Cart/></ProtectedRoute>} />
           <Route path="checkout" element={<ProtectedRoute><Checkout/></ProtectedRoute>} />

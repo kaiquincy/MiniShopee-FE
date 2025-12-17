@@ -137,6 +137,8 @@ export default function Products() {
   const isFetching = loading || loadingPage
   const hasActiveFilters = !!q || !!category
 
+  console.log(category)
+
   return (
     <Box bg={theme.pageBg} minH="100vh" py={8} px={10} transition="all 0.2s ease" position="relative" overflow="hidden">
       {/* Decorative Background Patterns */}

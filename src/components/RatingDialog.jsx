@@ -1,9 +1,20 @@
 // src/components/RatingDialog.jsx
-import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Dialog, Portal, Button, CloseButton, HStack, VStack, Box, Text, Badge,
-  Image, Separator, Field, Textarea, VisuallyHidden, Icon
+  Badge,
+  Box,
+  Button, CloseButton,
+  Dialog,
+  Field,
+  HStack,
+  Icon,
+  Image,
+  Portal,
+  Separator,
+  Text,
+  Textarea, VisuallyHidden,
+  VStack
 } from '@chakra-ui/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiStar, FiUpload, FiX } from 'react-icons/fi'
 
 const normalizeUrl = (it) => {
@@ -11,7 +22,7 @@ const normalizeUrl = (it) => {
   return it?.productImageUrl || '/placeholder.png'
 }
 
-function StarRating({ value = 0, onChange }) {
+function StarRating({ value = 0, onChange, theme }) {
   const [hover, setHover] = useState(0)
   const cur = hover || value
   return (
@@ -29,7 +40,7 @@ function StarRating({ value = 0, onChange }) {
           <Icon as={FiStar} boxSize={6} color={n <= cur ? 'yellow.400' : 'gray.400'} />
         </Button>
       ))}
-      <Text ml={2} color="gray.600">{cur}/5</Text>
+      <Text ml={2} color={theme.textSecondary}>{cur}/5</Text>
     </HStack>
   )
 }
@@ -63,7 +74,7 @@ function Thumb({ file, onRemove }) {
  *    <Button size="sm" variant="outline">Rating</Button>
  *  </RatingDialog>
  */
-export default function RatingDialog({ order, items, onSubmit, children }) {
+export default function RatingDialog({ order, items, onSubmit, theme, children }) {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [stars, setStars] = useState(5)
   const [comment, setComment] = useState('')
@@ -120,9 +131,9 @@ export default function RatingDialog({ order, items, onSubmit, children }) {
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content maxW="640px" bg="white">
+          <Dialog.Content maxW="640px" bg={theme.cardBg}>
             <Dialog.Header>
-              <Dialog.Title>Đánh giá sản phẩm</Dialog.Title>
+              <Dialog.Title>Rate Product</Dialog.Title>
             </Dialog.Header>
 
             <Dialog.Body>
@@ -143,7 +154,7 @@ export default function RatingDialog({ order, items, onSubmit, children }) {
                     )}
                     {safeItems.length > 1 && (
                       <HStack mt={1} spacing={2} wrap="wrap">
-                        <Text fontSize="sm" color="gray.600">Chọn sản phẩm:</Text>
+                        <Text fontSize="sm" color="gray.600">Select product:</Text>
                         {safeItems.map((x, idx) => (
                           <Button
                             key={x.id || x.productId || idx}
@@ -160,33 +171,39 @@ export default function RatingDialog({ order, items, onSubmit, children }) {
                 </HStack>
               )}
 
-              <Separator my={4} />
+              <Separator borderColor={`${theme.textSecondary}95`} my={4} />
 
               {/* Sao */}
               <VStack align="start" spacing={2}>
                 <Text fontWeight="semibold">Product quality</Text>
-                <StarRating value={stars} onChange={setStars} />
+                <StarRating value={stars} onChange={setStars} theme={theme} />
               </VStack>
 
-              <Separator my={4} />
+              <Separator borderColor={`${theme.textSecondary}95`} my={4} />
 
               {/* Nội dung + ảnh */}
-              <VStack align="stretch" spacing={3}>
+              <VStack align="stretch" gap={3}>
                 <Field.Root>
-                  <Field.Label>Nội dung đánh giá</Field.Label>
+                  <Field.Label>Review content</Field.Label>
                   <Textarea
-                    placeholder="Chia sẻ trải nghiệm của bạn..."
+                    placeholder="Share your thoughts on the product..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
+                    bg={theme.inputBg}
+                    border="1px solid"
+                    borderColor={theme.border}
+                    color={theme.text}
+                    _placeholder={{ color: theme.textSecondary }}
                   />
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>Ảnh đính kèm (tối đa 6)</Field.Label>
+                  <Field.Label>Attached images (maximum 6)</Field.Label>
                   <HStack align="center" spacing={3} wrap="wrap">
-                    <Button as="label" leftIcon={<FiUpload />} variant="outline">
-                      Chọn ảnh
+                    <Button as="label" bg={theme.inputBg} color={theme.text} border="1px solid" borderColor={theme.border} _hover={{ bg: theme.hoverBg }} >
+                      <Icon as={FiUpload} />
+                      Choose image
                       <VisuallyHidden as="input" type="file" accept="image/*" multiple onChange={pickFiles} />
                     </Button>
                     {files.map((f, i) => (

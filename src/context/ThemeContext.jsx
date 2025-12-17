@@ -16,7 +16,7 @@ export function ThemeProvider({ children }) {
         // Backgrounds
         bg: isLight ? '#FFFFFF' : '#0F172A',
         pageBg: isLight ? '#EEF2F6' : '#0F171A',
-        cardBg: isLight ? '#FFFFFF' : '#22294B',
+        cardBg: isLight ? '#F8FAFC' : '#22294B',
         secondaryBg: isLight ? '#F8F9FA' : '#2e343e',
         inputBg: isLight ? '#FFFFFF' : '#0F112F',
         hoverBg: isLight ? '#E1E5E9' : '#334155',
@@ -31,6 +31,8 @@ export function ThemeProvider({ children }) {
         textSecondary: isLight ? '#7e8a97' : '#7c8590',
         textMuted: isLight ? '#6C757D' : '#94A3B8',
         textPlaceholder: isLight ? '#ADB5BD' : '#64748B',
+        textHighlight: isLight ? "#167BF0" : "#93C5FD",
+        textBadge: isLight ? "#64748B" : "#d3ddeb",
 
         // Brand colors (stay consistent)
         primary: '#212529',

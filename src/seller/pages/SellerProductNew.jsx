@@ -19,14 +19,15 @@ import {
   Textarea,
   VStack
 } from '@chakra-ui/react'
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiArrowLeft, FiImage, FiPlus, FiX } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
+import api from "../../api/client"
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { createProduct } from '../api/seller'
 import VariantsBuilder from '../components/VariantsBuilder'
 import { buildPayloadObject } from '../utils/buildPayload'
-import api from "../../api/client"
 
 
 export default function SellerProductNew() {
@@ -65,6 +66,8 @@ export default function SellerProductNew() {
 
   const [tree, setTree] = useState([])
   const [loading, setLoading] = useState(false)
+
+  const { theme } = useTheme()
 
   useEffect(() => {
     let ignore = false
@@ -160,7 +163,7 @@ export default function SellerProductNew() {
   }
 
   return (
-    <Box color="white" p={8}>
+    <Box color={theme.text} py={8} px={12}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
@@ -168,34 +171,52 @@ export default function SellerProductNew() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => nav('/seller/products')}
-              color="whiteAlpha.600"
-              _hover={{ color: "white", bg: "whiteAlpha.100" }}
+              onClick={() => nav("/seller/products")}
+              color={theme.textSecondary}
+              _hover={{ color: theme.textMuted, bg: theme.hoverBg }}
             >
               <FiArrowLeft />
               Back to Products
             </Button>
           </HStack>
-          <Heading size="2xl" fontWeight="black" mb={2}>Add New Product</Heading>
-          <Text color="whiteAlpha.600">Create a new product listing</Text>
+
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>
+            Add New Product
+          </Heading>
+          <Text color={theme.textSecondary}>Create a new product listing</Text>
         </Box>
+
         <HStack spacing={3}>
           <Icon as={FiPlus} boxSize={6} color="brand.500" />
         </HStack>
       </Flex>
 
       {/* Main Form */}
-      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" borderRadius="lg" overflow="hidden">
+      <Box
+        bg={theme.cardBg}
+        border="1px solid"
+        borderColor={theme.border}
+        borderRadius="lg"
+        overflow="hidden"
+      >
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap={0}>
           {/* Left Column - Image & Basic Info */}
-          <Box p={8} borderRight={{ lg: "1px solid" }} borderColor="whiteAlpha.200">
+          <Box p={8} borderRight={{ lg: "1px solid" }} borderColor={theme.border}>
             <Stack spacing={6}>
               {/* Image Upload */}
               <Box>
-                <Text fontSize="sm" fontWeight="bold" mb={3} color="whiteAlpha.700" textTransform="uppercase" letterSpacing="wider">
+                <Text
+                  fontSize="sm"
+                  fontWeight="bold"
+                  mb={3}
+                  color={theme.text}
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                >
                   Product Image
                 </Text>
-                <Box position="relative" borderRadius="lg" overflow="hidden" bg="gray.800">
+
+                <Box position="relative" borderRadius="lg" overflow="hidden" bg={theme.inputBg}>
                   {previewUrl ? (
                     <Image
                       src={previewUrl}
@@ -208,19 +229,22 @@ export default function SellerProductNew() {
                     <Box
                       w="100%"
                       aspectRatio="1"
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
                       border="2px dashed"
-                      borderColor="whiteAlpha.300"
+                      borderColor={theme.border}
                     >
                       <VStack spacing={3}>
-                        <Icon as={FiImage} boxSize={12} color="whiteAlpha.400" />
-                        <Text color="whiteAlpha.500" fontSize="sm">No image selected</Text>
+                        <Icon as={FiImage} boxSize={12} color={theme.textSecondary} />
+                        <Text color={theme.textSecondary} fontSize="sm">
+                          No image selected
+                        </Text>
                       </VStack>
                     </Box>
                   )}
+
                   <Box
                     position="absolute"
                     inset="0"
@@ -236,9 +260,12 @@ export default function SellerProductNew() {
                   >
                     <VStack spacing={2}>
                       <Icon as={FiImage} boxSize={8} color="white" />
-                      <Text fontWeight="semibold">{previewUrl ? 'Change Image' : 'Upload Image'}</Text>
+                      <Text fontWeight="semibold">
+                        {previewUrl ? "Change Image" : "Upload Image"}
+                      </Text>
                     </VStack>
                   </Box>
+
                   <Input
                     type="file"
                     accept="image/*"
@@ -247,78 +274,91 @@ export default function SellerProductNew() {
                     ref={fileInputRef}
                   />
                 </Box>
+
                 <HStack mt={3} spacing={2}>
-                  <Badge bg="whiteAlpha.100" color="whiteAlpha.700" px={2} py={1}>PNG/JPG</Badge>
-                  <Badge bg="whiteAlpha.100" color="whiteAlpha.700" px={2} py={1}>Max 5MB</Badge>
+                  <Badge bg={theme.pageBg} color={theme.text} px={2} py={1}>
+                    PNG/JPG
+                  </Badge>
+                  <Badge bg={theme.pageBg} color={theme.text} px={2} py={1}>
+                    Max 5MB
+                  </Badge>
                 </HStack>
               </Box>
 
-              <Separator borderColor="whiteAlpha.200" />
+              <Separator mt={4} mb={3} borderColor={theme.border} />
 
               {/* Name */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Product Name *</Field.Label>
+                <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                  Product Name *
+                </Field.Label>
                 <Input
                   placeholder="Enter product name"
-                  value={p.name || ''}
-                  onChange={e => setP({ ...p, name: e.target.value })}
-                  bg="gray.800"
+                  value={p.name || ""}
+                  onChange={(e) => setP({ ...p, name: e.target.value })}
+                  bg={theme.inputBg}
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
+                  borderColor={theme.border}
+                  color={theme.text}
                   size="lg"
-                  _placeholder={{ color: "whiteAlpha.500" }}
+                  _placeholder={{ color: theme.textSecondary }}
                   _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
               {/* Description */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Description *</Field.Label>
+                <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                  Description *
+                </Field.Label>
                 <Textarea
                   placeholder="Detailed product description"
-                  value={p.description || ''}
-                  onChange={e => setP({ ...p, description: e.target.value })}
+                  value={p.description || ""}
+                  onChange={(e) => setP({ ...p, description: e.target.value })}
                   rows={5}
-                  bg="gray.800"
+                  bg={theme.inputBg}
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
-                  _placeholder={{ color: "whiteAlpha.500" }}
+                  borderColor={theme.border}
+                  color={theme.text}
+                  _placeholder={{ color: theme.textSecondary }}
                   _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
-              <Separator borderColor="whiteAlpha.200" />
+              <Separator mt={4} mb={3} borderColor={theme.border} />
 
               {/* Brand & SKU */}
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Brand</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Brand
+                  </Field.Label>
                   <Input
                     placeholder="Nike, Apple..."
-                    value={p.brand || ''}
-                    onChange={e => setP({ ...p, brand: e.target.value })}
-                    bg="gray.800"
+                    value={p.brand || ""}
+                    onChange={(e) => setP({ ...p, brand: e.target.value })}
+                    bg={theme.inputBg}
                     border="1px solid"
-                    borderColor="whiteAlpha.200"
-                    color="white"
-                    _placeholder={{ color: "whiteAlpha.500" }}
+                    borderColor={theme.border}
+                    color={theme.text}
+                    _placeholder={{ color: theme.textSecondary }}
                     _focus={{ borderColor: "brand.500" }}
                   />
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">SKU</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    SKU
+                  </Field.Label>
                   <Input
                     placeholder="Product code"
-                    value={p.sku || ''}
-                    onChange={e => setP({ ...p, sku: e.target.value })}
-                    bg="gray.800"
+                    value={p.sku || ""}
+                    onChange={(e) => setP({ ...p, sku: e.target.value })}
+                    bg={theme.inputBg}
                     border="1px solid"
-                    borderColor="whiteAlpha.200"
-                    color="white"
-                    _placeholder={{ color: "whiteAlpha.500" }}
+                    borderColor={theme.border}
+                    color={theme.text}
+                    _placeholder={{ color: theme.textSecondary }}
                     _focus={{ borderColor: "brand.500" }}
                   />
                 </Field.Root>
@@ -327,29 +367,37 @@ export default function SellerProductNew() {
               {/* Type & Status */}
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Type</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Type
+                  </Field.Label>
                   <Select.Root
                     collection={typeList}
-                    value={p.type || ''}
-                    onValueChange={(d) => setP({ ...p, type: d.value })}
-                    // defaultValue={["PHYSICAL"]} // sửa đây để chọn đúng type lúc load
+                    value={[p.type] || []}
+                    onValueChange={(d) => setP({ ...p, type: d.value[0] })}
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
                       <Select.Trigger
-                        bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
-                        _focus={{ borderColor: 'brand.500' }}
+                        bg={theme.inputBg}
+                        border="1px solid"
+                        borderColor={theme.border}
+                        color={theme.text}
+                        _focus={{ borderColor: "brand.500" }}
                       >
                         <Select.ValueText placeholder="Select type" />
                       </Select.Trigger>
-                      <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
+                      <Select.IndicatorGroup>
+                        <Select.Indicator />
+                      </Select.IndicatorGroup>
                     </Select.Control>
+
                     <Portal>
                       <Select.Positioner>
-                        <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
-                          {typeList.items.map(it => (
-                            <Select.Item key={it.value} item={it} _hover={{ bg: 'whiteAlpha.100' }}>
-                              {it.label}<Select.ItemIndicator />
+                        <Select.Content bg={theme.inputBg} borderColor={theme.border} color={theme.text}>
+                          {typeList.items.map((it) => (
+                            <Select.Item key={it.value} item={it} _hover={{ bg: theme.hoverBg }}>
+                              {it.label}
+                              <Select.ItemIndicator />
                             </Select.Item>
                           ))}
                         </Select.Content>
@@ -359,20 +407,22 @@ export default function SellerProductNew() {
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Status</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Status
+                  </Field.Label>
                   <Select.Root
                     collection={states}
-                    value={p.status || ['PROCESSING']}
-                    onValueChange={(details) => setP({ ...p, status: details.value })}
-                    disabled={true}
+                    value={p.status || ["PROCESSING"]}
+                    onValueChange={(d) => setP({ ...p, status: d.value })}
+                    disabled
                   >
                     <Select.HiddenSelect />
                     <Select.Control>
                       <Select.Trigger
-                        bg="gray.800"
+                        bg={theme.inputBg}
                         border="1px solid"
-                        borderColor="whiteAlpha.200"
-                        color="white"
+                        borderColor={theme.border}
+                        color={theme.text}
                         _focus={{ borderColor: "brand.500" }}
                       >
                         <Select.ValueText placeholder="Select status" />
@@ -384,13 +434,9 @@ export default function SellerProductNew() {
 
                     <Portal>
                       <Select.Positioner>
-                        <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
+                        <Select.Content bg={theme.inputBg} borderColor={theme.border} color={theme.text}>
                           {states.items.map((state) => (
-                            <Select.Item 
-                              item={state} 
-                              key={state.value}
-                              _hover={{ bg: "whiteAlpha.100" }}
-                            >
+                            <Select.Item key={state.value} item={state} _hover={{ bg: theme.hoverBg }}>
                               {state.label}
                               <Select.ItemIndicator />
                             </Select.Item>
@@ -402,51 +448,63 @@ export default function SellerProductNew() {
                 </Field.Root>
               </SimpleGrid>
 
-              <Separator borderColor="whiteAlpha.200" />
-
+              <Separator mt={4} mb={3} borderColor={theme.border} />
 
               {/* Featured Toggle */}
               <Field.Root pt={4}>
-                <HStack justify="space-between" p={4} bg="gray.800" borderRadius="md" border="1px solid" borderColor="whiteAlpha.200">
+                <HStack
+                  justify="space-between"
+                  p={4}
+                  gap={5}
+                  bg={theme.inputBg}
+                  borderRadius="md"
+                  border="1px solid"
+                  borderColor={theme.border}
+                >
                   <Box>
-                    <Text fontWeight="semibold" mb={1}>Featured Product</Text>
-                    <Text fontSize="sm" color="whiteAlpha.600">Display this product prominently</Text>
+                    <Text fontWeight="semibold" mb={1} color={theme.text}>
+                      Featured Product
+                    </Text>
+                    <Text fontSize="sm" color={theme.textSecondary}>
+                      Display this product prominently
+                    </Text>
                   </Box>
-                  <Switch.Root 
-                    checked={p.isFeatured} 
-                    onCheckedChange={(details) => setP({ ...p, isFeatured: details.checked })}
-                    colorPalette="brand"
+
+                  <Switch.Root
+                    checked={p.isFeatured}
+                    onCheckedChange={(d) => setP({ ...p, isFeatured: d.checked })}
                   >
                     <Switch.HiddenInput />
-                    <Switch.Control>
-                      <Switch.Thumb />
+                    <Switch.Control bg={theme.border} _checked={{ bg: theme.buttonBg }}>
+                      <Switch.Thumb bg={theme.textMuted} _checked={{ bg: "white" }} />
                     </Switch.Control>
                   </Switch.Root>
                 </HStack>
               </Field.Root>
-
             </Stack>
           </Box>
 
           {/* Right Column - Product Details */}
           <Box p={8}>
             <Stack spacing={6}>
-
               {/* Price & Discount Price */}
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Price *</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Price *
+                  </Field.Label>
                   <NumberInput.Root
                     min={0}
                     value={p.price || 0}
-                    onValueChange={(details) => setP({ ...p, price: details.valueAsNumber })}
+                    onValueChange={(d) => setP({ ...p, price: d.valueAsNumber })}
                   >
-                    <NumberInput.Input 
+                    <NumberInput.Input
                       placeholder="0.00"
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
+                      _placeholder={{ color: theme.textSecondary }}
                       _focus={{ borderColor: "brand.500" }}
                     />
                     <NumberInput.Control />
@@ -454,18 +512,21 @@ export default function SellerProductNew() {
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Discount Price</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Discount Price
+                  </Field.Label>
                   <NumberInput.Root
                     min={0}
-                    value={p.discountPrice ?? ''}
-                    onValueChange={(details) => setP({ ...p, discountPrice: details.valueAsNumber })}
+                    value={p.discountPrice ?? ""}
+                    onValueChange={(d) => setP({ ...p, discountPrice: d.valueAsNumber })}
                   >
-                    <NumberInput.Input 
+                    <NumberInput.Input
                       placeholder="0.00"
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
+                      _placeholder={{ color: theme.textSecondary }}
                       _focus={{ borderColor: "brand.500" }}
                     />
                     <NumberInput.Control />
@@ -476,18 +537,21 @@ export default function SellerProductNew() {
               {/* Quantity & Weight */}
               <SimpleGrid columns={2} gap={4}>
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Stock Quantity *</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Stock Quantity *
+                  </Field.Label>
                   <NumberInput.Root
                     min={0}
                     value={p.quantity || 0}
-                    onValueChange={(details) => setP({ ...p, quantity: details.valueAsNumber })}
+                    onValueChange={(d) => setP({ ...p, quantity: d.valueAsNumber })}
                   >
-                    <NumberInput.Input 
+                    <NumberInput.Input
                       placeholder="0"
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
+                      _placeholder={{ color: theme.textSecondary }}
                       _focus={{ borderColor: "brand.500" }}
                     />
                     <NumberInput.Control />
@@ -495,19 +559,22 @@ export default function SellerProductNew() {
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Weight (kg)</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                    Weight (kg)
+                  </Field.Label>
                   <NumberInput.Root
                     min={0}
                     precision={2}
-                    value={p.weight ?? ''}
-                    onValueChange={(details) => setP({ ...p, weight: details.valueAsNumber })}
+                    value={p.weight ?? ""}
+                    onValueChange={(d) => setP({ ...p, weight: d.valueAsNumber })}
                   >
-                    <NumberInput.Input 
+                    <NumberInput.Input
                       placeholder="0.00"
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
+                      _placeholder={{ color: theme.textSecondary }}
                       _focus={{ borderColor: "brand.500" }}
                     />
                     <NumberInput.Control />
@@ -517,54 +584,60 @@ export default function SellerProductNew() {
 
               {/* Dimensions */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Dimensions</Field.Label>
+                <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
+                  Dimensions
+                </Field.Label>
                 <Input
                   placeholder="L x W x H (cm)"
-                  value={p.dimensions || ''}
-                  onChange={e => setP({ ...p, dimensions: e.target.value })}
-                  bg="gray.800"
+                  value={p.dimensions || ""}
+                  onChange={(e) => setP({ ...p, dimensions: e.target.value })}
+                  bg={theme.inputBg}
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  color="white"
-                  _placeholder={{ color: "whiteAlpha.500" }}
+                  borderColor={theme.border}
+                  color={theme.text}
+                  _placeholder={{ color: theme.textSecondary }}
                   _focus={{ borderColor: "brand.500" }}
                 />
               </Field.Root>
 
-              {/* Category IDs */}
+              {/* Category */}
               <Field.Root>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">
+                <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">
                   Category
                 </Field.Label>
 
-                  <Select.Root
-                    collection={categoryCollection}
-                    value={p.categoryIds?.[0] ? [String(p.categoryIds[0])] : []}
-                    onValueChange={(details) => {
-                      const first = details.value?.[0] // string id
-                      const id = Number(first)
-                      setP(prev => ({ ...prev, categoryIds: Number.isNaN(id) ? [] : [id] }))
-                    }}
-                  >
+                <Select.Root
+                  collection={categoryCollection}
+                  value={p.categoryIds?.[0] ? [String(p.categoryIds[0])] : []}
+                  onValueChange={(details) => {
+                    const first = details.value?.[0]
+                    const id = Number(first)
+                    setP((prev) => ({ ...prev, categoryIds: Number.isNaN(id) ? [] : [id] }))
+                  }}
+                >
                   <Select.HiddenSelect />
                   <Select.Control>
                     <Select.Trigger
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
                       _focus={{ borderColor: "brand.500" }}
                     >
-                      <Select.ValueText placeholder={loading ? "Loading categories..." : "Select category"} />
+                      <Select.ValueText
+                        placeholder={loading ? "Loading categories..." : "Select category"}
+                      />
                     </Select.Trigger>
-                    <Select.IndicatorGroup><Select.Indicator /></Select.IndicatorGroup>
+                    <Select.IndicatorGroup>
+                      <Select.Indicator />
+                    </Select.IndicatorGroup>
                   </Select.Control>
 
                   <Portal>
                     <Select.Positioner>
-                      <Select.Content bg="gray.800" borderColor="whiteAlpha.200" color="white">
-                        {categoryCollection.items.map(it => (
-                          <Select.Item key={it.value} item={it} _hover={{ bg: "whiteAlpha.100" }}>
+                      <Select.Content bg={theme.inputBg} borderColor={theme.border} color={theme.text}>
+                        {categoryCollection.items.map((it) => (
+                          <Select.Item key={it.value} item={it} _hover={{ bg: theme.hoverBg }}>
                             {it.label}
                             <Select.ItemIndicator />
                           </Select.Item>
@@ -574,56 +647,46 @@ export default function SellerProductNew() {
                   </Portal>
                 </Select.Root>
 
-                <Text mt={1} fontSize="xs" color="whiteAlpha.500">
+                <Text mt={1} fontSize="sm" color={theme.textSecondary}>
                   Only sub-categories (children) are selectable
                 </Text>
               </Field.Root>
 
-
-
-
               {/* Variants Builder */}
               <Field.Root>
-                <Box mt={8}>
+                <Box mt={2}>
                   <VariantsBuilder
                     value={{ variantGroups: p.variantGroups, variants: p.variants }}
-                    onChange={({ variantGroups, variants }) => setP(prev => ({ ...prev, variantGroups, variants }))}
+                    onChange={({ variantGroups, variants }) =>
+                      setP((prev) => ({ ...prev, variantGroups, variants }))
+                    }
+                    theme={theme}
                   />
-                </Box> 
+                </Box>
               </Field.Root>
-
-
             </Stack>
-       
-
           </Box>
-
         </SimpleGrid>
 
-
         {/* Footer Actions */}
-        <Box 
-          p={6} 
-          borderTop="1px solid" 
-          borderColor="whiteAlpha.200"
-          bg="gray.950"
-        >
+        <Box p={6} borderTop="1px solid" borderColor={theme.border} bg={theme.hoverBg}>
           <Flex justify="flex-end" gap={3}>
             <Button
               variant="ghost"
               leftIcon={<FiX />}
-              onClick={() => nav('/seller/products')}
-              color="whiteAlpha.700"
-              _hover={{ bg: "whiteAlpha.100", color: "white" }}
+              onClick={() => nav("/seller/products")}
+              color={theme.text}
+              _hover={{ bg: theme.hoverBg, color: theme.textMuted }}
             >
               Cancel
             </Button>
+
             <Button
-              bg="brand.500"
+              bg={theme.buttonBg}
               color="white"
               leftIcon={<FiPlus />}
               onClick={save}
-              _hover={{ bg: "brand.600" }}
+              _hover={{ bg: theme.buttonHoverBg }}
             >
               Create Product
             </Button>

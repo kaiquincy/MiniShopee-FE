@@ -1,9 +1,14 @@
 // components/VariantsBuilder.jsx
-import { useCallback } from 'react'
 import {
-  Box, Button, Field, HStack, Input, NumberInput, Portal, Select,
-  SimpleGrid, Stack, Text, Badge, Image
+  Badge,
+  Box, Button, Field, HStack,
+  Icon,
+  Image,
+  Input, NumberInput,
+  SimpleGrid, Stack, Text,
+  VStack
 } from '@chakra-ui/react'
+import { useCallback } from 'react'
 import { FiImage, FiPlus, FiX } from 'react-icons/fi'
 
 // ===== utilities =====
@@ -25,7 +30,7 @@ const cartesian = (arrays) => arrays.reduce((acc, arr) => {
 }, [])
 
 // ===== main builder (controlled) =====
-export default function VariantsBuilder({ value, onChange }) {
+export default function VariantsBuilder({ value, onChange, theme }) {
   const variantGroups = value?.variantGroups || []
   const variants = value?.variants || []
 
@@ -109,153 +114,218 @@ export default function VariantsBuilder({ value, onChange }) {
     <Stack spacing={6}>
       {/* === Variant Groups === */}
       <Box>
-        <Text fontSize="sm" fontWeight="bold" mb={3} color="whiteAlpha.700" textTransform="uppercase" letterSpacing="wider">
+        <Text fontSize="sm" fontWeight="bold" mb={3} color={theme.text} textTransform="uppercase" letterSpacing="wider">
           Variant Groups
         </Text>
 
         <Stack spacing={4}>
           {variantGroups.map((g, gi) => (
-            <Box key={gi} p={4} border="1px solid" borderColor="whiteAlpha.200" borderRadius="md" bg="gray.850">
+            <Box key={gi} p={4} border="1px solid" borderColor={theme.border} borderRadius="md">
               <SimpleGrid columns={{ base: 1, md: 3 }} gap={3} alignItems="end">
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Group Name</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">Group Name</Field.Label>
                   <Input
                     value={g.name || ''}
                     onChange={e => setGroupField(gi, 'name', e.target.value)}
                     placeholder="Color / Size / Material..."
-                    bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
+                    bg={theme.inputBg} border="1px solid" borderColor={theme.border} color={theme.text}
                     _focus={{ borderColor: "brand.500" }}
                   />
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Sort Order</Field.Label>
+                  <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">Sort Order</Field.Label>
                   <NumberInput.Root
                     min={1}
                     value={g.sortOrder ?? (gi + 1)}
                     onValueChange={(d) => setGroupField(gi, 'sortOrder', d.valueAsNumber)}
                   >
-                    <NumberInput.Input bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white" _focus={{ borderColor: "brand.500" }} />
+                    <NumberInput.Input bg={theme.inputBg} border="1px solid" borderColor={theme.border} color={theme.text} _focus={{ borderColor: "brand.500" }} />
                     <NumberInput.Control />
                   </NumberInput.Root>
                 </Field.Root>
 
-                <Button variant="ghost" color="red.300" leftIcon={<FiX />} onClick={() => removeGroup(gi)} _hover={{ bg: "whiteAlpha.100" }}>
+                <Button color="red.500" variant="ghost" leftIcon={<FiX />} onClick={() => removeGroup(gi)}>
                   Remove Group
                 </Button>
               </SimpleGrid>
 
               <Box mt={3}>
-                <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Options</Field.Label>
+                <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold">Options</Field.Label>
                 <Stack spacing={2} mt={2}>
                   {(g.options || []).map((opt, oi) => (
-                    <HStack key={oi}>
+                    <HStack key={oi} mb={1}>
                       <Input
                         value={opt}
                         onChange={e => setGroupOption(gi, oi, e.target.value)}
                         placeholder="e.g. Black / Gray / S / M..."
-                        bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
+                        bg={theme.inputBg} border="1px solid" borderColor={theme.border} color={theme.text}
                         _focus={{ borderColor: "brand.500" }}
                       />
-                      <Button size="sm" variant="ghost" color="red.300" onClick={() => removeGroupOption(gi, oi)}>
+                      <Button size="sm" variant="ghost" color="red.500" onClick={() => removeGroupOption(gi, oi)}>
                         <FiX />
                       </Button>
                     </HStack>
                   ))}
-                  <Button variant="outline" leftIcon={<FiPlus />} onClick={() => addGroupOption(gi)} _hover={{ bg: "whiteAlpha.100" }}>
-                    Add Option
-                  </Button>
+                  <Box>
+                    <Button onClick={() => addGroupOption(gi)}>
+                      <Icon as={FiPlus} />Add Option
+                    </Button>
+                  </Box>
                 </Stack>
               </Box>
             </Box>
           ))}
 
-          <Button bg="brand.500" color="white" leftIcon={<FiPlus />} onClick={addGroup} _hover={{ bg: "brand.600" }} alignSelf="flex-start">
-            Add Group
-          </Button>
+          <Box textAlign="center">
+            <Button bg={theme.buttonBg} color="white" leftIcon={<FiPlus />} onClick={addGroup} _hover={{ bg: theme.buttonHoverBg }} alignSelf="flex-start">
+              <Icon as={FiPlus} />Add Group
+            </Button>
+          </Box>
         </Stack>
       </Box>
 
       {/* === Product Variants (generated) === */}
       <Box>
-        <Text fontSize="sm" fontWeight="bold" mb={3} color="whiteAlpha.700" textTransform="uppercase" letterSpacing="wider">
+        <Text fontSize="sm" fontWeight="bold" mb={3} color={theme.text} textTransform="uppercase" letterSpacing="wider">
           Product Variants
         </Text>
 
         {(!variants || variants.length === 0) ? (
-          <Text color="whiteAlpha.600" fontSize="sm">Add at least one Variant Group with options to generate combinations.</Text>
+          <Text color={theme.text} fontSize="sm">Add at least one Variant Group with options to generate combinations.</Text>
         ) : (
           <Stack spacing={3}>
             {variants.map((v, i) => (
-              <Box key={v.imageKey || i} p={3} border="1px dashed" borderColor="whiteAlpha.300" borderRadius="md">
-                <SimpleGrid columns={{ base: 1, md: 6 }} gap={3} alignItems="end">
-                  {/* OptionValues tags */}
-                  <Field.Root>
-                    <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Options</Field.Label>
-                    <HStack wrap="wrap">
-                      {Object.entries(v.optionValues || {}).map(([k, val]) => (
-                        <Badge key={k} bg="whiteAlpha.200" color="white" px={2} py={1}>{k}: {String(val)}</Badge>
-                      ))}
-                    </HStack>
-                    <Text mt={1} fontSize="xs" color="whiteAlpha.500">imageKey: {v.imageKey}</Text>
-                  </Field.Root>
+              <Box
+                key={v.imageKey || i}
+                p={4}
+                border="1px dashed"
+                borderColor={theme.border}
+                borderRadius="lg"
+              >
+                <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} alignItems="start">
+                  <VStack gap={3}>
+                    {/* Options (wider) */}
+                    <Field.Root>
+                      <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold" mb={1}>
+                        Options
+                      </Field.Label>
 
-                  {/* SKU Code */}
-                  <Field.Root>
-                    <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">SKU Code</Field.Label>
-                    <Input
-                      value={v.skuCode || ''}
-                      onChange={e => setVariantField(i, 'skuCode', e.target.value)}
-                      placeholder="TSHIRT-RS"
-                      bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white"
-                      _focus={{ borderColor: "brand.500" }}
-                    />
-                  </Field.Root>
+                      <HStack wrap="wrap" gap={2}>
+                        {Object.entries(v.optionValues || {}).length > 0 ? (
+                          Object.entries(v.optionValues || {}).map(([k, val]) => (
+                            <Badge
+                              key={k}
+                              bg={theme.inputBg}
+                              color={theme.text}
+                              border="1px solid"
+                              borderColor={theme.border}
+                              px={2}
+                              py={1}
+                              borderRadius="md"
+                              fontSize="xs"
+                            >
+                              {k}: {String(val)}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Text fontSize="sm" color={theme.textSecondary}>
+                            No options
+                          </Text>
+                        )}
+                      </HStack>
 
-                  {/* Price */}
-                  <Field.Root>
-                    <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Price</Field.Label>
-                    <NumberInput.Root
-                      min={0}
-                      value={v.price ?? 0}
-                      onValueChange={(d) => setVariantField(i, 'price', d.valueAsNumber)}
-                    >
-                      <NumberInput.Input bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white" _focus={{ borderColor: "brand.500" }} />
-                      <NumberInput.Control />
-                    </NumberInput.Root>
-                  </Field.Root>
+                      {v.imageKey && (
+                        <Text mt={2} fontSize="xs" color={theme.textSecondary}>
+                          imageKey: {v.imageKey}
+                        </Text>
+                      )}
+                    </Field.Root>
 
-                  {/* Stock */}
-                  <Field.Root>
-                    <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">Stock</Field.Label>
-                    <NumberInput.Root
-                      min={0}
-                      value={v.stock ?? 0}
-                      onValueChange={(d) => setVariantField(i, 'stock', d.valueAsNumber)}
-                    >
-                      <NumberInput.Input bg="gray.800" border="1px solid" borderColor="whiteAlpha.200" color="white" _focus={{ borderColor: "brand.500" }} />
-                      <NumberInput.Control />
-                    </NumberInput.Root>
-                  </Field.Root>
+                    {/* SKU Code */}
+                    <Field.Root>
+                      <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold" mb={1}>
+                        SKU Code
+                      </Field.Label>
+                      <Input
+                        value={v.skuCode || ""}
+                        onChange={(e) => setVariantField(i, "skuCode", e.target.value)}
+                        placeholder="TSHIRT-RS"
+                        bg={theme.inputBg}
+                        border="1px solid"
+                        borderColor={theme.border}
+                        color={theme.text}
+                        _placeholder={{ color: theme.textSecondary }}
+                        _focus={{ borderColor: "brand.500" }}
+                      />
+                    </Field.Root>
 
-                  {/* Image */}
+                    {/* Price */}
+                    <Field.Root>
+                      <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold" mb={1}>
+                        Price
+                      </Field.Label>
+                      <NumberInput.Root
+                        min={0}
+                        value={v.price ?? 0}
+                        onValueChange={(d) => setVariantField(i, "price", d.valueAsNumber)}
+                      >
+                        <NumberInput.Input
+                          bg={theme.inputBg}
+                          border="1px solid"
+                          borderColor={theme.border}
+                          color={theme.text}
+                          _placeholder={{ color: theme.textSecondary }}
+                          _focus={{ borderColor: "brand.500" }}
+                        />
+                        <NumberInput.Control />
+                      </NumberInput.Root>
+                    </Field.Root>
+
+                    {/* Stock */}
+                    <Field.Root>
+                      <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold" mb={1}>
+                        Stock
+                      </Field.Label>
+                      <NumberInput.Root
+                        min={0}
+                        value={v.stock ?? 0}
+                        onValueChange={(d) => setVariantField(i, "stock", d.valueAsNumber)}
+                      >
+                        <NumberInput.Input
+                          bg={theme.inputBg}
+                          border="1px solid"
+                          borderColor={theme.border}
+                          color={theme.text}
+                          _placeholder={{ color: theme.textSecondary }}
+                          _focus={{ borderColor: "brand.500" }}
+                        />
+                        <NumberInput.Control />
+                      </NumberInput.Root>
+                    </Field.Root>
+                  </VStack>
+
+                  {/* Image (wider) */}
                   <Field.Root>
-                    <Field.Label color="whiteAlpha.700" fontSize="sm" fontWeight="semibold">
+                    <Field.Label color={theme.text} fontSize="sm" fontWeight="semibold" mb={2}>
                       Variant Image
                     </Field.Label>
 
-                    <HStack>
+                    <HStack gap={3} align="center" flexWrap="wrap">
                       <Button
-                        variant="outline"
                         onClick={() => document.getElementById(`var-file-${i}`)?.click()}
-                        leftIcon={<FiImage />}
-                        _hover={{ bg: "whiteAlpha.100" }}
                       >
-                        {v?.imageFile ? 'Change' : (getVariantImgSrc(v) ? 'Change' : 'Upload')}
+                        <Icon as={FiImage} />
+                        {v?.imageFile ? "Change" : getVariantImgSrc(v) ? "Change" : "Upload"}
                       </Button>
 
                       {(v?.imageFile || v?.ImageUrl || v?.imageUrl) && (
-                        <Text fontSize="xs" color="whiteAlpha.600">
+                        <Text
+                          fontSize="xs"
+                          color={theme.textSecondary ?? theme.text}
+                          maxW="220px"
+                          noOfLines={1}
+                        >
                           {v?.imageFile?.name || v?.ImageUrl || v?.imageUrl}
                         </Text>
                       )}
@@ -265,13 +335,13 @@ export default function VariantsBuilder({ value, onChange }) {
                         type="file"
                         accept="image/*"
                         display="none"
-                        onChange={e => onVariantImage(i, e.target.files?.[0])}
+                        onChange={(e) => onVariantImage(i, e.target.files?.[0])}
                       />
                     </HStack>
 
                     {(v?.imageFile || v?.ImageUrl || v?.imageUrl) && (
                       <Image
-                        mt={2}
+                        mt={3}
                         src={getVariantImgSrc(v)}
                         alt="Variant preview"
                         objectFit="cover"
@@ -280,12 +350,11 @@ export default function VariantsBuilder({ value, onChange }) {
                         aspectRatio="1"
                         borderRadius="md"
                         border="1px solid"
-                        borderColor="whiteAlpha.300"
+                        borderColor={theme.border}
+                        color={theme.textMuted}
                       />
                     )}
                   </Field.Root>
-
-
                 </SimpleGrid>
               </Box>
             ))}

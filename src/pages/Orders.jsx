@@ -7,7 +7,6 @@ import {
   Icon,
   Separator,
   Skeleton,
-  Stack,
   Tabs,
   Text,
   VStack
@@ -101,83 +100,84 @@ export default function Orders() {
       </Box>
 
       {/* Filter tabs */}
-<Tabs.Root
-  value={value}
-  onValueChange={(e) => {
-    setValue(e.value)
-    setPage(0)
-  }}
-  variant="plain"
->
-  <Tabs.List
-    overflowX="auto"
-    overflowY="hidden"
-    bg={theme.secondaryBg}
-    border="1px solid"
-    borderColor={theme.border}
-    rounded="xl"
-    p="1"
-    gap="1"
-    sx={{
-      WebkitOverflowScrolling: "touch",
-      scrollbarWidth: "none",
-      "&::-webkit-scrollbar": { display: "none" },
-    }}
-  >
-    {[
-      { v: "all", label: "All" },
-      { v: "processing", label: "Processing", count: counts.processing },
-      { v: "shipping", label: "Shipping", count: counts.shipping },
-      { v: "completed", label: "Completed", count: counts.completed },
-      { v: "cancelled", label: "Cancelled", count: counts.cancelled },
-    ].map((t) => (
-      <Tabs.Trigger
-        key={t.v}
-        value={t.v}
-        px="3"
-        py="2"
-        rounded="lg"
-        fontWeight="semibold"
-        color={theme.textSecondary}
-        transition="all .15s ease"
-        _hover={{ color: theme.text, bg: theme.hoverBg }}
-        _selected={{ color: theme.text }}
-        display="inline-flex"
-        alignItems="center"
-        gap="2"
-        whiteSpace="nowrap"
+      <Tabs.Root
+        value={value}
+        onValueChange={(e) => {
+          setValue(e.value)
+          setPage(0)
+        }}
+        variant="plain"
       >
-        <Text>{t.label}</Text>
+        <Tabs.List
+          position="relative"
+          overflowX="auto"
+          overflowY="hidden"
+          p="1"
+          gap="1"
+          sx={{
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+            "&::-webkit-scrollbar": { display: "none" },
+          }}
+        >
+          {[
+            { v: "all", label: "All" },
+            { v: "processing", label: "Processing", count: counts.processing },
+            { v: "shipping", label: "Shipping", count: counts.shipping },
+            { v: "completed", label: "Completed", count: counts.completed },
+            { v: "cancelled", label: "Cancelled", count: counts.cancelled },
+          ].map((t) => (
+            <Tabs.Trigger
+              key={t.v}
+              value={t.v}
+              px="3"
+              py="2"
+              rounded="lg"
+              fontWeight="semibold"
+              color={theme.textSecondary}
+              transition="all .15s ease"
+              _hover={{ color: theme.text, bg: theme.hoverBg }}
+              _selected={{ color: theme.text }}
+              display="inline-flex"
+              alignItems="center"
+              gap="2"
+              whiteSpace="nowrap"
+              fontSize="md"
+            >
+              <Text>{t.label}</Text>
 
-        {typeof t.count === "number" && (
-          <Badge
-            variant="subtle"
-            rounded="full"
-            px="2"
-            minW="22px"
-            textAlign="center"
-            color={theme.text}
+              {typeof t.count === "number" && (
+                <Badge
+                  variant="subtle"
+                  rounded="full"
+                  px="2"
+                  py="1"
+                  minW="22px"
+                  textAlign="center"
+                  color={theme.text}
+                  border="1px solid"
+                  borderColor={theme.border}
+                  bg={theme.inputBg}
+                >
+                  {t.count}
+                </Badge>
+              )}
+            </Tabs.Trigger>
+          ))}
+
+          <Tabs.Indicator
+            rounded="lg"
+            bg={theme.text}
+            boxShadow="xs"
             border="1px solid"
             borderColor={theme.border}
-            bg={theme.cardBg}
-          >
-            {t.count}
-          </Badge>
-        )}
-      </Tabs.Trigger>
-    ))}
-
-    {/* Indicator kiểu “pill” nằm dưới tab được chọn */}
-    <Tabs.Indicator
-      rounded="lg"
-      bg={theme.cardBg}
-      boxShadow="xs"
-      border="1px solid"
-      borderColor={theme.border}
-      transition="all .18s ease"
-    />
-  </Tabs.List>
-</Tabs.Root>
+            transition="all .18s ease"
+            h="6px"
+            position="absolute"
+            bottom={0}
+          />
+        </Tabs.List>
+      </Tabs.Root>
 
 
       {/* Orders list */}
@@ -428,7 +428,8 @@ function OrderCard({ order: o, theme }) {
               as={Link}
               to={`/orders/${o.id}/track`}
               size="sm"
-              variant="outline"
+              bg={theme.inputBg}
+              _hover={{ bg: theme.hoverBg }}
               borderColor={theme.border}
               color={theme.text}
             >
@@ -441,7 +442,8 @@ function OrderCard({ order: o, theme }) {
               as={Link}
               to={`/orders/${o.id}`}
               size="sm"
-              variant="outline"
+              bg={theme.inputBg}
+              _hover={{ bg: theme.hoverBg }}
               borderColor={theme.border}
               color={theme.text}
             >
@@ -453,6 +455,7 @@ function OrderCard({ order: o, theme }) {
             <RatingDialog
               order={o}
               items={unratedItems}
+              theme={theme}
               onSubmit={async ({ orderItemId, stars, comment, files }) => {
                 try {
                   const fd = new FormData()
@@ -477,7 +480,7 @@ function OrderCard({ order: o, theme }) {
               </Button>
             </RatingDialog>
           ) : status === "completed" && allItemsRated ? (
-            <Button size="sm" variant="outline" borderColor={theme.border} color={theme.textMuted} isDisabled>
+            <Button size="sm" bg={theme.secondaryBg} borderColor={theme.border} color={theme.textMuted} cursor="disabled" isDisabled>
               Rated
             </Button>
           ) : status !== "completed" ? (
@@ -485,7 +488,8 @@ function OrderCard({ order: o, theme }) {
               as={Link}
               to={`/orders/${o.id}`}
               size="sm"
-              variant="outline"
+              bg={theme.inputBg}
+              _hover={{ bg: theme.hoverBg }}s
               borderColor={theme.border}
               color={theme.text}
             >

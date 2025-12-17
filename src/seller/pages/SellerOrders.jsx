@@ -6,6 +6,7 @@ import { FiClock, FiDollarSign, FiPackage, FiRefreshCw, FiSearch } from 'react-i
 
 import OrderActions from '../../components/OrderActions'
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchOrders, updateOrderStatus } from '../api/seller'
 import { ALLOWED, ORDER } from '../utils/orderFlow'
 
@@ -47,13 +48,14 @@ export default function SellerOrders() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingForOrder, setLoadingForOrder] = useState({})
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
     try {
       const data = await fetchOrders({ status: status || undefined, q: q || undefined })
       const arr = Array.isArray(data) ? data : (data?.content || [])
-      setList([...arr].reverse())
+      setList([...arr])
     } finally {
       setLoading(false)
     }
@@ -112,64 +114,64 @@ export default function SellerOrders() {
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2}>Orders</Heading>
-          <Text color="whiteAlpha.600">Manage and track customer orders</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Orders</Heading>
+          <Text color={theme.textSecondary}>Manage and track customer orders</Text>
         </Box>
       </Flex>
 
       {/* Stats Cards */}
       <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={4} mb={6}>
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={4}>
             <Box p={3} bg="#2563EB20" borderRadius="lg">
               <Icon as={FiPackage} boxSize={5} color="#2563EB" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Total Orders</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.total}</Text>
+              <Text color={theme.text} fontSize="md">Total Orders</Text>
+              <Text color="#2563EB" fontWeight="bold" fontSize="2xl">{stats.total}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={4}>
             <Box p={3} bg="#F59E0B20" borderRadius="lg">
               <Icon as={FiClock} boxSize={5} color="#F59E0B" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Pending</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.pending}</Text>
+              <Text color={theme.text} fontSize="md">Pending</Text>
+              <Text color="#F59E0B" fontWeight="bold" fontSize="2xl">{stats.pending}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={4}>
             <Box p={3} bg="#10B98120" borderRadius="lg">
               <Icon as={FiPackage} boxSize={5} color="#10B981" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Completed</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.completed}</Text>
+              <Text color={theme.text} fontSize="md">Completed</Text>
+              <Text color="#10B981" fontWeight="bold" fontSize="2xl">{stats.completed}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={4}>
             <Box p={3} bg="#10B98120" borderRadius="lg">
               <Icon as={FiDollarSign} boxSize={5} color="#10B981" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Revenue</Text>
-              <Text fontWeight="bold" fontSize="xl">${stats.totalRevenue.toLocaleString()}</Text>
+              <Text color={theme.text} fontSize="md">Revenue</Text>
+              <Text color="#10B981" fontWeight="bold" fontSize="xl">${stats.totalRevenue.toLocaleString()}</Text>
             </Box>
           </HStack>
         </Box>
       </Grid>
 
       {/* Search & Filter */}
-      <Flex gap={3} mb={6}>
+      <Flex gap={3} mb={6} bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg">
         <Box position="relative" flex={1} maxW="500px">
           <Icon
             as={FiSearch}
@@ -177,32 +179,33 @@ export default function SellerOrders() {
             left={4}
             top="50%"
             transform="translateY(-50%)"
-            color="whiteAlpha.500"
+            color={theme.text}
             boxSize={5}
+            zIndex={1}
           />
           <Input
             placeholder="Search by order ID, customer name, or product..."
             value={q}
             onChange={e => setQ(e.target.value)}
-            bg="gray.900"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="whiteAlpha.200"
-            color="white"
+            borderColor={theme.border}
+            color={theme.text}
             pl={12}
             h="48px"
-            _placeholder={{ color: "whiteAlpha.500" }}
+            _placeholder={{ color: theme.textSecondary }}
             _focus={{ borderColor: "brand.500" }}
           />
         </Box>
         <Button
           onClick={load}
           isLoading={loading}
-          bg="gray.900"
+          bg={theme.buttonBg}
           color="white"
           h="48px"
           px={6}
           border="1px solid"
-          borderColor="whiteAlpha.200"
+          borderColor={theme.border}
           leftIcon={<FiRefreshCw />}
           _hover={{ borderColor: "brand.500", bg: "gray.800" }}
         >
@@ -211,17 +214,17 @@ export default function SellerOrders() {
       </Flex>
 
       {/* Orders Table */}
-      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" borderRadius="lg" overflow="hidden">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
         {/* Table Header */}
         <Grid
           templateColumns="140px 1fr 160px 200px"
           py={4}
           px={6}
           borderBottom="1px solid"
-          borderColor="whiteAlpha.200"
+          borderColor={theme.borderLight}
           fontWeight="bold"
           fontSize="sm"
-          color="whiteAlpha.700"
+          color={theme.text}
           textTransform="uppercase"
           letterSpacing="wider"
         >
@@ -234,13 +237,13 @@ export default function SellerOrders() {
         {/* Table Body */}
         {loading ? (
           <Box p={12} textAlign="center">
-            <Text color="whiteAlpha.500">Loading orders...</Text>
+            <Text color={theme.text}>Loading orders...</Text>
           </Box>
         ) : filtered.length === 0 ? (
           <Box p={12} textAlign="center">
-            <Icon as={FiPackage} boxSize={12} color="whiteAlpha.300" mb={4} />
-            <Text color="whiteAlpha.500" fontSize="lg" mb={2}>No orders found</Text>
-            <Text color="whiteAlpha.400" fontSize="sm">
+            <Icon as={FiPackage} boxSize={12} color={theme.text} mb={4} />
+            <Text color={theme.text} fontSize="lg" mb={2}>No orders found</Text>
+            <Text color={theme.textSecondary} fontSize="sm">
               {q ? 'Try adjusting your search' : 'Orders will appear here when customers place them'}
             </Text>
           </Box>
@@ -256,18 +259,18 @@ export default function SellerOrders() {
                 py={4}
                 px={6}
                 borderBottom={idx !== filtered.length - 1 ? "1px solid" : "none"}
-                borderColor="whiteAlpha.100"
+                borderColor={theme.borderLight}
                 alignItems="center"
                 transition="all 0.2s"
-                _hover={{ bg: "whiteAlpha.50" }}
+                _hover={{ bg: theme.hoverBg }}
               >
                 {/* Order ID & Date */}
                 <VStack align="start" spacing={1}>
                   <Text fontWeight="bold" color="brand.400">#{o.orderId}</Text>
-                  <Text fontSize="xs" color="whiteAlpha.500">
+                  <Text fontSize="sm" color={theme.textSecondary}>
                     {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}
                   </Text>
-                  <Text fontSize="xs" color="whiteAlpha.500">
+                  <Text fontSize="sm" color={theme.textSecondary}>
                     {o.createdAt ? new Date(o.createdAt).toLocaleTimeString() : ''}
                   </Text>
                 </VStack>
@@ -275,12 +278,12 @@ export default function SellerOrders() {
                 {/* Items & Total */}
                 <VStack align="start" spacing={1}>
                   {(o.items || []).slice(0, 2).map(it => (
-                    <Text key={it.id || it.productId} fontSize="sm" noOfLines={1}>
+                    <Text key={it.id || it.productId} fontSize="md" noOfLines={1} color={theme.text}>
                       • {it.productName} × {it.quantity}
                     </Text>
                   ))}
                   {(o.items || []).length > 2 && (
-                    <Text fontSize="xs" color="whiteAlpha.500">
+                    <Text fontSize="xs" color={theme.textMuted}>
                       +{(o.items || []).length - 2} more items
                     </Text>
                   )}
@@ -300,8 +303,9 @@ export default function SellerOrders() {
                     status={o.status}
                     onAction={(next) => doAction(o.orderId, next)}
                     loadingFor={perActionLoading}
-                    size="sm"
+                    size="lg"
                     variant="ghost"
+                    theme={theme}
                   />
                 </Flex>
               </Grid>

@@ -10,8 +10,6 @@ export default function ProductCard({ p, theme }) {
   const imageUrl = `${import.meta.env.VITE_API_URL}/uploads/${p.imageUrl}`
   const dummyUrl = `https://dummyimage.com/400x300/228be6/ffffff.jpg&text=${encodeURIComponent(p.name)}`
 
-  console.log(p)
-
   return (
     <Box
       bg={theme.cardBg}

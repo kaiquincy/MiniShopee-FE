@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FiAlertCircle, FiCheckCircle, FiPackage, FiSave, FiSearch } from 'react-icons/fi'
 
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { fetchProducts, updateProduct } from '../api/seller'
 
 export default function SellerInventory() {
@@ -11,6 +12,7 @@ export default function SellerInventory() {
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [savingIds, setSavingIds] = useState(new Set())
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
@@ -62,68 +64,68 @@ export default function SellerInventory() {
   }, [items])
 
   return (
-    <Box color="white" p={8}>
+    <Box p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2}>Inventory</Heading>
-          <Text color="whiteAlpha.600">Manage stock quantities and availability</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Inventory</Heading>
+          <Text color={theme.textSecondary}>Manage stock quantities and availability</Text>
         </Box>
       </Flex>
 
       {/* Stats Cards */}
       <Grid templateColumns={{ base: "1fr", md: "repeat(4, 1fr)" }} gap={4} mb={6}>
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={3}>
             <Box p={3} bg="#2563EB20" borderRadius="lg">
               <Icon as={FiPackage} boxSize={5} color="#2563EB" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Total Products</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.totalProducts}</Text>
+              <Text color={theme.text} fontSize="md">Total Products</Text>
+              <Text color="#2563EB" fontWeight="bold" fontSize="2xl">{stats.totalProducts}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={3}>
             <Box p={3} bg="#10B98120" borderRadius="lg">
               <Icon as={FiCheckCircle} boxSize={5} color="#10B981" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">In Stock</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.inStock}</Text>
+              <Text color={theme.text} fontSize="md">In Stock</Text>
+              <Text color="#10B981" fontWeight="bold" fontSize="2xl">{stats.inStock}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={3}>
             <Box p={3} bg="#F59E0B20" borderRadius="lg">
               <Icon as={FiAlertCircle} boxSize={5} color="#F59E0B" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Low Stock</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.lowStock}</Text>
+              <Text color={theme.text} fontSize="md">Low Stock</Text>
+              <Text color="#F59E0B" fontWeight="bold" fontSize="2xl">{stats.lowStock}</Text>
             </Box>
           </HStack>
         </Box>
 
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4} borderRadius="lg">
-          <HStack spacing={3}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg">
+          <HStack gap={3}>
             <Box p={3} bg="#EF444420" borderRadius="lg">
               <Icon as={FiAlertCircle} boxSize={5} color="#EF4444" />
             </Box>
             <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Out of Stock</Text>
-              <Text fontWeight="bold" fontSize="2xl">{stats.outOfStock}</Text>
+              <Text color={theme.text} fontSize="md">Out of Stock</Text>
+              <Text color="#EF4444" fontWeight="bold" fontSize="2xl">{stats.outOfStock}</Text>
             </Box>
           </HStack>
         </Box>
       </Grid>
 
       {/* Search Bar */}
-      <Box mb={6}>
+      <Box mb={6} bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" p={5} >
         <Box position="relative" maxW="500px">
           <Icon
             as={FiSearch}
@@ -131,37 +133,38 @@ export default function SellerInventory() {
             left={4}
             top="50%"
             transform="translateY(-50%)"
-            color="whiteAlpha.500"
+            color={theme.text}
             boxSize={5}
+            zIndex={1}
           />
           <Input
             placeholder="Search by product name or ID..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            bg="gray.900"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="whiteAlpha.200"
-            color="white"
+            borderColor={theme.border}
+            color={theme.text}
             pl={12}
             h="48px"
-            _placeholder={{ color: "whiteAlpha.500" }}
+            _placeholder={{ color: theme.textSecondary }}
             _focus={{ borderColor: "brand.500" }}
           />
         </Box>
       </Box>
 
       {/* Inventory Table */}
-      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" borderRadius="lg" overflow="hidden">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
         {/* Table Header */}
         <Grid
           templateColumns="100px 1fr 200px 150px 150px"
           py={4}
           px={6}
           borderBottom="1px solid"
-          borderColor="whiteAlpha.200"
+          borderColor={theme.border}
           fontWeight="bold"
           fontSize="sm"
-          color="whiteAlpha.700"
+          color={theme.text}
           textTransform="uppercase"
           letterSpacing="wider"
         >
@@ -175,15 +178,15 @@ export default function SellerInventory() {
         {/* Table Body */}
         {loading ? (
           <Box p={12} textAlign="center">
-            <Text color="whiteAlpha.500">Loading inventory...</Text>
+            <Text color={theme.text}>Loading inventory...</Text>
           </Box>
         ) : filteredItems.length === 0 ? (
           <Box p={12} textAlign="center">
-            <Icon as={FiPackage} boxSize={12} color="whiteAlpha.300" mb={4} />
-            <Text color="whiteAlpha.500" fontSize="lg" mb={2}>
+            <Icon as={FiPackage} boxSize={12} color={theme.text} mb={4} />
+            <Text color={theme.text} fontSize="lg" mb={2}>
               {searchQuery ? 'No products found' : 'No inventory items'}
             </Text>
-            <Text color="whiteAlpha.400" fontSize="sm">
+            <Text color={theme.textSecondary} fontSize="sm">
               {searchQuery ? 'Try adjusting your search' : 'Add products to manage inventory'}
             </Text>
           </Box>
@@ -200,10 +203,10 @@ export default function SellerInventory() {
                 py={4}
                 px={6}
                 borderBottom={idx !== filteredItems.length - 1 ? "1px solid" : "none"}
-                borderColor="whiteAlpha.100"
+                borderColor={theme.borderLight}
                 alignItems="center"
                 transition="all 0.2s"
-                _hover={{ bg: "whiteAlpha.50" }}
+                _hover={{ bg: theme.hoverBg }}
               >
                 {/* ID */}
                 <Box>
@@ -228,10 +231,10 @@ export default function SellerInventory() {
                     }}
                   >
                     <NumberInput.Input
-                      bg="gray.800"
+                      bg={theme.inputBg}
                       border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      color="white"
+                      borderColor={theme.border}
+                      color={theme.text}
                       _focus={{ borderColor: "brand.500" }}
                     />
                     <NumberInput.Control />
@@ -289,12 +292,12 @@ export default function SellerInventory() {
                 <Box>
                   <Button
                     size="sm"
-                    bg="brand.500"
+                    bg={theme.buttonBg}
                     color="white"
                     leftIcon={<FiSave />}
                     onClick={() => saveQty(p)}
                     isLoading={savingIds.has(p.id)}
-                    _hover={{ bg: "brand.600" }}
+                    _hover={{ bg: theme.buttonHoverBg }}
                   >
                     Save
                   </Button>

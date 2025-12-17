@@ -94,159 +94,195 @@ export default function AdminDashboard() {
 
 
   const stats = useMemo(() => {
-    const totalOrders = orders.length
-    const totalRevenue = orders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0)
-    const totalUsers = users.length
-    
-    const byStatus = orders.reduce((m, o) => {
-      m[o.status] = (m[o.status] || 0) + 1
-      return m
-    }, {})
+    const safeNumber = (v) => Number(v) || 0
 
-    const pendingOrders = byStatus['PENDING'] || 0
-    const completedOrders = byStatus['COMPLETED'] || 0
-    const avgOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders) : 0
+    // --- Status helpers ---
+    const isCompletedOrder = (o) => {
+      const st = String(o?.status || '').toUpperCase()
+      return st === 'COMPLETED' || st === 'COMPLETE'
+    }
 
-    // Helper function to generate date ranges
-    const generateDateRange = (days) => {
-      return Array.from({ length: parseInt(days) }, (_, i) => {
-        const d = new Date()
-        d.setDate(d.getDate() - (days - 1 - i))
-        return {
-          date: days <= 30 ? `${d.getMonth() + 1}/${d.getDate()}` : `${d.getMonth() + 1}/${d.getDate()}`,
-          dateObj: d,
-          fullDate: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-        }
+    // --- Date helpers (LOCAL day boundaries) ---
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    const addDays = (d, n) => {
+      const x = new Date(d)
+      x.setDate(x.getDate() + n)
+      return x
+    }
+    const pad2 = (n) => String(n).padStart(2, '0')
+    const dayKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+
+    const formatMD = (d) => `${d.getMonth() + 1}/${d.getDate()}`
+    const formatFull = (d) =>
+      d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+
+    const generateDateRange = (daysRaw) => {
+      const days = Math.max(1, parseInt(daysRaw || 0, 10))
+      const todayStart = startOfDay(new Date())
+      return Array.from({ length: days }, (_, i) => {
+        const d = addDays(todayStart, i - (days - 1))
+        return { dateObj: d, key: dayKey(d), label: formatMD(d), fullDate: formatFull(d) }
       })
     }
 
-    // Helper to group by interval for 6 months
     const groupByInterval = (dateRange, intervalDays) => {
       const grouped = []
       for (let i = 0; i < dateRange.length; i += intervalDays) {
-        const chunk = dateRange.slice(i, Math.min(i + intervalDays, dateRange.length))
-        if (chunk.length > 0) {
-          const startDate = chunk[0].dateObj
-          const endDate = chunk[chunk.length - 1].dateObj
-          grouped.push({
-            dates: chunk,
-            label: intervalDays === 1 ? chunk[0].date : 
-                  `${startDate.getMonth() + 1}/${startDate.getDate()}-${endDate.getMonth() + 1}/${endDate.getDate()}`,
-            fullDate: chunk[0].fullDate,
-            startDate,
-            endDate
-          })
-        }
+        const chunk = dateRange.slice(i, i + intervalDays)
+        if (!chunk.length) continue
+
+        grouped.push({
+          dates: chunk,
+          start: chunk[0].dateObj,
+          endExclusive: addDays(chunk[chunk.length - 1].dateObj, 1), // ✅ end of last day (exclusive)
+          label:
+            intervalDays === 1
+              ? chunk[0].label
+              : `${chunk[0].label}-${chunk[chunk.length - 1].label}`,
+          fullDate: chunk[0].fullDate,
+        })
       }
       return grouped
     }
 
-    // Revenue by selected range
-    const revenueDays = parseInt(revenueRange)
-    const revenueDateRange = generateDateRange(revenueDays)
-    const revenueGroups = revenueDays === 180 ? groupByInterval(revenueDateRange, 7) : 
-                          revenueDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+    // --- Totals ---
+    const totalOrders = orders.length
+    const totalUsers = users.length
 
-    const revenueByDay = revenueGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
-      const periodOrders = orders.filter(o => {
-        const orderDate = new Date(o.createdAt)
-        return orderDate >= startDate && orderDate <= endDate
-      })
-      return {
-        date: label,
-        fullDate,
-        dateObj: startDate,
-        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
-        orders: periodOrders.length,
-        ordersList: periodOrders
+    // ✅ Revenue totals from COMPLETED only
+    const completedOrdersList = orders.filter(isCompletedOrder)
+    const totalRevenue = completedOrdersList.reduce((s, o) => s + safeNumber(o.totalAmount), 0)
+
+    // Status counts (all orders)
+    const byStatus = orders.reduce((m, o) => {
+      const st = o.status || 'UNKNOWN'
+      m[st] = (m[st] || 0) + 1
+      return m
+    }, {})
+
+    const pendingOrders = byStatus['PENDING'] || 0
+    const completedOrders = byStatus['COMPLETED'] || byStatus['COMPLETE'] || 0
+
+    // ✅ Avg order value based on COMPLETED orders only (since only those create revenue)
+    const avgOrderValue = completedOrders > 0 ? totalRevenue / completedOrders : 0
+
+    // --- Build daily buckets for COMPLETED orders only ---
+    const completedOrderBuckets = new Map()
+    for (const o of completedOrdersList) {
+      const created = new Date(o.createdAt)
+      if (Number.isNaN(created.getTime())) continue
+
+      const k = dayKey(startOfDay(created))
+      if (!completedOrderBuckets.has(k)) {
+        completedOrderBuckets.set(k, { revenue: 0, orders: 0, ordersList: [] })
       }
-    })
+      const b = completedOrderBuckets.get(k)
+      b.revenue += safeNumber(o.totalAmount)
+      b.orders += 1
+      b.ordersList.push(o)
+    }
 
-    // Orders by selected range
-    const ordersDays = parseInt(ordersRange)
-    const orderDateRange = generateDateRange(ordersDays)
-    const orderGroups = ordersDays === 180 ? groupByInterval(orderDateRange, 7) : 
-                        orderDateRange.map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+    const buildOrderSeries = (daysRaw) => {
+      const days = Math.max(1, parseInt(daysRaw || 0, 10))
+      const range = generateDateRange(days)
+      const groups = days === 180 ? groupByInterval(range, 7) : groupByInterval(range, 1)
 
-    const ordersByDay = orderGroups.map(({ dates, label, fullDate, startDate, endDate }) => {
-      const periodOrders = orders.filter(o => {
-        const orderDate = new Date(o.createdAt)
-        return orderDate >= startDate && orderDate <= endDate
+      return groups.map((g) => {
+        let revenue = 0
+        let ordersCount = 0
+        const ordersList = []
+
+        for (const d of g.dates) {
+          const b = completedOrderBuckets.get(d.key)
+          if (!b) continue
+          revenue += b.revenue
+          ordersCount += b.orders
+          ordersList.push(...b.ordersList)
+        }
+
+        return {
+          date: g.label,
+          fullDate: g.fullDate,
+          dateObj: g.start,
+          revenue,          // ✅ completed-only
+          orders: ordersCount, // ✅ completed-only count
+          ordersList,
+        }
       })
-      return {
-        date: label,
-        fullDate,
-        dateObj: startDate,
-        revenue: periodOrders.reduce((s, o) => s + (Number(o.totalAmount) || 0), 0),
-        orders: periodOrders.length,
-        ordersList: periodOrders
-      }
-    })
+    }
 
-    // Status distribution for pie chart
+    const revenueByDay = buildOrderSeries(revenueRange)
+    const ordersByDay = buildOrderSeries(ordersRange)
+
+    // --- Pie status distribution (all orders) ---
     const statusData = Object.entries(byStatus).map(([status, count]) => ({
       name: status,
       value: count,
       color: getStatusColor(status),
-      orders: orders.filter(o => o.status === status)
+      orders: orders.filter((o) => o.status === status),
     }))
 
-    // User growth by selected range
-    const usersDays = parseInt(usersRange)
-    const userDateRange = generateDateRange(usersDays)
-    const userGroups = usersDays === 180 ? groupByInterval(userDateRange, 7) : 
-                       userDateRange.filter((d, i) => usersDays <= 30 || i % 5 === 0 || i === userDateRange.length - 1)
-                       .map(d => ({ dates: [d], label: d.date, fullDate: d.fullDate, startDate: d.dateObj, endDate: d.dateObj }))
+    // --- Users: total users in DB over time (cumulative only) ---
+    const buildUserSeries = (daysRaw) => {
+      const days = Math.max(1, parseInt(daysRaw || 0, 10))
+      const range = generateDateRange(days)
+      const groups = days === 180 ? groupByInterval(range, 7) : groupByInterval(range, 1)
 
-    const usersByDay = userGroups.map(({ label, fullDate, startDate, endDate }) => {
-      const usersUpToDate = users.filter(u => {
-        if (!u.createdAt) return false
-        const createdDate = new Date(u.createdAt)
-        return createdDate <= endDate
-      }).length
-      
-      const newUsersInPeriod = users.filter(u => {
-        if (!u.createdAt) return false
-        const createdDate = new Date(u.createdAt)
-        return createdDate >= startDate && createdDate <= endDate
+      // valid creation timestamps
+      const createdDates = users
+        .map((u) => (u?.createdAt ? new Date(u.createdAt) : null))
+        .filter((d) => d && !Number.isNaN(d.getTime()))
+        .sort((a, b) => a - b)
+
+      // users without a valid createdAt (or missing field) -> baseline (always counted)
+      const baseline = users.length - createdDates.length
+
+      let idx = 0 // number of valid-created users up to current endExclusive
+
+      return groups.map((g) => {
+        // count users created before the end of this period
+        while (idx < createdDates.length && createdDates[idx] < g.endExclusive) {
+          idx++
+        }
+
+        return {
+          date: g.label,
+          fullDate: g.fullDate,
+          dateObj: g.start,
+          users: baseline + idx, // ✅ total users in DB up to this period
+        }
       })
-      
-      return {
-        date: label,
-        fullDate,
-        dateObj: startDate,
-        users: usersUpToDate,
-        newUsers: newUsersInPeriod
-      }
-    })
+    }
 
-    // Recent orders (last 5)
+    const usersByDay = buildUserSeries(usersRange)
+
+    // --- Recent lists ---
     const recentOrders = [...orders]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5)
 
-    // Recent users (last 5)
     const recentUsers = [...users]
-      .filter(u => u.createdAt)
+      .filter((u) => u.createdAt)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5)
 
-    return { 
-      totalOrders, 
-      totalRevenue, 
-      totalUsers, 
-      byStatus, 
+    return {
+      totalOrders,
+      totalRevenue, // ✅ completed-only
+      totalUsers,
+      byStatus,
       pendingOrders,
       completedOrders,
-      avgOrderValue,
-      revenueByDay,
-      ordersByDay,
+      avgOrderValue, // ✅ based on completed-only revenue
+      revenueByDay,  // ✅ completed-only
+      ordersByDay,   // ✅ completed-only
       statusData,
-      usersByDay,
+      usersByDay,    // ✅ cumulative total users over time
       recentOrders,
-      recentUsers
+      recentUsers,
     }
   }, [orders, users, revenueRange, ordersRange, usersRange])
+
 
   return (
     <Box>

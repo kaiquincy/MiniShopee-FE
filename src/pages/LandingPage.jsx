@@ -10,8 +10,10 @@ import {
     Text,
     VStack
 } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 import { FiArrowRight, FiPackage, FiShield, FiTrendingUp } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { fetchProducts } from '../api/products';
 import applianceIcon from "../assets/landingpage/appliance.jpg";
 import beautyIcon from "../assets/landingpage/beauty.jpg";
 import booksIcon from "../assets/landingpage/books.jpg";
@@ -24,6 +26,7 @@ import LandingCarousel from "../components/LandingCarousel";
 
 export default function LandingPage() {
     const nav = useNavigate();
+    const [deals, setDeals] = useState([])
 
     const categories = [
         { label: "Fashion", img: fashionIcon, color: "#EA580C" },
@@ -35,6 +38,164 @@ export default function LandingPage() {
         { label: "Sports", img: sportsIcon, color: "#CA8A04" },
         { label: "Appliances", img: applianceIcon, color: "#DC2626" }
     ];
+
+    const getLocalDateKey = () => {
+        const d = new Date()
+        const yyyy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, "0")
+        const dd = String(d.getDate()).padStart(2, "0")
+        return `${yyyy}-${mm}-${dd}` // local day key
+    }
+
+    const getEndOfDayTs = () => {
+        const d = new Date()
+        d.setHours(23, 59, 59, 999)
+        return d.getTime()
+    }
+
+    const pickRandom = (arr, n) => {
+        const copy = [...arr]
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]]
+        }
+        return copy.slice(0, n)
+    }
+
+    async function getTodaysHotDeals(fetchProducts) {
+        const key = `hotDeals:${getLocalDateKey()}`
+        const cachedRaw = localStorage.getItem(key)
+
+        if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw)
+            if (cached?.expiresAt && Date.now() < cached.expiresAt && Array.isArray(cached.items)) {
+                return cached.items
+            }
+        }
+
+        const res = await fetchProducts({ page: 0, size: 20 })
+        const products = res?.content ?? res ?? []
+
+        const deals = pickRandom(products, 4)
+
+        localStorage.setItem(
+            key,
+            JSON.stringify({ expiresAt: getEndOfDayTs(), items: deals })
+        )
+
+        return deals
+    }
+
+    const pad2 = (n) => String(n).padStart(2, "0")
+    const digits2 = (n) => pad2(n).split("")
+
+    const msUntilMidnight = () => {
+        const now = new Date()
+        const midnight = new Date(now)
+        midnight.setHours(24, 0, 0, 0)
+        return midnight.getTime() - now.getTime()
+    }
+
+    useEffect(() => {
+        let alive = true;
+
+        (async () => {
+            try {
+                const items = await getTodaysHotDeals(fetchProducts)
+                if (alive) setDeals(items)
+            } catch (err) {
+                console.error("Failed to load today's hot deals:", err)
+                if (alive) setDeals([])
+            }
+        })()
+
+        return () => {
+            alive = false
+        }
+    }, [fetchProducts, setDeals])
+
+    const DigitBox = ({ digit }) => (
+        <Box
+            position="relative"
+            w={{ base: "28px", md: "32px" }}
+            h={{ base: "36px", md: "40px" }}
+            borderRadius="md"
+            overflow="hidden"
+            bg="#EA580C"                 // bottom half
+            border="1px solid"
+            borderColor="blackAlpha.200"
+            _before={{
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            h: "50%",
+            bg: "rgba(255,255,255,0.14)" // top half tint
+            }}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+        >
+            <Text position="relative" fontWeight="black" color="white" fontSize={{ base: "xl", md: "2xl" }}>
+                {digit}
+            </Text>
+        </Box>
+    )
+
+    function DealsCountdown() {
+        const [leftMs, setLeftMs] = useState(msUntilMidnight())
+
+        useEffect(() => {
+            const tick = () => setLeftMs(msUntilMidnight())
+            tick()
+
+            const id = setInterval(tick, 1000)
+            return () => clearInterval(id)
+        }, [])
+
+        const totalSec = Math.max(0, Math.floor(leftMs / 1000))
+        const hours = Math.floor(totalSec / 3600)
+        const minutes = Math.floor((totalSec % 3600) / 60)
+        const seconds = totalSec % 60
+
+        return (
+            <HStack gap={6} align="center">
+                <Text fontSize="md" color="whiteAlpha.700">
+                    Deals end in
+                </Text>
+
+                <HStack gap={1}>
+                    {/* HH */}
+                    <HStack gap={1}>
+                        {digits2(hours).map((d, idx) => (
+                            <DigitBox key={`h-${idx}`} digit={d} />
+                        ))}
+                    </HStack>
+
+                    <Text fontWeight="black" fontSize={{ base: "xl", md: "2xl" }} color="#EA580C">:</Text>
+
+                    {/* MM */}
+                    <HStack gap={1}>
+                        {digits2(minutes).map((d, idx) => (
+                            <DigitBox key={`m-${idx}`} digit={d} />
+                        ))}
+                    </HStack>
+
+                    <Text fontWeight="black" fontSize={{ base: "xl", md: "2xl" }} color="#EA580C">:</Text>
+
+                    {/* SS */}
+                    <HStack gap={1}>
+                        {digits2(seconds).map((d, idx) => (
+                            <DigitBox key={`s-${idx}`} digit={d} />
+                        ))}
+                    </HStack>
+                </HStack>
+            </HStack>
+        )
+    }
+
+    console.log(deals)
 
     return (
         <Box bg="black" color="white" className="landing-scroll-container">
@@ -119,7 +280,7 @@ export default function LandingPage() {
                                 h={{ base: "160px", md: "200px", lg: "240px" }}
                                 overflow="hidden"
                                 cursor="pointer"
-                                onClick={() => nav('/products')}
+                                onClick={() => nav('/products&category=/products?category=Men%27s%20fashion')}
                                 transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
                                 role="group"
                                 _hover={{
@@ -213,27 +374,32 @@ export default function LandingPage() {
                         gap={4}
                         direction={{ base: "column", md: "row" }}
                     >
-                        <Box>
-                            <HStack mb={2}>
-                                <FiTrendingUp size={20} color="#EA580C" />
-                                <Text 
-                                    fontSize={{ base: "xs", md: "sm" }}
-                                    fontWeight="bold" 
-                                    color="#EA580C"
-                                    textTransform="uppercase"
-                                    letterSpacing="wider"
-                                >
-                                    Hot Deals
-                                </Text>
+                        <Box w="full">
+                            <HStack w="full" justifyContent="space-between" mb={2}>
+                                <HStack>
+                                    <FiTrendingUp size={20} color="#EA580C" />
+                                    <Text 
+                                        fontSize={{ base: "xs", md: "sm" }}
+                                        fontWeight="bold" 
+                                        color="#EA580C"
+                                        textTransform="uppercase"
+                                        letterSpacing="wider"
+                                    >
+                                        Hot Deals
+                                    </Text>
+                                </HStack>
                             </HStack>
-                            <Text
-                                fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
-                                fontWeight="black"
-                            >
-                                Today's Best Picks
-                            </Text>
+                            <HStack w="full" justifyContent="space-between">
+                                <Text
+                                    fontSize={{ base: "2xl", md: "3xl", lg: "4xl" }}
+                                    fontWeight="black"
+                                >
+                                    Today's Best Picks
+                                </Text>
+                                <DealsCountdown />
+                            </HStack>
                             <Text color="whiteAlpha.600" mt={2} fontSize={{ base: "sm", md: "md" }}>
-                                Limited time offers • Up to 60% off
+                                Limited time offers
                             </Text>
                         </Box>
                     </Flex>
@@ -247,9 +413,9 @@ export default function LandingPage() {
                         }}
                         gap={{ base: 3, md: 4, lg: 6 }}
                     >
-                        {[1, 2, 3, 4].map((item) => (
+                        {deals.map((p, key) => (
                             <Box
-                                key={item}
+                                key={key}
                                 bg="gray.900"
                                 border="1px solid"
                                 borderColor="whiteAlpha.200"
@@ -260,7 +426,7 @@ export default function LandingPage() {
                                     borderColor: "#EA580C",
                                     transform: { base: "scale(0.98)", md: "translateY(-4px)" }
                                 }}
-                                onClick={() => nav('/products')}
+                                onClick={() => nav(`/product/${p.id}`)}
                             >
                                 {/* Product Image */}
                                 <Box
@@ -269,6 +435,19 @@ export default function LandingPage() {
                                     position="relative"
                                     overflow="hidden"
                                 >
+                                    <Image
+                                        src={`${import.meta.env.VITE_API_URL}/uploads/${p.imageUrl}`}
+                                        alt={p.name}
+                                        w="full"
+                                        h="200px"
+                                        objectFit="cover"
+                                        transition="transform 0.3s"
+                                        _hover={{ transform: 'scale(1.05)' }}
+                                        onError={(e) => {
+                                            e.currentTarget.onerror = null;
+                                            e.currentTarget.src = `https://dummyimage.com/400x300/228be6/ffffff.jpg&text=${encodeURIComponent(p.name)}`;
+                                        }}
+                                    />
                                     <Box
                                         position="absolute"
                                         top={2}
@@ -280,47 +459,51 @@ export default function LandingPage() {
                                         fontSize="xs"
                                         fontWeight="bold"
                                     >
-                                        -50%
+                                        {p.discountPrice ? Math.round(100 - (p.price / p.discountPrice) * 100) : 0}%
                                     </Box>
                                 </Box>
 
                                 {/* Product Info */}
-                                <Box p={{ base: 3, md: 4 }}>
-                                    <Text 
-                                        fontWeight="bold" 
+                                <Box p={{ base: 3, md: 4 }} display="flex" flexDirection="column" justifyContent="space-between" minH="205px" >
+                                    <Text
+                                        fontWeight="bold"
                                         mb={2}
                                         fontSize={{ base: "sm", md: "md", lg: "lg" }}
-                                        noOfLines={2}
-                                    >
-                                        Premium Product {item}
+                                        lineClamp={3}
+                                        >
+                                        {p.name}
                                     </Text>
-                                    <HStack spacing={2} mb={3}>
-                                        <Text
-                                            fontWeight="black"
-                                            color="#EA580C"
-                                            fontSize={{ base: "lg", md: "xl", lg: "2xl" }}
+
+                                    <Box>
+                                        <HStack justifyContent="flex-end" gap={2} mb={3}>
+                                            <Text
+                                                fontWeight="black"
+                                                color="#EA580C"
+                                                fontSize={{ base: "lg", md: "xl", lg: "2xl" }}
+                                            >
+                                                {p.price}$
+                                            </Text>
+                                            <Text
+                                                fontSize={{ base: "xs", md: "sm" }}
+                                                color="whiteAlpha.500"
+                                                textDecoration="line-through"
+                                            >
+                                                {p.discountPrice}
+                                            </Text>
+                                        </HStack>
+                                        <Button
+                                            mt="auto"
+                                            w="full"
+                                            bg="white"
+                                            color="black"
+                                            size={{ base: "xs", md: "sm" }}
+                                            borderRadius="none"
+                                            fontWeight="bold"
+                                            _hover={{ bg: "#EA580C", color: "white" }}
                                         >
-                                            $99
-                                        </Text>
-                                        <Text
-                                            fontSize={{ base: "xs", md: "sm" }}
-                                            color="whiteAlpha.500"
-                                            textDecoration="line-through"
-                                        >
-                                            $199
-                                        </Text>
-                                    </HStack>
-                                    <Button
-                                        w="full"
-                                        bg="white"
-                                        color="black"
-                                        size={{ base: "xs", md: "sm" }}
-                                        borderRadius="none"
-                                        fontWeight="bold"
-                                        _hover={{ bg: "#EA580C", color: "white" }}
-                                    >
-                                        Add to Cart
-                                    </Button>
+                                            Add to Cart
+                                        </Button>
+                                    </Box>
                                 </Box>
                             </Box>
                         ))}

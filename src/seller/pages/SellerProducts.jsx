@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { FiEdit2, FiPackage, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi'
 import { useNavigate } from 'react-router-dom'
 import { toaster } from '../../components/ui/toaster'
+import { useTheme } from '../../context/ThemeContext'
 import { deleteProduct, fetchProducts } from '../api/seller'
 
 export default function SellerProducts() {
@@ -11,6 +12,7 @@ export default function SellerProducts() {
   const [loading, setLoading] = useState(false)
   const [rejProduct, setRejProduct] = useState(null) // sản phẩm đang xem lý do reject
   const nav = useNavigate()
+  const { theme } = useTheme()
 
   const load = async () => {
     setLoading(true)
@@ -67,7 +69,7 @@ export default function SellerProducts() {
     )
   }
 
-const ValidationDialog = ({ product, onClose }) => {
+const ValidationDialog = ({ product, onClose, theme }) => {
   const nav = useNavigate()
   const data = parseValidation(product?.validationResult)
 
@@ -106,20 +108,20 @@ const ValidationDialog = ({ product, onClose }) => {
         <Dialog.Positioner>
           <Dialog.Content
               maxW="720px"
-              bg="black"
+              bg={theme.cardBg}
               border="1px solid"
               borderColor={hasRejection ? "red.700" : "whiteAlpha.200"}
               shadow="xl"
               rounded="2xl"
               p={2}>
-            <Dialog.Header borderBottom="1px solid" borderColor="whiteAlpha.200" pb={3}>
+            <Dialog.Header borderBottom="1px solid" borderColor={theme.border} pb={3}>
               <HStack spacing={3}>
                 <Icon
                   as={hasRejection ? FiTrash2 : FiPackage}
                   color={hasRejection ? "red.400" : "brand.400"}
                   boxSize={5}
                 />
-                <Dialog.Title color="white" fontWeight="bold">
+                <Dialog.Title color={theme.text} fontWeight="bold">
                   {hasRejection ? "Validation Failed" : "Validation Summary"} — #{product?.id}
                 </Dialog.Title>
               </HStack>
@@ -127,30 +129,32 @@ const ValidationDialog = ({ product, onClose }) => {
 
             <Dialog.Body py={5} px={3}>
               {!data ? (
-                <Text color="whiteAlpha.700">No validation details available.</Text>
+                <Text color={theme.textMuted}>No validation details available.</Text>
               ) : (
-                <VStack align="stretch" spacing={6}>
+                <VStack align="stretch" gap={6}>
                   {/* SAFETY */}
                   <Box>
                     <HStack justify="space-between" mb={2}>
-                      <Text fontWeight="bold" color="whiteAlpha.900" fontSize="lg">Safety</Text>
+                      <Text fontWeight="bold" color={theme.text} fontSize="lg">Safety</Text>
                       <Badge
                         bg={data.safety?.nsfw_label === "safe" ? "#10B98130" : "#EF444430"}
                         color={data.safety?.nsfw_label === "safe" ? "#10B981" : "#EF4444"}
                         border="1px solid"
                         borderColor={data.safety?.nsfw_label === "safe" ? "#10B981" : "#EF4444"}
                         px={2}
+                        py={1}
+                        fontSize="md"
                       >
                         {data.safety?.nsfw_label?.toUpperCase() || "UNKNOWN"}
                       </Badge>
                     </HStack>
-                    <Text fontSize="sm" color="whiteAlpha.800">
+                    <Text fontSize="sm" color={theme.textSecondary}>
                       Confidence: {data?.safety?.nsfw_confidence ?? '—'}
                     </Text>
                     {Array.isArray(data?.safety?.reasons) && data.safety.reasons.length > 0 && (
                       <VStack align="stretch" spacing={1} mt={2}>
                         {data.safety.reasons.map((r, i) => (
-                          <HStack key={i} color="red.400" align="start">
+                          <HStack key={i} color="red.500" align="start">
                             <Icon as={FiTrash2} boxSize={3.5} mt="2px" />
                             <Text fontSize="sm">{r}</Text>
                           </HStack>
@@ -162,24 +166,26 @@ const ValidationDialog = ({ product, onClose }) => {
                   {/* CONSISTENCY */}
                   <Box>
                     <HStack justify="space-between" mb={2}>
-                      <Text fontWeight="bold" color="whiteAlpha.900" fontSize="lg">Title ↔ Image Consistency</Text>
+                      <Text fontWeight="bold" color={theme.text} fontSize="lg">Title ↔ Image Consistency</Text>
                       <Badge
                         bg={data.consistency?.is_title_image_consistent === 'yes' ? "#2563EB30" : "#EF444430"}
                         color={data.consistency?.is_title_image_consistent === 'yes' ? "#60A5FA" : "#EF4444"}
                         border="1px solid"
                         borderColor={data.consistency?.is_title_image_consistent === 'yes' ? "#60A5FA" : "#EF4444"}
                         px={2}
+                        py={1}
+                        fontSize="md"
                       >
                         {data.consistency?.is_title_image_consistent?.toUpperCase()}
                       </Badge>
                     </HStack>
-                    <Text fontSize="sm" color="whiteAlpha.800">
+                    <Text fontSize="sm" color={theme.textSecondary}>
                       Confidence: {data?.consistency?.confidence ?? '—'}
                     </Text>
                     {Array.isArray(data?.consistency?.mismatch_reasons) && data.consistency.mismatch_reasons.length > 0 && (
                       <VStack align="stretch" spacing={2} mt={2}>
                         {data.consistency.mismatch_reasons.map((r, i) => (
-                          <HStack key={i} align="start" color="red.300">
+                          <HStack key={i} align="start" color="red.500">
                             <Icon as={FiTrash2} boxSize={3.5} mt="2px" />
                             <Text fontSize="sm">{r}</Text>
                           </HStack>
@@ -190,39 +196,39 @@ const ValidationDialog = ({ product, onClose }) => {
 
                   {/* SUGGESTIONS */}
                   <Box>
-                    <Text fontWeight="bold" color="whiteAlpha.900" mb={3} fontSize="lg">
+                    <Text fontWeight="bold" color={theme.text} mb={3} fontSize="lg">
                       Suggested Fixes
                     </Text>
-                    <VStack align="stretch" spacing={4} fontSize="sm" color="whiteAlpha.900">
+                    <VStack align="stretch" gap={4} fontSize="sm" color={theme.text}>
                       {/* Suggested Title + Replace */}
                       {suggestedTitle && (
                         <Box>
                           <HStack  mb={1}>
-                            <Text color="whiteAlpha.600" fontSize="xs" textTransform="uppercase" letterSpacing="wide">
+                            <Text color={theme.textSecondary} fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                               Suggested Title
                             </Text>
                             <Button
-                              size="xs"
+                              size="md"
                               variant="ghost"
-                              px={2}
-                              py={0}
+                              px={3}
+                              py={1}
                               h="22px"
-                              fontSize="xs"
+                              fontSize="sm"
                               // variant={useSuggestedTitle ? "solid" : "outline"}
-                              bg={useSuggestedTitle ? "blue.600" : "transparent"}
-                              color={useSuggestedTitle ? "white" : "whiteAlpha.900"}
-                              borderColor="blue.500"
-                              _hover={{ bg: useSuggestedTitle ? "blue.700" : "blue.900" }}
+                              bg={useSuggestedTitle ? theme.buttonBg : "transparent"}
+                              color={useSuggestedTitle ? "white" : theme.text }
+                              _hover={{ bg: theme.buttonHoverBg, color: "white" }}
+                              borderColor={theme.buttonBg}
                               onClick={() => setUseSuggestedTitle(v => !v)}
                             >
                               {useSuggestedTitle ? "Revert" : "Replace"}
                             </Button>
                           </HStack>
-                          <Text fontWeight="semibold" color="#93C5FD">
+                          <Text fontWeight="semibold" color={theme.textHighlight}>
                             {suggestedTitle}
                           </Text>
                           {useSuggestedTitle && (
-                            <Text mt={1} fontSize="xs" color="whiteAlpha.600">
+                            <Text mt={1} fontSize="sm" color={theme.textSecondary}>
                               Will prefill as <b>{suggestedTitle}</b> on edit page.
                             </Text>
                           )}
@@ -233,31 +239,30 @@ const ValidationDialog = ({ product, onClose }) => {
                       {suggestedDesc && (
                         <Box>
                           <HStack mb={1}>
-                            <Text color="whiteAlpha.600" fontSize="xs" textTransform="uppercase" letterSpacing="wide">
+                            <Text color={theme.textSecondary} fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                               Suggested Description
                             </Text>
                             <Button
-                              size="xs"
-                             variant="ghost"
-                              px={2}
-                              py={0}
+                              size="md"
+                              variant="ghost"
+                              px={3}
+                              py={1}
                               h="22px"
-                              fontSize="xs"
-                              // variant={useSuggestedDesc ? "solid" : "outline"}
-                              bg={useSuggestedDesc ? "blue.600" : "transparent"}
-                              color={useSuggestedDesc ? "white" : "whiteAlpha.900"}
-                              borderColor="blue.500"
-                              _hover={{ bg: useSuggestedDesc ? "blue.700" : "blue.900" }}
+                              fontSize="sm"
+                              bg={useSuggestedTitle ? theme.buttonBg : "transparent"}
+                              color={useSuggestedTitle ? "white" : theme.text }
+                              _hover={{ bg: theme.buttonHoverBg, color: "white" }}
+                              borderColor={theme.buttonBg}
                               onClick={() => setUseSuggestedDesc(v => !v)}
                             >
                               {useSuggestedDesc ? "Revert" : "Replace"}
                             </Button>
                           </HStack>
-                          <Text whiteSpace="pre-wrap" color="whiteAlpha.800">
+                          <Text whiteSpace="pre-wrap" color={theme.textHighlight}>
                             {suggestedDesc}
                           </Text>
                           {useSuggestedDesc && (
-                            <Text mt={1} fontSize="xs" color="whiteAlpha.600">
+                            <Text mt={1} fontSize="sm" color={theme.textSecondary}>
                               Will prefill suggested description on edit page.
                             </Text>
                           )}
@@ -267,10 +272,10 @@ const ValidationDialog = ({ product, onClose }) => {
                       {/* Keywords & Category giữ nguyên như trước */}
                       {Array.isArray(data?.suggestions?.keywords) && data.suggestions.keywords.length > 0 && (
                         <Box>
-                          <Text color="whiteAlpha.600" fontSize="xs" textTransform="uppercase" letterSpacing="wide">Keywords</Text>
+                          <Text color={theme.textSecondary} fontSize="sm" textTransform="uppercase" letterSpacing="wide">Keywords</Text>
                           <HStack wrap="wrap" spacing={2} mt={1}>
                             {data.suggestions.keywords.map((k, i) => (
-                              <Badge key={i} bg="whiteAlpha.200" border="1px solid" borderColor="whiteAlpha.300" color="whiteAlpha.900">
+                              <Badge key={i} bg="#94A3B865" border="1px solid" borderColor="#94A3B830" color={theme.textBadge}>
                                 {k}
                               </Badge>
                             ))}
@@ -279,8 +284,8 @@ const ValidationDialog = ({ product, onClose }) => {
                       )}
                       {data?.suggestions?.category_guess && (
                         <Box>
-                          <Text color="whiteAlpha.600" fontSize="xs" textTransform="uppercase" letterSpacing="wide">Category Guess</Text>
-                          <Badge bg="#2563EB30" color="#60A5FA" border="1px solid" borderColor="#60A5FA">
+                          <Text color={theme.textSecondary} fontSize="sm" textTransform="uppercase" letterSpacing="wide">Category Guess</Text>
+                          <Badge px={2} py={1} fontSize="sm" bg={theme.text} color={theme.inputBg} border="1px solid" borderColor={theme.border} mt={1}>
                             {data.suggestions.category_guess}
                           </Badge>
                         </Box>
@@ -292,7 +297,7 @@ const ValidationDialog = ({ product, onClose }) => {
             </Dialog.Body>
 
             <Dialog.Footer borderTop="1px solid" borderColor="whiteAlpha.200" pt={3}>
-              <Button variant="outline" onClick={onClose}>Close</Button>
+              <Button variant="outline" bg={theme.textSecondary} color="white" onClick={onClose}>Close</Button>
               {hasRejection && (
                 <Button bg="red.600" color="white" _hover={{ bg: "red.700" }} onClick={handleReviewFix}>
                   Review & Fix
@@ -301,7 +306,7 @@ const ValidationDialog = ({ product, onClose }) => {
             </Dialog.Footer>
 
             <Dialog.CloseTrigger asChild>
-              <CloseButton size="sm" color="whiteAlpha.700" />
+              <CloseButton size="lg" color="red.500" />
             </Dialog.CloseTrigger>
           </Dialog.Content>
         </Dialog.Positioner>
@@ -312,28 +317,66 @@ const ValidationDialog = ({ product, onClose }) => {
 
 
   return (
-    <Box color="white" p={8}>
+    <Box p={8}>
       {/* Header */}
       <Flex justify="space-between" align="center" mb={8}>
         <Box>
-          <Heading size="2xl" fontWeight="black" mb={2}>Products</Heading>
-          <Text color="whiteAlpha.600">Manage your product inventory</Text>
+          <Heading size="2xl" fontWeight="black" mb={2} color={theme.text}>Products</Heading>
+          <Text color={theme.textSecondary}>Manage your product inventory</Text>
         </Box>
         <Button
-          bg="brand.500"
+          bg={theme.buttonBg}
           color="white"
           size="lg"
-          leftIcon={<FiPlus />}
-          borderRadius="none"
-          _hover={{ bg: "brand.600" }}
+          borderRadius="md"
+          _hover={{ bg: theme.buttonHoverBg }}
           onClick={() => nav('/seller/products/new')}
+          gap={1}
         >
+          <Icon as={FiPlus} />
           Add Product
         </Button>
       </Flex>
 
+      {/* Stats Summary */}
+      <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={4} mb={6}>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg" >
+          <HStack gap={4}>
+            <Box p={3} bg="#2563EB20" borderRadius="lg">
+              <Icon as={FiPackage} boxSize={5} color="#2563EB" />
+            </Box>
+            <Box>
+              <Text color={theme.text} fontSize="md">Total Products</Text>
+              <Text color="#2563EB" fontWeight="bold" fontSize="2xl">{items.length}</Text>
+            </Box>
+          </HStack>
+        </Box>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg" >
+          <HStack gap={4}>
+            <Box p={3} bg="#10B98120" borderRadius="lg">
+              <Icon as={FiPackage} boxSize={5} color="#10B981" />
+            </Box>
+            <Box>
+              <Text color={theme.text} fontSize="md">In Stock</Text>
+              <Text color="#10B981" fontWeight="bold" fontSize="2xl">{items.filter(p => p.quantity > 0).length}</Text>
+            </Box>
+          </HStack>
+        </Box>
+        <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={4} borderRadius="lg" >
+          <HStack gap={4}>
+            <Box p={3} bg="#EF444420" borderRadius="lg">
+              <Icon as={FiPackage} boxSize={5} color="#EF4444" />
+            </Box>
+            <Box>
+              <Text color={theme.text} fontSize="md">Out of Stock</Text>
+              <Text color="#EF4444" fontWeight="bold" fontSize="2xl">{items.filter(p => !p.quantity || p.quantity === 0).length}</Text>
+            </Box>
+          </HStack>
+        </Box>
+      </Grid>
+
       {/* Search Bar */}
-      <Flex gap={3} mb={6}>
+      <Flex gap={3} mb={6} bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={5} borderRadius="lg" >
         <Box position="relative" flex={1} maxW="500px">
           <Icon
             as={FiSearch}
@@ -341,88 +384,53 @@ const ValidationDialog = ({ product, onClose }) => {
             left={4}
             top="50%"
             transform="translateY(-50%)"
-            color="whiteAlpha.500"
+            color={theme.text}
             boxSize={5}
+            zIndex={1}
           />
           <Input
             placeholder="Search products by name..."
             value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && load()}
-            bg="gray.900"
+            bg={theme.inputBg}
             border="1px solid"
-            borderColor="whiteAlpha.200"
-            color="white"
+            borderColor={theme.border}
+            color={theme.text}
             pl={12}
             h="48px"
-            _placeholder={{ color: "whiteAlpha.500" }}
+            _placeholder={{ color: theme.textSecondary }}
             _focus={{ borderColor: "brand.500" }}
+            borderRadius="lg"
           />
         </Box>
         <Button
           onClick={load}
-          bg="gray.900"
+          bg={theme.buttonBg}
           color="white"
           h="48px"
           px={8}
-          borderRadius="none"
           border="1px solid"
-          borderColor="whiteAlpha.200"
-          _hover={{ borderColor: "brand.500", bg: "gray.800" }}
+          borderColor={theme.border}
+          _hover={{ bg: theme.buttonHoverBg }}
+          borderRadius="lg"
         >
           Search
         </Button>
       </Flex>
 
-      {/* Stats Summary */}
-      <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={4} mb={6}>
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4}>
-          <HStack spacing={3}>
-            <Box p={3} bg="#2563EB20" borderRadius="lg">
-              <Icon as={FiPackage} boxSize={5} color="#2563EB" />
-            </Box>
-            <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Total Products</Text>
-              <Text fontWeight="bold" fontSize="2xl">{items.length}</Text>
-            </Box>
-          </HStack>
-        </Box>
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4}>
-          <HStack spacing={3}>
-            <Box p={3} bg="#10B98120" borderRadius="lg">
-              <Icon as={FiPackage} boxSize={5} color="#10B981" />
-            </Box>
-            <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">In Stock</Text>
-              <Text fontWeight="bold" fontSize="2xl">{items.filter(p => p.stockQuantity > 0).length}</Text>
-            </Box>
-          </HStack>
-        </Box>
-        <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200" p={4}>
-          <HStack spacing={3}>
-            <Box p={3} bg="#EF444420" borderRadius="lg">
-              <Icon as={FiPackage} boxSize={5} color="#EF4444" />
-            </Box>
-            <Box>
-              <Text color="whiteAlpha.600" fontSize="sm">Out of Stock</Text>
-              <Text fontWeight="bold" fontSize="2xl">{items.filter(p => !p.stockQuantity || p.stockQuantity === 0).length}</Text>
-            </Box>
-          </HStack>
-        </Box>
-      </Grid>
-
       {/* Products Table */}
-      <Box bg="gray.900" border="1px solid" borderColor="whiteAlpha.200">
+      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border}>
         {/* Table Header */}
         <Grid
           templateColumns="100px 100px 1fr 150px 160px 180px"
           py={4}
           px={6}
           borderBottom="1px solid"
-          borderColor="whiteAlpha.200"
+          borderColor={theme.border}
           fontWeight="bold"
           fontSize="sm"
-          color="whiteAlpha.700"
+          color={theme.text}
           textTransform="uppercase"
           letterSpacing="wider"
         >
@@ -437,13 +445,13 @@ const ValidationDialog = ({ product, onClose }) => {
         {/* Table Body */}
         {loading ? (
           <Box p={12} textAlign="center">
-            <Text color="whiteAlpha.500">Loading...</Text>
+            <Text color={theme.text}>Loading...</Text>
           </Box>
         ) : items.length === 0 ? (
           <Box p={12} textAlign="center">
-            <Icon as={FiPackage} boxSize={12} color="whiteAlpha.300" mb={4} />
-            <Text color="whiteAlpha.500" fontSize="lg" mb={2}>No products found</Text>
-            <Text color="whiteAlpha.400" fontSize="sm">Add your first product to get started</Text>
+            <Icon as={FiPackage} boxSize={12} color={theme.text} mb={4} />
+            <Text color={theme.text} fontSize="lg" mb={2}>No products found</Text>
+            <Text color={theme.textSecondary} fontSize="sm">Add your first product to get started</Text>
           </Box>
         ) : (
           items.map((p, idx) => (
@@ -453,11 +461,12 @@ const ValidationDialog = ({ product, onClose }) => {
               py={4}
               px={6}
               borderBottom={idx !== items.length - 1 ? "1px solid" : "none"}
-              borderColor="whiteAlpha.100"
+              borderColor={theme.borderLight}
               transition="all 0.2s"
-              _hover={{ bg: "whiteAlpha.50" }}
+              _hover={{ bg: theme.hoverBg }}
               alignItems="center"
             >
+              {console.log(p)}
               {/* ID */}
               <Box>
                 <Text color="brand.400" fontWeight="semibold">#{p.id}</Text>
@@ -473,25 +482,25 @@ const ValidationDialog = ({ product, onClose }) => {
                   borderRadius="md"
                   objectFit="cover"
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
+                  borderColor={theme.border}
                 />
               </Box>
 
               {/* Product Info */}
               <VStack align="start" spacing={1}>
-                <Text fontWeight="bold" fontSize="md" lineClamp={1}>
+                <Text fontWeight="bold" fontSize="lg" lineClamp={1} color={theme.text}>
                   {p.name}
                 </Text>
-                <Text fontSize="sm" color="whiteAlpha.600" lineClamp={2}>
+                <Text fontSize="md" lineClamp={2} color={theme.textSecondary}>
                   {p.description || 'No description'}
                 </Text>
-                {p.stockQuantity !== undefined && (
+                {p.quantity !== undefined && (
                   <Text
-                    fontSize="xs"
-                    color={p.stockQuantity > 0 ? "#10B981" : "#EF4444"}
+                    fontSize="sm"
+                    color={p.quantity > 0 ? "#10B981" : "#EF4444"}
                     fontWeight="semibold"
                   >
-                    Stock: {p.stockQuantity}
+                    Stock: {p.quantity}
                   </Text>
                 )}
               </VStack>
@@ -504,7 +513,7 @@ const ValidationDialog = ({ product, onClose }) => {
                 {p.discountPrice && (
                   <Text
                     fontSize="sm"
-                    color="whiteAlpha.500"
+                    color={theme.textMuted}
                     textDecoration="line-through"
                   >
                     {(p.discountPrice || 0).toLocaleString()} $
@@ -536,26 +545,26 @@ const ValidationDialog = ({ product, onClose }) => {
               <HStack justify="center" spacing={2}>
                 <Button
                   size="sm"
-                  bg="gray.800"
+                  bg={theme.buttonBg}
                   color="white"
                   border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  leftIcon={<FiEdit2 />}
-                  _hover={{ borderColor: "brand.500", bg: "gray.700" }}
+                  borderColor={theme.border}
+                  _hover={{ bg: theme.buttonHoverBg }}
                   onClick={() => nav(`/seller/products/${p.id}/edit`)}
                 >
+                  <Icon as={FiEdit2} />
                   Edit
                 </Button>
                 <Button
                   size="sm"
-                  bg="transparent"
-                  color="red.400"
+                  bg="red.500"
+                  color="white"
                   border="1px solid"
-                  borderColor="red.400"
-                  leftIcon={<FiTrash2 />}
-                  _hover={{ bg: "red.500", color: "white", borderColor: "red.500" }}
+                  borderColor="red.500"
+                  _hover={{ bg: "red.600", color: "white", borderColor: "red.600" }}
                   onClick={() => del(p.id)}
                 >
+                  <Icon as={FiTrash2} />
                   Delete
                 </Button>
               </HStack>
@@ -565,7 +574,7 @@ const ValidationDialog = ({ product, onClose }) => {
       </Box>
 
       {/* Dialog hiển thị chi tiết REJECTED */}
-      <ValidationDialog product={rejProduct} onClose={() => setRejProduct(null)} />
+      <ValidationDialog product={rejProduct} onClose={() => setRejProduct(null)} theme={theme} />
     </Box>
   )
 }

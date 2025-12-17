@@ -110,7 +110,7 @@ export default function SellerLayout() {
       </Box>
 
       {/* Main Content */}
-      <Box flex={1} ml="280px" bg={theme.pageBg} minH="100vh" position="relative">
+      <Box flex={1} ml="280px" bg={theme.pageBg} minH="100vh">
         <Box maxW="1600px" mx="auto">
           <Outlet />
         </Box>

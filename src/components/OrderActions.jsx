@@ -1,24 +1,24 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 // Chakra v3
-import { Flex } from '@chakra-ui/react/flex'
-import { Tooltip } from '../components/ui/Tooltip'
 import { IconButton } from "@chakra-ui/react"
+import { Flex } from '@chakra-ui/react/flex'
 import { Text } from '@chakra-ui/react/text'
+import { Tooltip } from '../components/ui/Tooltip'
 
 // Icons (react-icons/fi)
 import {
   FiCheckCircle,
-  FiTruck,
-  FiPackage,
-  FiXCircle,
-  FiRotateCcw,
-  FiPlayCircle,
   FiCreditCard,
+  FiPackage,
+  FiPlayCircle,
+  FiRotateCcw,
+  FiTruck,
+  FiXCircle,
 } from 'react-icons/fi'
 
 // Import flow
-import { ORDER, ALLOWED } from '../seller/utils/orderFlow'
+import { ALLOWED, ORDER } from '../seller/utils/orderFlow'
 
 // Meta: icon + label + color cho từng action đích
 const ACTION_META = {
@@ -45,14 +45,15 @@ export default function OrderActions({
   onAction,
   loadingFor = {},
   disabled = false,
-  size = 'md',
+  size = 'lg',
   variant = 'ghost',
+  theme
 }) {
   const actions = useMemo(() => ALLOWED[status] || [], [status])
 
   if (!actions.length) {
     return (
-      <Text color="gray.500" fontSize="sm" aria-live="polite">
+      <Text color={theme.textMuted} fontSize="sm" aria-live="polite">
         No next actions
       </Text>
     )
