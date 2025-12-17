@@ -501,7 +501,7 @@ export default function LandingPage() {
                                             fontWeight="bold"
                                             _hover={{ bg: "#EA580C", color: "white" }}
                                         >
-                                            Add to Cart
+                                            View product
                                         </Button>
                                     </Box>
                                 </Box>
