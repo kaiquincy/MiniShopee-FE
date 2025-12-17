@@ -29,9 +29,10 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { fetchProductById, getSimilarProducts } from '../api/products'
+import { openRoom } from '../api/chat'
 import { getRatings, getRatingSummary as getsum, toggleRatingLike } from '../api/ratings'
 
-import { LuChevronLeft, LuChevronRight, LuCopy, LuHash, LuPackage, LuShoppingCart, LuStar, LuThumbsUp } from 'react-icons/lu'
+import { LuChevronLeft, LuMessageCircle , LuChevronRight, LuShare2, LuHash, LuPackage, LuShoppingCart, LuStar, LuThumbsUp } from 'react-icons/lu'
 import ProductCard from '../components/ProductCard'
 import { toaster } from '../components/ui/toaster'
 import { Tooltip } from '../components/ui/Tooltip'
@@ -103,7 +104,7 @@ export default function ProductDetail() {
         setSel({})
         setActiveIdx(0)
       } catch (e) {
-        toaster.create({ title: 'Không tải được sản phẩm', status: 'error' })
+        toaster.create({ title: 'Không tải được sản phẩm', type: 'error' })
       } finally {
         setLoading(false)
       }
@@ -150,7 +151,7 @@ export default function ProductDetail() {
 
       setRatings(prev => append ? [...prev, ...(res.content || [])] : (res.content || []))
     } catch (e) {
-      toaster.create({ title: 'Không tải được đánh giá', status: 'error' })
+      toaster.create({ title: 'Không tải được đánh giá', type: 'error' })
       if (!append) setRatings([])
       setRatingHasMore(false)
     } finally {
@@ -208,7 +209,7 @@ export default function ProductDetail() {
         ...prev,
         [ratingId]: Math.max(0, (prev[ratingId] ?? 0) + (isLiked ? 1 : -1))
       }))
-      toaster.create({ title: 'Không thể cập nhật lượt thích', status: 'error' })
+      toaster.create({ title: 'Không thể cập nhật lượt thích', type: 'error' })
     }
   }
 
@@ -274,14 +275,31 @@ export default function ProductDetail() {
 
   async function handleAddToCart() {
     if (!canAdd) {
-      toaster.create({ title: 'Vui lòng chọn đầy đủ biến thể', status: 'warning' })
+      toaster.create({ title: 'Please select varients!', type: 'warning' })
       return
     }
     try {
       await addToCart(p.id, qty, selectedVariant?.id)
-      toaster.create({ title: 'Đã Add to cart', status: 'success' })
+      toaster.create({ title: 'Add successfully', type: 'success' })
     } catch {
-      toaster.create({ title: 'Không thể Add to cart', status: 'error' })
+      toaster.create({ title: 'Unable to add product', type: 'error' })
+    }
+  }
+
+  const handleContactSeller = async () => {
+    if (!p?.sellerId) {
+      toaster.create({ title: 'Unable to find seller', type: 'error' })
+      return
+    }
+    try {
+      await openRoom(p.sellerId)
+      navigate('/chat')
+    } catch (e) {
+      const message =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        'Không thể mở chat'
+      toaster.create({ title: message, type: 'error' })
     }
   }
 
@@ -563,6 +581,7 @@ export default function ProductDetail() {
               </VStack>
             </Skeleton>
 
+
             {/* Price block */}
             {(() => {
               const effective = Number(basePrice || 0)
@@ -574,39 +593,41 @@ export default function ProductDetail() {
                 <VStack align="flex-start" spacing={2}>
                   {/* Main price + discount */}
                   <HStack spacing={3} align="baseline" wrap="wrap">
-                    <HStack spacing={2} align="baseline">
-                      <Text
-                        fontSize={{ base: "36px", md: "44px" }}
-                        fontWeight="900"
-                        lineHeight="1"
-                        color={theme.text}
-                        letterSpacing="-0.02em"
-                      >
-                        {priceFmt(effective)}
-                      </Text>
-                      <Text
-                        fontSize="md"
-                        fontWeight="bold"
-                        color={theme.textSecondary}
-                      >
-                        USD
-                      </Text>
-                    </HStack>
+                    <HStack spacing={3} align="baseline" wrap="wrap">
+                      <HStack spacing={2} align="baseline">
+                        <Text
+                          fontSize={{ base: "36px", md: "44px" }}
+                          fontWeight="900"
+                          lineHeight="1"
+                          color={theme.text}
+                          letterSpacing="-0.02em"
+                        >
+                          {priceFmt(effective)}
+                        </Text>
+                        <Text
+                          fontSize="md"
+                          fontWeight="bold"
+                          color={theme.textSecondary}
+                        >
+                          USD
+                        </Text>
+                      </HStack>
 
-                    {hasDiscount && (
-                      <Badge
-                        background="linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
-                        color="white"
-                        fontSize="sm"
-                        fontWeight="bold"
-                        borderRadius="md"
-                        px={3}
-                        py={1.5}
-                        boxShadow="0 2px 8px rgba(239, 68, 68, 0.4)"
-                      >
-                        -{pct}% OFF
-                      </Badge>
-                    )}
+                      {hasDiscount && (
+                        <Badge
+                          background="linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+                          color="white"
+                          fontSize="sm"
+                          fontWeight="bold"
+                          borderRadius="md"
+                          px={3}
+                          py={1.5}
+                          boxShadow="0 2px 8px rgba(239, 68, 68, 0.4)"
+                        >
+                          -{pct}% OFF
+                        </Badge>
+                      )}
+                    </HStack>
                   </HStack>
 
                   {/* Base price */}
@@ -735,7 +756,8 @@ export default function ProductDetail() {
                 spacing={3}
                 align="stretch"
               >
-                <Box flex={{ base: "1", md: "0 0 15%" }}>
+                {/* Quantity */}
+                <Box flex={{ base: "1", md: "0 0 67px" }}>
                   <NumberInput.Root
                     size="lg"
                     min={1}
@@ -750,7 +772,6 @@ export default function ProductDetail() {
                       borderColor={theme.borderLight}
                       borderRadius="lg"
                       _hover={{ borderColor: theme.hoverBg }}
-                      w="25%"
                     />
                     <NumberInput.Input 
                       h="full"
@@ -763,7 +784,8 @@ export default function ProductDetail() {
                   </NumberInput.Root>
                 </Box>
 
-                <Box flex={{ base: "1", md: "0 0 75%" }}>
+                {/* Add to Cart - chiếm phần lớn */}
+                <Box flex="1">
                   <Button
                     onClick={handleAddToCart}
                     isDisabled={!canAdd}
@@ -783,25 +805,50 @@ export default function ProductDetail() {
                       transform: 'translateY(-2px)',
                       boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)'
                     }}
-                    _active={{
-                      transform: 'translateY(0)',
-                    }}
-                    _disabled={{
-                      opacity: 0.6,
-                      cursor: 'not-allowed',
-                      transform: 'none'
-                    }}
+                    _active={{ transform: 'translateY(0)' }}
+                    _disabled={{ opacity: 0.6, cursor: 'not-allowed', transform: 'none' }}
                     transition="all 0.2s ease"
                   >
                     <Icon as={LuShoppingCart} boxSize={5} />
                     <Text ml={2}>
-                      {(selectedVariant ? (selectedVariant.stock ?? 0) : (p?.quantity ?? 0)) > 0 ? "Add to Cart" : "Out of Stock"}
+                      {stockShown > 0 ? "Add to Cart" : "Out of Stock"}
                     </Text>
                   </Button>
                 </Box>
 
-                <Box flex={{ base: "1", md: "0 0 10%" }}>
-                  <Tooltip content={hasCopied ? "Link copied!" : "Share product"} openDelay={200}>
+                {/* Chat với người bán */}
+                <Box flex={{ base: "1", md: "0 0 16px" }}>
+                  <Tooltip content="Contact Seller" openDelay={200}>
+                    <Button
+                      onClick={handleContactSeller}
+                      size="lg"
+                      w="full"
+                      h="52px"
+                      variant="outline"
+                      borderColor={theme.borderLight}
+                      color={theme.text}
+                      borderRadius="lg"
+                      fontWeight="bold"
+                      fontSize="md"
+                      leftIcon={<Icon as={LuMessageCircle} boxSize={5} />}
+                      _hover={{ 
+                        bg: theme.hoverBg,
+                        borderColor: theme.accent || '#3B82F6',
+                        transform: 'translateY(-2px)'
+                      }}
+                      _active={{ transform: 'translateY(0)' }}
+                      transition="all 0.2s ease"
+                      boxShadow="0 2px 8px rgba(0,0,0,0.05)"
+                    >
+                      <Icon as={LuMessageCircle} boxSize={5} />
+                      <Text display={{ base: "block", md: "none" }}>Chat</Text>
+                    </Button>
+                  </Tooltip>
+                </Box>
+
+                {/* Share */}
+                <Box flex={{ base: "1", md: "0 0 auto" }}>
+                  <Tooltip content={hasCopied ? "Đã copy link!" : "Share"} openDelay={200}>
                     <Button
                       variant="outline"
                       onClick={onCopy}
@@ -816,7 +863,7 @@ export default function ProductDetail() {
                         borderColor: theme.borderLight
                       }}
                     >
-                      <Icon as={LuCopy} boxSize={4} />
+                      <Icon as={LuShare2} boxSize={4} />
                     </Button>
                   </Tooltip>
                 </Box>
@@ -826,6 +873,9 @@ export default function ProductDetail() {
         </Box>
       </SimpleGrid>
 
+
+
+      {/* Product Details Accordion */}
       <Box pb={20}>
         <Accordion.Root collapsible>
           <Accordion.Item border="none">

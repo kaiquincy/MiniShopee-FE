@@ -8,7 +8,6 @@ import ChatHeader from './components/ChatArea/ChatHeader'
 import Composer from './components/ChatArea/Composer'
 import MessagesList from './components/ChatArea/MessagesList'
 import MobileChatNavigator from './components/Mobile/MobileChatNavigator'
-import NewRoomInput from './components/Sidebar/NewRoomInput'
 import RoomList from './components/Sidebar/RoomList'
 import { useAutoScroll } from './hooks/useAutoScroll'
 import { useChatSocket } from './hooks/useChatSocket'
@@ -266,7 +265,6 @@ export default function Chat() {
                     </Badge>
                   )}
                 </Flex>
-                <NewRoomInput onCreate={createNewRoom} theme={chatTheme} />
               </Box>
               
               {/* Room List */}
