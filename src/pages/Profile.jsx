@@ -149,10 +149,11 @@ export default function UserProfilePage() {
         email: userData?.email || '',
         phone: userData?.phone || '',
         dob: userData?.dateOfBirth,
-        gender: (userData?.gender).toLowerCase() || 'other',
+        gender: userData?.gender?.toLowerCase() || '',
         fullName: userData?.fullName || '',
       })
     } catch (error) {
+      console.error('Error loading user data:', error)
       toaster.create({
         title: 'Error loading data',
         description: error?.message || 'Cannot load profile',

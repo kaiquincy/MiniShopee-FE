@@ -39,6 +39,8 @@ export function useChatSocket({ apiUrl, token, roomId, onMessage }) {
   }, [apiUrl, token, roomId, onMessage])
 
   const send = (payload) => {
+    console.log("useChatSocket sending", payload)
+
     if (!clientRef.current || !roomId) return
     clientRef.current.publish({
       destination: '/app/chat.send',

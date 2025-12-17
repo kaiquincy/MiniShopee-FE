@@ -8,7 +8,6 @@ import { FiArrowLeft, FiMessageSquare } from "react-icons/fi"
 import ChatHeader from "../ChatArea/ChatHeader"
 import Composer from "../ChatArea/Composer"
 import MessagesList from "../ChatArea/MessagesList"
-import NewRoomInput from "../Sidebar/NewRoomInput"
 import RoomList from "../Sidebar/RoomList"
 
 // slide variants
@@ -85,9 +84,7 @@ export default function MobileChatNavigator({
             flexDir="column"
             h="full"
           >
-            <Box p={4} borderBottom="1px solid" borderColor={theme.border} flexShrink={0}>
-              <NewRoomInput onCreate={createNewRoom} theme={theme} />
-            </Box>
+
             <VStack align="stretch" spacing={0} overflowY="auto" flex={1}>
               {rooms.length === 0 ? (
                 <Box p={8} textAlign="center">

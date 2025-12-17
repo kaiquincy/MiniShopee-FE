@@ -1,14 +1,13 @@
 import { Badge, Box, Flex, HStack, Icon, Text, useBreakpointValue, VStack } from '@chakra-ui/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FiMessageCircle, FiMessageSquare, FiUsers, FiZap } from 'react-icons/fi'
-import { history, myRooms, openRoom } from '../../api/chat'
+import { history, myRooms, openRoom, uploadImage } from '../../api/chat'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import ChatHeader from './components/ChatArea/ChatHeader'
 import Composer from './components/ChatArea/Composer'
 import MessagesList from './components/ChatArea/MessagesList'
 import MobileChatNavigator from './components/Mobile/MobileChatNavigator'
-import NewRoomInput from './components/Sidebar/NewRoomInput'
 import RoomList from './components/Sidebar/RoomList'
 import { useAutoScroll } from './hooks/useAutoScroll'
 import { useChatSocket } from './hooks/useChatSocket'
@@ -37,6 +36,15 @@ export default function Chat() {
 
   useEffect(() => { myRooms().then(setRooms) }, [])
 
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    })
+  }, [messages])
+
+
+  
   const sortedRooms = useMemo(() => {
     return [...rooms].sort((a, b) => {
       const dateA = new Date(a.lastMsg?.createdAt || 0)
@@ -50,11 +58,11 @@ export default function Chat() {
   }, [rooms])
 
   // Scroll to bottom function
-  const scrollToBottom = useCallback(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
-    }
-  }, [])
+  // const scrollToBottom = useCallback(() => {
+  //   if (messagesContainerRef.current) {
+  //     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+  //   }
+  // }, [])
 
   const open = useCallback(async (r) => {
     setActive(r)
@@ -63,12 +71,18 @@ export default function Chat() {
     setMessages(initial)
     
     // Scroll to bottom after messages are loaded
-    setTimeout(() => {
-      scrollToBottom()
-    }, 100)
-  }, [scrollToBottom])
+    // setTimeout(() => {
+    //   scrollToBottom()
+    // }, 100)
+  })
+
+  const scrollToBottom = () => {
+    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }
 
   const backToList = () => setActive(null)
+
+
 
   const { send } = useChatSocket({
     apiUrl,
@@ -148,11 +162,13 @@ export default function Chat() {
   const sendImage = async (file) => {
     console.log(file)
     if (!active || !file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      send({ type: 'IMAGE', content: reader.result, fileName: file.name, mimeType: file.type })
-    }
-    reader.readAsDataURL(file)
+    
+
+
+    const { imageUrl } = await uploadImage(file)
+
+    send({ type: 'IMAGE', content: imageUrl})
+    console.log("sending image")
   }
 
   const createNewRoom = async (value) => {
@@ -266,7 +282,6 @@ export default function Chat() {
                     </Badge>
                   )}
                 </Flex>
-                <NewRoomInput onCreate={createNewRoom} theme={chatTheme} />
               </Box>
               
               {/* Room List */}
@@ -317,7 +332,7 @@ export default function Chat() {
 
             {/* Enhanced Chat Area with Pattern Background */}
             <Box 
-              ref={messagesContainerRef}
+              // ref={messagesContainerRef}
               flex={1} 
               display="flex" 
               flexDirection="column" 
@@ -405,6 +420,7 @@ export default function Chat() {
                       meUsername={user?.username} 
                       theme={chatTheme} 
                       endRef={endRef} 
+                      onMediaLoad={scrollToBottom}
                     />
                   </Box>
                   

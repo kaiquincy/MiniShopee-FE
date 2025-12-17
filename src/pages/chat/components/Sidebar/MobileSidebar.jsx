@@ -6,7 +6,6 @@ import {
   DrawerHeader, DrawerBody, DrawerFooter, Button
 } from "@chakra-ui/react"
 import { FiMessageSquare } from "react-icons/fi"
-import NewRoomInput from "./NewRoomInput"
 import RoomList from "./RoomList"
 
 /**
@@ -44,9 +43,7 @@ export default function MobileSidebar({
             </DrawerHeader>
 
             <DrawerBody p={0}>
-              <Box p={4} borderBottom="1px solid" borderColor={theme.border}>
-                <NewRoomInput onCreate={createNewRoom} theme={theme} />
-              </Box>
+
 
               <VStack align="stretch" spacing={0} overflowY="auto" maxH="70vh">
                 {rooms.length === 0 ? (
