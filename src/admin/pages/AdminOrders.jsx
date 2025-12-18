@@ -380,8 +380,9 @@ export default function AdminOrders() {
                     status={o.status}
                     onAction={(next) => doAction(o.orderId, next)}
                     loadingFor={perOrderLoading}
-                    size="sm"
+                    size="md"
                     variant="ghost"
+                    theme={theme}
                   />
                 </Flex>
               </Grid>
