@@ -23,7 +23,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FiChevronLeft, FiChevronRight, FiGrid, FiPackage, FiSearch, FiShoppingBag, FiStar, FiX, FiZap } from 'react-icons/fi'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchProducts } from '../api/products'
+import { fetchProducts, fetchProductsPython } from '../api/products'
 import CategorySidebar from '../components/CategorySidebar'
 import ProductCard from '../components/ProductCard'
 import { toaster } from '../components/ui/toaster'
@@ -39,7 +39,7 @@ const sortOptions = createListCollection({
 
 export default function Products() {
   const { theme } = useTheme()
-  
+  const [isPythonSearch, setIsPythonSearch] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadingPage, setLoadingPage] = useState(false)
   const [data, setData] = useState({ content: [], totalElements: 0 })
@@ -68,6 +68,8 @@ export default function Products() {
 
   const abortRef = useRef(null)
   useEffect(() => {
+    if (isPythonSearch) return
+
     const controller = new AbortController()
     abortRef.current?.abort()
     abortRef.current = controller
@@ -90,8 +92,14 @@ export default function Products() {
       }
     })()
 
+    // fetchProductsPython("tôi muon tìm 1 cái áo khoác thật ấm, không bị xù lông, bền").then(data => {
+    //   console.log('Data from Python API:', data);
+    // }).catch(err => {
+    //   console.error('Error fetching from Python API:', err);
+    // });
+
     return () => controller.abort()
-  }, [query])
+  }, [query, isPythonSearch])
 
   useEffect(() => { setPage(0) }, [q, category, sort])
   useEffect(() => { setSearchInput(q) }, [q])
@@ -105,16 +113,37 @@ export default function Products() {
     }
   }
 
-  const handleSearch = () => {
-    if (searchInput.trim()) {
-      navigate(`/products?q=${encodeURIComponent(searchInput.trim())}`)
-    } else {
-      navigate('/products')
+  const handlePythonSearch = async () => {
+    if (!searchInput.trim()) return
+
+    try {
+      setLoading(true)
+      setIsPythonSearch(true)
+
+      const res = await fetchProductsPython(searchInput.trim())
+
+      // Chuẩn hóa dữ liệu cho giống fetchProducts
+      setData({
+        content: res?.content || res || [],
+        totalElements: res?.totalElements ?? (res?.length || 0),
+        totalPages: 1
+      })
+
+      setPage(0)
+    } catch (err) {
+      toaster.create({
+        title: 'Python search failed',
+        status: 'error'
+      })
+      setData({ content: [], totalElements: 0, totalPages: 1 })
+    } finally {
+      setLoading(false)
     }
   }
 
   const clearSearch = () => {
     setSearchInput('')
+    setIsPythonSearch(false)
     navigate('/products')
   }
 
@@ -512,7 +541,7 @@ export default function Products() {
                     placeholder="Search products by name..."
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={e => e.key === 'Enter' && handlePythonSearch()}
                     bg={theme.inputBg}
                     border="1px solid"
                     borderColor={theme.border}
@@ -567,7 +596,7 @@ export default function Products() {
 
               {/* Search Button */}
               <Button
-                onClick={handleSearch}
+                onClick={handlePythonSearch}
                 background={theme.isLight 
                   ? 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)'
                   : 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)'

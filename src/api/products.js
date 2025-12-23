@@ -21,3 +21,9 @@ export async function getSimilarProducts(productId, { limit = 12, priceBand } = 
   const arr = data?.result ?? []
   return Array.isArray(arr) ? arr : []
 }
+
+export async function fetchProductsPython(param) {
+  const res = await fetch(`http://127.0.0.1:5000/?q=${param}`);
+  const data = await res.json();
+  return data;
+}
