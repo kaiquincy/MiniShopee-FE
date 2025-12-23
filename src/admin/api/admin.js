@@ -31,9 +31,13 @@ export async function adminFetchProducts(params = {}) {
   return {content: data?.result?.content || []}
 }
 
-export async function adminUpdateProductStatus (productId, visible) {
-  // TODO: call PATCH /admin/products/:id
-  return { ok: true }
+export async function adminUpdateProductStatus(productId, status) {
+  const { data } = await api.patch(`/api/admin/products/${productId}/status`, {
+    status, // e.g. "ACTIVE" | "INACTIVE" | "PROCESSING" | ...
+  })
+
+  // supports { result: { ok: true } } or similar
+  return data?.result ?? data
 }
 
 

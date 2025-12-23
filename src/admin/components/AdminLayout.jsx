@@ -7,13 +7,13 @@ import {
   Text,
   VStack
 } from '@chakra-ui/react';
-import { FiClipboard, FiLayout, FiPackage, FiSettings, FiShield, FiTag, FiUsers } from 'react-icons/fi';
+import { FiLayout, FiPackage, FiSettings, FiShield, FiTag, FiUsers } from 'react-icons/fi';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 
 const menuItems = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: FiLayout },
-  { to: '/admin/orders', label: 'Orders', icon: FiClipboard },
+  // { to: '/admin/orders', label: 'Orders', icon: FiClipboard },
   { to: '/admin/users', label: 'Users', icon: FiUsers },
   { to: '/admin/products', label: 'Products', icon: FiPackage },
   { to: '/admin/categories', label: 'Categories', icon: FiTag },

@@ -177,12 +177,12 @@ const openEdit = (node, parentId = null) => {
       </Flex>
 
       {/* Search */}
-      <Flex gap={3} mb={4}>
-        <Box position="relative" flex="1" maxW="520px" bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={3} borderRadius="lg">
+      <Box mb={4} maxW="520px" bg={theme.cardBg} border="1px solid" borderColor={theme.border} p={3} borderRadius="lg">
+        <Box position="relative" flex="1">
           <Icon
             as={FiSearch}
             position="absolute"
-            left={6}
+            left={4}
             top="50%"
             transform="translateY(-50%)"
             color={theme.text}
@@ -201,10 +201,10 @@ const openEdit = (node, parentId = null) => {
             borderRadius="lg"
           />
         </Box>
-      </Flex>
+      </Box>
 
       {/* Tree */}
-      <Box bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
+      <Box position="relative" bg={theme.cardBg} border="1px solid" borderColor={theme.border} borderRadius="lg" overflow="hidden">
         <Box px={6} py={4} borderBottom="1px solid" borderColor={theme.border}>
           <Text fontWeight="bold" fontSize="md" color={theme.text} textTransform="uppercase" letterSpacing="wider">
             Tree
@@ -226,6 +226,7 @@ const openEdit = (node, parentId = null) => {
                   align="center"
                   justify="space-between"
                   _hover={{ bg: theme.hoverBg }}
+                  transition="all 0.2s"
                 >
                   <Box>
                     <Text fontWeight="bold" color={theme.text}>
@@ -241,6 +242,7 @@ const openEdit = (node, parentId = null) => {
                       color="white"
                       _hover={{ bg: theme.buttonHoverBg }}
                       onClick={() => openCreateChild(parent)}
+                      transition="all 0.2s"
                     >
                         <Icon as={FiPlus} />
                       Add child
@@ -292,6 +294,7 @@ const openEdit = (node, parentId = null) => {
                         border="1px solid"
                         borderColor={theme.border}
                         borderRadius="lg"
+                        transition="all 0.2s"
                         _hover={{ bg: theme.hoverBg }}
                       >
                         <Box>
